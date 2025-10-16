@@ -107,17 +107,10 @@ CREATE TABLE evidencias_fotograficas (
     FOREIGN KEY (paciente_id) REFERENCES pacientes(id)
 );
 
--- Para búsquedas rápidas de pacientes
-CREATE INDEX idx_pacientes_nombre ON usuarios(nombre, apellido);
-CREATE INDEX idx_pacientes_expediente ON pacientes(expediente_unique);
-CREATE INDEX idx_pacientes_activo ON pacientes(activo);
 
--- Para calendario y citas
-CREATE INDEX idx_calendario_fecha ON calendario_nutricionistas(fecha, disponible);
-CREATE INDEX idx_citas_fecha ON citas(fecha_cita, estado);
-CREATE INDEX idx_citas_paciente ON citas(paciente_id, fecha_cita);
 
 -- Para registros de pacientes
 CREATE INDEX idx_alimentacion_fecha ON registro_alimentacion(paciente_id, fecha);
 CREATE INDEX idx_ejercicio_fecha ON registro_ejercicio(paciente_id, fecha);
+
 CREATE INDEX idx_evidencias_fecha ON evidencias_fotograficas(paciente_id, fecha_evidencia);
