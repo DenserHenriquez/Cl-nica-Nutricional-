@@ -109,8 +109,3 @@ CREATE TABLE evidencias_fotograficas (
 
 
 
--- Para registros de pacientes
-CREATE INDEX idx_alimentacion_fecha ON registro_alimentacion(paciente_id, fecha);
-CREATE INDEX idx_ejercicio_fecha ON registro_ejercicio(paciente_id, fecha);
-
-CREATE INDEX idx_evidencias_fecha ON evidencias_fotograficas(paciente_id, fecha_evidencia);
