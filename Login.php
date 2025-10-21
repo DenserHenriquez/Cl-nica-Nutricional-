@@ -1,4 +1,0 @@
-<?php
-
-Echo "Hola Mundo";
-
