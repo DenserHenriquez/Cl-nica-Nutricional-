@@ -262,15 +262,6 @@ function qs(array $data): string {
             </div>
         <?php endif; ?>
 
-        <div class="resumen" style="margin-top:20px;">
-            <strong>Consejos de rendimiento:</strong>
-            <ul>
-                <li>Asegúrate de tener índices: idx_pacientes_id en (id) y idx_pacientes_nombre en (nombre).</li>
-                <li>Evita comodines iniciales en la búsqueda por nombre para aprovechar índices (usa "Juan%" en lugar de "%Juan%").</li>
-                <li>Usa EXPLAIN para revisar planes de ejecución: EXPLAIN SELECT ...</li>
-                <li>Prueba con datos grandes y ajusta perPage e índices según los tiempos medidos.</li>
-            </ul>
-        </div>
-    </div>
+            </div>
 </body>
 </html>
