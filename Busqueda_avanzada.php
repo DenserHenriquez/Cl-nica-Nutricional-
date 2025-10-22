@@ -141,17 +141,21 @@ function qs(array $data): string {
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Búsqueda Avanzada de Pacientes</title>
     <link rel="stylesheet" href="assets/css/estilos.css" />
+    <link rel="stylesheet" href="assets/css/estilo.css" />
     <style>
-        /* Estilos mínimos para tabla y paginación si faltan en CSS global */
-        .busqueda-container { max-width: 1100px; margin: 20px auto; background: #fff; padding: 16px; border-radius: 8px; }
-        .filtros { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
-        .filtros input[type="text"] { flex: 1 1 320px; padding: 8px; }
-        .filtros select, .filtros input[type="number"] { padding: 8px; }
-        .tabla-resultados { width: 100%; border-collapse: collapse; margin-top: 16px; }
+        /* Estilos mínimos y ajustes solicitados */
+        html, body { height: 100%; }
+        body { display: flex; align-items: center; justify-content: center; }
+        .busqueda-container { max-width: 900px; width: 90%; margin: 20px auto; background: #e6f2ff; padding: 24px; border-radius: 12px; box-shadow: 0 10px 25px rgba(2,33,88,0.12); }
+        .busqueda-container.centrado { margin: 0 auto; }
+        .filtros { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; justify-content: center; }
+        .filtros input[type="text"] { flex: 1 1 360px; padding: 10px; }
+        .filtros select, .filtros input[type="number"] { padding: 10px; }
+        .tabla-resultados { width: 100%; border-collapse: collapse; margin-top: 16px; background: #ffffff; border-radius: 8px; overflow: hidden; }
         .tabla-resultados th, .tabla-resultados td { border: 1px solid #e5e7eb; padding: 8px; text-align: left; }
-        .tabla-resultados th { background: #f3f4f6; }
+        .tabla-resultados th { background: #dbeafe; }
         .paginacion { display: flex; gap: 8px; justify-content: center; align-items: center; margin-top: 16px; flex-wrap: wrap; }
-        .paginacion a, .paginacion span { padding: 6px 10px; border: 1px solid #d1d5db; border-radius: 4px; text-decoration: none; color: #111827; }
+        .paginacion a, .paginacion span { padding: 6px 10px; border: 1px solid #bfdbfe; border-radius: 6px; text-decoration: none; color: #0f172a; background: #ffffff; }
         .paginacion .activo { background: #3b82f6; color: #fff; border-color: #3b82f6; }
         .errores { background: #fee2e2; color: #991b1b; padding: 10px; border-radius: 6px; margin-top: 12px; }
         .resumen { color: #374151; margin-top: 8px; }
@@ -161,7 +165,7 @@ function qs(array $data): string {
     </style>
 </head>
 <body>
-    <div class="busqueda-container">
+    <div class="busqueda-container centrado">
         <h1>Búsqueda rápida de pacientes</h1>
 
         <form method="get" class="filtros" action="">
