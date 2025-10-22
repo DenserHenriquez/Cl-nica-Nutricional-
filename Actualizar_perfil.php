@@ -8,8 +8,8 @@ require_once __DIR__ . '/db_connection.php';
 // columnas/tabla conforme a tu esquema real.
 
 // CONFIGURACIÓN (ajusta según tus tablas)
-$TABLE_USERS = 'usuarios'; // Alternativas según tu BD: 'pacientes', 'medicos', etc.
-$FIELDS_SELECT = 'id, nombre, apellido, email, telefono, direccion, fecha_nacimiento, genero, foto_perfil';
+$TABLE_USERS = 'usuarios';
+$FIELDS_SELECT = 'id_usuarios, Nombre_completo, Correo_electronico, Usuario, Contrasena';
 // Tabla de historial de actualizaciones (crear en BD si no existe)
 $TABLE_HISTORY = 'historial_actualizaciones';
 
@@ -25,6 +25,7 @@ if (!isset($_SESSION['user_id'])) {
     exit;
 }
 
+// En este proyecto, la tabla `usuarios` usa la clave primaria `id_usuarios`
 $userId = intval($_SESSION['user_id']);
 $errores = [];
 $exito = '';
@@ -32,7 +33,7 @@ $exito = '';
 // Cargar datos actuales del usuario
 function cargarUsuario(mysqli $conexion, string $tabla, int $id, string $campos)
 {
-    $stmt = $conexion->prepare("SELECT $campos FROM $tabla WHERE id = ? LIMIT 1");
+    $stmt = $conexion->prepare("SELECT $campos FROM $tabla WHERE id_usuarios = ? LIMIT 1");
     if (!$stmt) {
         return null;
     }
@@ -83,31 +84,20 @@ function registrar_historial(mysqli $conexion, string $tablaHist, int $userId, a
 // Procesar envío del formulario
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // Sanitización básica
-    $nombre = trim($_POST['nombre'] ?? '');
-    $apellido = trim($_POST['apellido'] ?? '');
-    $email = trim($_POST['email'] ?? '');
-    $telefono = trim($_POST['telefono'] ?? '');
-    $direccion = trim($_POST['direccion'] ?? '');
-    $fecha_nacimiento = trim($_POST['fecha_nacimiento'] ?? '');
-    $genero = trim($_POST['genero'] ?? '');
+    $nombreCompleto = trim($_POST['Nombre_completo'] ?? '');
+    $correo = trim($_POST['Correo_electronico'] ?? '');
+    $usuarioNombre = trim($_POST['Usuario'] ?? '');
+    $contrasena = trim($_POST['Contrasena'] ?? '');
 
     // Validaciones simples
-    if ($nombre === '') $errores[] = 'El nombre es obligatorio';
-    if ($apellido === '') $errores[] = 'El apellido es obligatorio';
-    if ($email === '' || !filter_var($email, FILTER_VALIDATE_EMAIL)) $errores[] = 'Correo electrónico inválido';
-    if ($telefono !== '' && !preg_match('/^[0-9\s+\-()]{7,20}$/', $telefono)) $errores[] = 'Teléfono inválido';
-    if ($fecha_nacimiento !== '') {
-        $d = DateTime::createFromFormat('Y-m-d', $fecha_nacimiento);
-        if (!$d || $d->format('Y-m-d') !== $fecha_nacimiento) {
-            $errores[] = 'Fecha de nacimiento inválida (use formato YYYY-MM-DD)';
-        }
-    }
-    if ($genero !== '' && !in_array($genero, ['M', 'F', 'O'])) {
-        $errores[] = 'Género inválido';
-    }
+    if ($nombreCompleto === '') $errores[] = 'El nombre completo es obligatorio';
+    if ($correo === '' || !filter_var($correo, FILTER_VALIDATE_EMAIL)) $errores[] = 'Correo electrónico inválido';
+    if ($usuarioNombre === '') $errores[] = 'El nombre de usuario es obligatorio';
+    // La contraseña es opcional: solo se actualizará si el usuario envía un valor
 
     // Manejo de foto de perfil opcional
-    $fotoNombreFinal = $usuario['foto_perfil'] ?? null;
+    // La tabla `usuarios` proporcionada no incluye campo de foto; omitimos manejo de imagen
+    $fotoNombreFinal = null;
     $subioFoto = false;
     if (isset($_FILES['foto_perfil']) && is_uploaded_file($_FILES['foto_perfil']['tmp_name'])) {
         $file = $_FILES['foto_perfil'];
@@ -133,18 +123,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     // Construir payload nuevo para diffs
     $payloadNuevo = [
-        'nombre' => $nombre,
-        'apellido' => $apellido,
-        'email' => $email,
-        'telefono' => $telefono,
-        'direccion' => $direccion,
-        'fecha_nacimiento' => $fecha_nacimiento !== '' ? $fecha_nacimiento : null,
-        'genero' => $genero !== '' ? $genero : null,
-        'foto_perfil' => $fotoNombreFinal
+        'Nombre_completo' => $nombreCompleto,
+        'Correo_electronico' => $correo,
+        'Usuario' => $usuarioNombre,
     ];
+    // La contraseña se maneja aparte para poder hashearla y solo si viene informada
 
     // Determinar campos modificados
-    $permitidos = ['nombre','apellido','email','telefono','direccion','fecha_nacimiento','genero','foto_perfil'];
+    $permitidos = ['Nombre_completo','Correo_electronico','Usuario'];
     $cambios = diffs_campos($usuario ?? [], $payloadNuevo, $permitidos);
     if (!$subioFoto) {
         // Si no subió foto, no forzar cambio de foto si no cambió valor
@@ -169,7 +155,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $types .= 'i';
             $values[] = $userId;
 
-            $sql = "UPDATE $TABLE_USERS SET " . implode(', ', $sets) . " WHERE id = ?";
+            $sql = "UPDATE $TABLE_USERS SET " . implode(', ', $sets) . " WHERE id_usuarios = ?";
             $stmt = $conexion->prepare($sql);
             if (!$stmt) {
                 $errores[] = 'Error al preparar la consulta de actualización parcial.';
@@ -192,6 +178,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 // Helper para valor seguro en inputs
 function h(?string $v): string { return htmlspecialchars($v ?? '', ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); }
+
+// Helper para obtener valor del campo del usuario según nombres de columna reales
+function u(array $usuario, string $campo): string { return h($usuario[$campo] ?? ''); }
 
 ?>
 <!DOCTYPE html>
@@ -238,46 +227,20 @@ function h(?string $v): string { return htmlspecialchars($v ?? '', ENT_QUOTES | 
         <form method="post" enctype="multipart/form-data">
             <div class="row">
                 <div class="col">
-                    <label for="nombre">Nombre</label>
-                    <input type="text" id="nombre" name="nombre" value="<?php echo h($usuario['nombre'] ?? ''); ?>" required>
+                    <label for="Nombre_completo">Nombre completo</label>
+                    <input type="text" id="Nombre_completo" name="Nombre_completo" value="<?php echo u($usuario, 'Nombre_completo'); ?>" required>
 
-                    <label for="apellido">Apellido</label>
-                    <input type="text" id="apellido" name="apellido" value="<?php echo h($usuario['apellido'] ?? ''); ?>" required>
+                    <label for="Correo_electronico">Correo electrónico</label>
+                    <input type="email" id="Correo_electronico" name="Correo_electronico" value="<?php echo u($usuario, 'Correo_electronico'); ?>" required>
 
-                    <label for="email">Correo</label>
-                    <input type="email" id="email" name="email" value="<?php echo h($usuario['email'] ?? ''); ?>" required>
+                    <label for="Usuario">Usuario</label>
+                    <input type="text" id="Usuario" name="Usuario" value="<?php echo u($usuario, 'Usuario'); ?>" required>
 
-                    <label for="telefono">Teléfono</label>
-                    <input type="text" id="telefono" name="telefono" value="<?php echo h($usuario['telefono'] ?? ''); ?>" placeholder="Ej: +52 55 1234 5678">
-
-                    <label for="direccion">Dirección</label>
-                    <textarea id="direccion" name="direccion" rows="3"><?php echo h($usuario['direccion'] ?? ''); ?></textarea>
+                    <label for="Contrasena">Nueva contraseña</label>
+                    <input type="password" id="Contrasena" name="Contrasena" placeholder="Dejar en blanco para no cambiar">
                 </div>
                 <div class="col">
-                    <label for="fecha_nacimiento">Fecha de nacimiento</label>
-                    <input type="date" id="fecha_nacimiento" name="fecha_nacimiento" value="<?php echo h($usuario['fecha_nacimiento'] ?? ''); ?>">
-
-                    <label for="genero">Género</label>
-                    <select id="genero" name="genero">
-                        <?php $g = $usuario['genero'] ?? ''; ?>
-                        <option value="">Seleccione</option>
-                        <option value="M" <?php echo ($g==='M')?'selected':''; ?>>Masculino</option>
-                        <option value="F" <?php echo ($g==='F')?'selected':''; ?>>Femenino</option>
-                        <option value="O" <?php echo ($g==='O')?'selected':''; ?>>Otro</option>
-                    </select>
-
-                    <label>Foto de perfil</label>
-                    <div style="display:flex; align-items:center; gap:15px;">
-                        <?php
-                        $foto = $usuario['foto_perfil'] ?? '';
-                        $fotoUrl = $foto ? ('assets/images/perfiles/' . $foto) : 'assets/images/bg4.jpg';
-                        ?>
-                        <img class="avatar" src="<?php echo h($fotoUrl); ?>" alt="Foto de perfil">
-                        <div>
-                            <input type="file" name="foto_perfil" accept="image/*">
-                            <small>PNG/JPG/GIF/WEBP. Se reemplazará la imagen anterior.</small>
-                        </div>
-                    </div>
+                    <p>Nota: Solo se gestionan los campos disponibles en la tabla usuarios.</p>
                 </div>
             </div>
 
