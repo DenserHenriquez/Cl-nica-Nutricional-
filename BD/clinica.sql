@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Servidor: 127.0.0.1
--- Tiempo de generación: 18-10-2025 a las 04:42:56
+-- Tiempo de generación: 22-10-2025 a las 03:13:44
 -- Versión del servidor: 10.4.32-MariaDB
 -- Versión de PHP: 8.2.12
 
@@ -18,7 +18,7 @@ SET time_zone = "+00:00";
 /*!40101 SET NAMES utf8mb4 */;
 
 --
--- Base de datos: `clinica_nutricional`
+-- Base de datos: `clinica`
 --
 
 -- --------------------------------------------------------
@@ -32,8 +32,20 @@ CREATE TABLE `usuarios` (
   `Nombre_completo` varchar(50) NOT NULL,
   `Correo_electronico` varchar(50) NOT NULL,
   `Usuario` varchar(50) NOT NULL,
-  `Contrasena` varchar(50) NOT NULL
+  `Contrasena` varchar(255) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Volcado de datos para la tabla `usuarios`
+--
+
+INSERT INTO `usuarios` (`id_usuarios`, `Nombre_completo`, `Correo_electronico`, `Usuario`, `Contrasena`) VALUES
+(1, 'David Pacheco', 'Dpacheco@pruebas.hn', 'Dpacheco', '1234'),
+(2, 'Pacheco David', 'Pdavid@Pruebas.hn', 'Pdavid', '1234'),
+(3, 'matteito', 'matteito@prueba.hn', 'matteito@prueba.hn', '$2y$10$PwgQ6aQjtQxyhvEtCiI4veLRZmPfwDj7juO86Y/ANPsByUjo2BQoO'),
+(4, 'Dhenriquez', 'Dhenriquez@nutri.hn', 'Dhenriquez@nutri.hn', '$2y$10$AkxaFKWlr4tbEKTyPI5h1.l39ohhlNG0eP4RWHmekX872bYjEIA9C'),
+(5, 'Ppacheco', 'Ppacheco@nutri.hn', 'Ppacheco@nutri.hn', '$2y$10$qeryNlI2wr6sr47Qi/ozDO8TtvazzaRzTFC9UrmZhNiX3ov.QvFS2'),
+(6, 'Hhenriquez', 'Hhenriquez@nutri.hn', 'Hhenriquez@nutri.hn', '$2y$10$fpMxyFgwxFAvHOTPII1TZ.LSg.S8obHg3erHq32nv1SaIgkWdwQcS');
 
 --
 -- Índices para tablas volcadas
@@ -55,7 +67,7 @@ ALTER TABLE `usuarios`
 -- AUTO_INCREMENT de la tabla `usuarios`
 --
 ALTER TABLE `usuarios`
-  MODIFY `id_usuarios` int(15) NOT NULL AUTO_INCREMENT;
+  MODIFY `id_usuarios` int(15) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
