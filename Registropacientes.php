@@ -37,6 +37,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $errores[] = "El historial clínico inicial es obligatorio.";
     }
 
+    // Verificar que usuario_id exista en la tabla usuarios (opcional pero recomendado)
+    if (empty($errores)) {
+        $chk = $conexion->prepare("SELECT 1 FROM usuarios WHERE id_usuarios = ? LIMIT 1");
+        if ($chk) {
+            $uid = (int)$usuario_id;
+            $chk->bind_param("i", $uid);
+            $chk->execute();
+            $resChk = $chk->get_result();
+            if (!$resChk || $resChk->num_rows === 0) {
+                $errores[] = "El Usuario ID no existe en la tabla de usuarios.";
+            }
+            $chk->close();
+        } else {
+            // si falla la preparación, no bloqueamos por esto, pero registramos
+            error_log("Fallo prepare en verificación de usuario: " . $conexion->error);
+        }
+    }
+
     if (!$errores) {
         $expediente = generarExpediente();
         $stmt = $conexion->prepare("
@@ -137,6 +155,8 @@ if ($q) {
         .form-group textarea { resize: vertical; min-height: 90px; }
         .btn { width: 100%; background: #46A2FD; color: #fff; border: none; padding: 10px; margin-top: 18px; border-radius: 6px; cursor: pointer; font-weight: bold; }
 
+        .btn.secondary { background: #777; width: auto; padding: 10px 14px; text-decoration: none; display: inline-block; color: #fff; text-align: center; border-radius: 6px; }
+
         .alert { margin-top: 12px; padding: 10px; border-radius: 6px; font-size: 14px; }
         .alert.ok { background: #e8f9ee; color: #156d2d; border: 1px solid #b8eac7; }
         .alert.err { background: #fdecea; color: #8a1c1c; border: 1px solid #f5c2c0; }
@@ -211,6 +231,11 @@ if ($q) {
         </div>
     <?php endif; ?>
 
+    <!-- Botón para volver al Menú Principal (fuera del form, para no enviar por accidente) -->
+    <div style="max-width:520px;margin:0 auto 12px auto;text-align:right;">
+        <a href="Menuprincipal.php" class="btn secondary">Volver al Menú</a>
+    </div>
+
     <form method="post" autocomplete="off">
         <div class="form-group">
             <label>Usuario ID</label>
@@ -243,7 +268,7 @@ if ($q) {
             <label><input type="checkbox" name="activo" checked> Activo (1)</label>
         </div>
 
-        <button class="btn">Guardar</button>
+        <button class="btn" type="submit">Guardar</button>
     </form>
 </div>
 
