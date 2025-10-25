@@ -20,13 +20,13 @@ if (!is_dir($uploadDir)) {
 }
 
 // Verificar sesión
-if (!isset($_SESSION['user_id'])) {
+if (!isset($_SESSION['id_usuarios'])) {
     header('Location: Login.php');
     exit;
 }
 
 // En este proyecto, la tabla `usuarios` usa la clave primaria `id_usuarios`
-$userId = intval($_SESSION['user_id']);
+$userId = intval($_SESSION['id_usuarios']);
 $errores = [];
 $exito = '';
 
