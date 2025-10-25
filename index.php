@@ -12,9 +12,9 @@
     <style>
         body {
             background-image: url('https://www.comunidad.madrid/sites/default/files/styles/image_style_16_9/public/doc/sanidad/comu/nutricion.jpg?itok=Z0-8kGU_');
-            background-size: cover; /* Ensures the image covers the entire background */
-            background-position: center; /* Centers the image */
-            background-repeat: no-repeat; /* Prevents the image from repeating */
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
         }
         .alert {
             margin: 16px auto;
@@ -33,57 +33,63 @@
 </head>
 <body>
 
-    <main>
-    <?php if (isset($_GET['ok'])): ?>
-        <div class="alert success"><?php echo htmlspecialchars($_GET['ok'], ENT_QUOTES, 'UTF-8'); ?></div>
-    <?php elseif (isset($_GET['error'])): ?>
-        <div class="alert error"><?php echo htmlspecialchars($_GET['error'], ENT_QUOTES, 'UTF-8'); ?></div>
-    <?php endif; ?>
+<main>
+<?php if (isset($_GET['ok'])): ?>
+    <div class="alert success"><?php echo htmlspecialchars($_GET['ok'], ENT_QUOTES, 'UTF-8'); ?></div>
+<?php elseif (isset($_GET['error'])): ?>
+    <div class="alert error"><?php echo htmlspecialchars($_GET['error'], ENT_QUOTES, 'UTF-8'); ?></div>
+<?php endif; ?>
 
-        <div class="contenedor__todo">
-            <div class="caja__trasera">
-                <div class="caja__trasera-login">
-                    <h3>¿Ya tienes una cuenta?</h3>
-                    <p>Inicia sesión para entrar en la página</p>
-                    <button id="btn__iniciar-sesion">Iniciar Sesión</button>
-                </div>
-                <div class="caja__trasera-register">
-                    <h3>¿Aún no tienes una cuenta?</h3>
-                    <p>Regístrate para que puedas iniciar sesión</p>
-                    <button id="btn__registrarse">Regístrarse</button>
-                </div>
+    <div class="contenedor__todo">
+        <div class="caja__trasera">
+            <div class="caja__trasera-login">
+                <h3>¿Ya tienes una cuenta?</h3>
+                <p>Inicia sesión para entrar en la página</p>
+                <button id="btn__iniciar-sesion">Iniciar Sesión</button>
             </div>
-
-            <!--Formulario de Login y registro-->
-            <div class="contenedor__login-register">
-                <!--Login-->
-                <form action="Login.php" method="POST" class="formulario__login"> 
-                    <h2>Iniciar Sesión</h2>
-                    <input type="text" placeholder="Correo Electronico" name="Correo_electronico">
-                    <input type="password" placeholder="Contraseña" name="contrasena">
-                    <button>Entrar</button>
-                </form>
-
-                <!--Register-->
-                <form action="Login.php" method="post" class="formulario__register">
-                    <h2>Regístrarse</h2>
-                    <input type="text" placeholder="Nombre completo" name="nombre_completo">
-                    <input type="text" placeholder="Correo Electronico" name="Correo_electronico">
-                    <input type="text" placeholder="Usuario" name="Usuario">
-                    <input type="password" placeholder="Contraseña" name="contrasena">
-                    <input type="hidden" name="origen" value="index">
-                    <button>Regístrarse</button>
-                </form>
+            <div class="caja__trasera-register">
+                <h3>¿Aún no tienes una cuenta?</h3>
+                <p>Regístrate para que puedas iniciar sesión</p>
+                <button id="btn__registrarse">Regístrarse</button>
             </div>
         </div>
 
-    </main>
+        <!--Formulario de Login y registro-->
+        <div class="contenedor__login-register">
+            <!--Login-->
+            <form action="Login.php" method="POST" class="formulario__login"> 
+                <h2>Iniciar Sesión</h2>
+                <input type="text" placeholder="Correo Electronico" name="Correo_electronico">
+                <input type="password" placeholder="Contraseña" name="contrasena">
+                <button>Entrar</button>
+            </form>
 
-    <script src="assets/js/script.js"></script>
+            <!--Register-->
+            <form action="Login.php" method="post" class="formulario__register">
+                <h2>Regístrarse</h2>
+                <input type="text" placeholder="Nombre completo" name="nombre_completo">
+                <input type="text" placeholder="Correo Electronico" name="Correo_electronico">
+                <input type="text" placeholder="Usuario" name="Usuario">
+                <input type="password" placeholder="Contraseña" name="contrasena">
+                <input type="hidden" name="origen" value="index">
+                <button>Regístrarse</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Botón visible para ir al menú principal -->
+    <div style="text-align: center; margin-top: 20px;">
+        <a href="Menuprincipal.php" 
+           style="display:inline-block; padding:10px 20px; 
+                  background-color:#007bff; color:white; 
+                  border-radius:5px; text-decoration:none;
+                  font-family: 'Roboto', sans-serif;">
+            Ir al Menú Principal
+        </a>
+    </div>
+
+</main>
+
+<script src="assets/js/script.js"></script>
 </body>
 </html>
-
-
-
-
-

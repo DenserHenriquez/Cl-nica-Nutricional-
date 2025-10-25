@@ -1,0 +1,38 @@
+[23-Oct-2025 03:21:43 Europe/Berlin] Login.php error: Unknown column 'id_usuarios' in 'field list'
+[23-Oct-2025 03:22:42 Europe/Berlin] Login.php error: Unknown column 'id_usuarios' in 'field list'
+[23-Oct-2025 03:22:54 Europe/Berlin] Login.php error: Unknown column 'id_usuarios' in 'field list'
+[23-Oct-2025 03:23:52 Europe/Berlin] Login.php error: Unknown column 'id_usuarios' in 'field list'
+[23-Oct-2025 03:24:10 Europe/Berlin] Login.php error: Unknown column 'id_usuarios' in 'field list'
+[23-Oct-2025 03:24:44 Europe/Berlin] Login.php error: Unknown column 'id_usuarios' in 'field list'
+[23-Oct-2025 03:25:44 Europe/Berlin] Login.php error: Unknown column 'id_usuarios' in 'field list'
+[23-Oct-2025 03:27:51 Europe/Berlin] Login.php error: Unknown column 'id_usuarios' in 'field list'
+[24-Oct-2025 04:51:23 Europe/Berlin] Login.php error: Unknown column 'id_usuarios' in 'field list'
+[24-Oct-2025 04:51:29 Europe/Berlin] Login.php error: Unknown column 'id_usuarios' in 'field list'
+[24-Oct-2025 04:52:05 Europe/Berlin] Login.php error: Unknown column 'id_usuarios' in 'field list'
+[24-Oct-2025 04:53:02 Europe/Berlin] Login.php error: Unknown column 'id_usuarios' in 'field list'
+[24-Oct-2025 05:05:58 Europe/Berlin] Login.php error: Unknown column 'id_usuarios' in 'field list'
+[24-Oct-2025 05:06:21 Europe/Berlin] Login.php error: Unknown column 'id_usuarios' in 'field list'
+[24-Oct-2025 05:08:25 Europe/Berlin] Login.php error: Unknown column 'id_usuarios' in 'field list'
+[24-Oct-2025 05:53:09 Europe/Berlin] Login.php error: Unknown column 'id_usuarios' in 'field list'
+[24-Oct-2025 05:53:35 Europe/Berlin] Login.php error: Unknown column 'id_usuarios' in 'field list'
+[24-Oct-2025 05:54:30 Europe/Berlin] Login.php error: Unknown column 'id_usuarios' in 'field list'
+[24-Oct-2025 06:16:48 Europe/Berlin] Login.php error: Unknown column 'id_usuarios' in 'field list'
+[24-Oct-2025 06:20:06 Europe/Berlin] Login.php error: Unknown column 'id_usuarios' in 'field list'
+[24-Oct-2025 06:21:08 Europe/Berlin] Login.php error: Unknown column 'id_usuarios' in 'field list'
+[24-Oct-2025 06:23:54 Europe/Berlin] Login.php error: Unknown column 'id_usuarios' in 'field list'
+[24-Oct-2025 06:24:34 Europe/Berlin] Login.php error: Unknown column 'id_usuarios' in 'field list'
+[24-Oct-2025 06:51:24 Europe/Berlin] Login.php error: Unknown column 'id_usuarios' in 'field list'
+[24-Oct-2025 06:51:46 Europe/Berlin] Login.php error: Unknown column 'id_usuarios' in 'field list'
+[24-Oct-2025 07:00:41 Europe/Berlin] Login.php error: Unknown column 'id_usuarios' in 'field list'
+[24-Oct-2025 07:00:46 Europe/Berlin] Login.php error: Unknown column 'id_usuarios' in 'field list'
+[25-Oct-2025 04:51:37 Europe/Berlin] Login.php error: Unknown column 'id_usuarios' in 'field list'
+[25-Oct-2025 04:51:55 Europe/Berlin] Login.php error: Unknown column 'id_usuarios' in 'field list'
+[25-Oct-2025 04:52:36 Europe/Berlin] Login.php error: Unknown column 'id_usuarios' in 'field list'
+[25-Oct-2025 05:06:34 Europe/Berlin] Login.php error: Unknown column 'id_usuarios' in 'field list'
+[25-Oct-2025 05:13:59 Europe/Berlin] Login.php error: Table 'test.usuarios' doesn't exist
+[25-Oct-2025 05:15:34 Europe/Berlin] Login.php error: Table 'test.usuarios' doesn't exist
+[25-Oct-2025 05:21:33 Europe/Berlin] Login.php error: Table 'test.usuarios' doesn't exist
+[25-Oct-2025 05:23:50 Europe/Berlin] PHP Warning:  Undefined array key "REQUEST_METHOD" in C:\xampp1\htdocs\clinica_nutricional\Login.php on line 21
+[25-Oct-2025 05:23:50 Europe/Berlin] PHP Warning:  Cannot modify header information - headers already sent by (output started at C:\xampp1\htdocs\clinica_nutricional\db_connection.php:10) in C:\xampp1\htdocs\clinica_nutricional\Login.php on line 127
+[25-Oct-2025 05:24:02 Europe/Berlin] Login.php error: Table 'test.usuarios' doesn't exist
+[25-Oct-2025 05:24:16 Europe/Berlin] Login.php error: Table 'test.usuarios' doesn't exist
