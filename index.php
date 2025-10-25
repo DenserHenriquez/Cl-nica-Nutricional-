@@ -14,13 +14,31 @@
             background-image: url('https://www.comunidad.madrid/sites/default/files/styles/image_style_16_9/public/doc/sanidad/comu/nutricion.jpg?itok=Z0-8kGU_');
             background-size: cover; /* Ensures the image covers the entire background */
             background-position: center; /* Centers the image */
-            backg.round-repeat: no-repeat; /* Prevents the image from repeating */
+            background-repeat: no-repeat; /* Prevents the image from repeating */
         }
+        .alert {
+            margin: 16px auto;
+            max-width: 640px;
+            padding: 12px 16px;
+            border-radius: 6px;
+            font-family: 'Roboto', sans-serif;
+            font-size: 14px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+            border-left: 6px solid;
+            background: #fff;
+        }
+        .alert.success { border-color: #2e7d32; color: #1b5e20; }
+        .alert.error { border-color: #c62828; color: #b71c1c; }
     </style>
 </head>
 <body>
 
     <main>
+    <?php if (isset($_GET['ok'])): ?>
+        <div class="alert success"><?php echo htmlspecialchars($_GET['ok'], ENT_QUOTES, 'UTF-8'); ?></div>
+    <?php elseif (isset($_GET['error'])): ?>
+        <div class="alert error"><?php echo htmlspecialchars($_GET['error'], ENT_QUOTES, 'UTF-8'); ?></div>
+    <?php endif; ?>
 
         <div class="contenedor__todo">
             <div class="caja__trasera">
@@ -39,19 +57,19 @@
             <!--Formulario de Login y registro-->
             <div class="contenedor__login-register">
                 <!--Login-->
-                <form action="php/login_usuario_be.php" method="POST" class="formulario__login"> 
+                <form action="Login.php" method="POST" class="formulario__login"> 
                     <h2>Iniciar Sesión</h2>
-                    <input type="text" placeholder="Correo Electronico" name="correo">
+                    <input type="text" placeholder="Correo Electronico" name="Correo_electronico">
                     <input type="password" placeholder="Contraseña" name="contrasena">
                     <button>Entrar</button>
                 </form>
 
                 <!--Register-->
-                <form action="php/registro_usuario_be.php" method="post" class="formulario__register">
+                <form action="Login.php" method="post" class="formulario__register">
                     <h2>Regístrarse</h2>
                     <input type="text" placeholder="Nombre completo" name="nombre_completo">
-                    <input type="text" placeholder="Correo Electronico" name="correo">
-                    <input type="text" placeholder="Usuario" name="usuario">
+                    <input type="text" placeholder="Correo Electronico" name="Correo_electronico">
+                    <input type="text" placeholder="Usuario" name="Usuario">
                     <input type="password" placeholder="Contraseña" name="contrasena">
                     <input type="hidden" name="origen" value="index">
                     <button>Regístrarse</button>
@@ -64,6 +82,7 @@
     <script src="assets/js/script.js"></script>
 </body>
 </html>
+
 
 
 

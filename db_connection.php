@@ -1,4 +1,7 @@
 <?php
+// db_connection.php
+// Conexión a la base de datos MySQL/MariaDB
+
 $DB_HOST = 'localhost';
 $DB_USER = 'root';
 $DB_PASS = '';
@@ -10,4 +13,9 @@ if ($conexion->connect_errno) {
     die('Error de conexión a la base de datos: ' . $conexion->connect_error);
 }
 
-$conexion->set_charset("utf8mb4");
+// Establecer el juego de caracteres
+if (!$conexion->set_charset('utf8mb4')) {
+    // Si falla el charset, podrías registrar el error
+    // error_log("Error al establecer charset: " . $conexion->error);
+}
+?>
