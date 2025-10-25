@@ -5,7 +5,7 @@
 $DB_HOST = 'localhost';
 $DB_USER = 'root';
 $DB_PASS = '';
-$DB_NAME = 'clinica';
+$DB_NAME = 'clinica_nutricional';
 
 $conexion = new mysqli($DB_HOST, $DB_USER, $DB_PASS, $DB_NAME);
 
@@ -16,6 +16,6 @@ if ($conexion->connect_errno) {
 // Establecer el juego de caracteres
 if (!$conexion->set_charset('utf8mb4')) {
     // Si falla el charset, podrías registrar el error
+    // error_log("Error al establecer charset: " . $conexion->error);
 }
-
 ?>
