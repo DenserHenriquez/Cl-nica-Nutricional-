@@ -191,7 +191,12 @@ function u(array $usuario, string $campo): string { return h($usuario[$campo] ??
     <title>Actualizar Perfil</title>
     <link rel="stylesheet" href="assets/css/estilos.css">
     <style>
-        .container { max-width: 900px; margin: 30px auto; background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,.1); }
+        body { 
+            background: #b3e5fc; /* azul celeste */
+            min-height: 100vh;
+            margin: 0;
+        }
+        .container { max-width: 900px; margin: 30px auto; background: #ffffff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,.1); }
         .row { display: flex; gap: 20px; flex-wrap: wrap; }
         .col { flex: 1 1 300px; }
         label { display:block; margin: 10px 0 6px; font-weight: 600; }
