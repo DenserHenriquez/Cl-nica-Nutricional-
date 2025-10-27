@@ -16,7 +16,7 @@ $ITEMS_POR_PAGINA_MAX = 100;    // para evitar consultas muy pesadas
 
 // Sanitización y parámetros
 $termino = isset($_GET['q']) ? trim($_GET['q']) : '';
-$filtro  = isset($_GET['filtro']) ? $_GET['filtro'] : 'nombre'; // 'nombre' | 'id'
+$filtro  = isset($_GET['filtro']) ? $_GET['filtro'] : 'nombre'; // 'nombre' | 'dni'
 $page    = isset($_GET['page']) ? max(1, (int)$_GET['page']) : 1;
 $perPage = isset($_GET['perPage']) ? (int)$_GET['perPage'] : $ITEMS_POR_PAGINA_DEFAULT;
 $perPage = $perPage > 0 ? min($perPage, $ITEMS_POR_PAGINA_MAX) : $ITEMS_POR_PAGINA_DEFAULT;
@@ -41,7 +41,7 @@ $totalPaginas = 0;
 $offset = ($page - 1) * $perPage;
 
 // Normalizar filtro
-$filtro = ($filtro === 'id') ? 'id' : 'nombre';
+$filtro = ($filtro === 'dni') ? 'dni' : 'nombre';
 
 // Generar WHERE y parámetros
 $where = '1=1';
@@ -49,27 +49,21 @@ $params = [];
 $types  = '';
 
 if ($termino !== '') {
-    if ($filtro === 'id') {
-        // Buscar por ID exacto o por coincidencia numérica
-        // Solo permitir dígitos para evitar cast innecesario
-        if (!ctype_digit($termino)) {
-            $errores[] = 'Para buscar por ID, ingresa solo números.';
-        } else {
-            $where .= ' AND p.id = ?';
-            $params[] = (int)$termino;
-            $types   .= 'i';
-        }
+    if ($filtro === 'dni') {
+        // Búsqueda por DNI (prefijo para usabilidad)
+        $where .= ' AND p.dni LIKE ?';
+        $params[] = $termino . '%';
+        $types   .= 's';
     } else {
-        // Búsqueda por nombre con LIKE prefix para usar índice si es posible
-        // Normalizar término para evitar leading wildcards
-        $where .= ' AND p.nombre LIKE ?';
+        // Búsqueda por nombre completo con LIKE (prefijo)
+        $where .= ' AND p.nombre_completo LIKE ?';
         $params[] = $termino . '%';
         $types   .= 's';
     }
 }
 
 // Campos específicos a seleccionar para evitar SELECT *
-$selectCampos = 'p.id, p.nombre, p.apellido, p.fecha_nacimiento, p.telefono, p.email, p.estado';
+$selectCampos = 'p.id_pacientes, p.nombre_completo, p.dni, p.fecha_nacimiento, p.edad, p.telefono';
 
 // 1) Consulta de conteo total (para paginación)
 $sqlCount = "SELECT COUNT(*) AS total FROM pacientes p WHERE $where";
@@ -100,7 +94,7 @@ if ($totalRegistros > 0) {
     }
 
     // 2) Consulta de resultados paginados
-    $sql = "SELECT $selectCampos FROM pacientes p WHERE $where ORDER BY p.nombre ASC, p.apellido ASC LIMIT ? OFFSET ?";
+    $sql = "SELECT $selectCampos FROM pacientes p WHERE $where ORDER BY p.nombre_completo ASC LIMIT ? OFFSET ?";
     $stmt = $conexion->prepare($sql);
     if ($stmt === false) {
         $errores[] = 'Error preparando consulta de resultados: ' . $conexion->error;
@@ -142,12 +136,24 @@ function qs(array $data): string {
     <title>Búsqueda Avanzada de Pacientes</title>
     <link rel="stylesheet" href="assets/css/estilos.css" />
     <style>
+<<<<<<< Updated upstream
         /* Estilos mínimos para tabla y paginación si faltan en CSS global */
         .busqueda-container { max-width: 1100px; margin: 20px auto; background: #fff; padding: 16px; border-radius: 8px; }
         .filtros { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
         .filtros input[type="text"] { flex: 1 1 320px; padding: 8px; }
         .filtros select, .filtros input[type="number"] { padding: 8px; }
         .tabla-resultados { width: 100%; border-collapse: collapse; margin-top: 16px; }
+=======
+        /* Estilos mínimos y ajustes solicitados */
+        html, body { height: 100%; background: #ffffff; }
+        body { display: flex; align-items: center; justify-content: center; background: #ffffff; }
+        .busqueda-container { max-width: 900px; width: 90%; margin: 20px auto; background: #e6f2ff; padding: 24px; border-radius: 12px; box-shadow: 0 10px 25px rgba(2,33,88,0.12); }
+        .busqueda-container.centrado { margin: 0 auto; }
+        .filtros { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; justify-content: center; }
+        .filtros input[type="text"] { flex: 1 1 360px; padding: 10px; }
+        .filtros select, .filtros input[type="number"] { padding: 10px; }
+        .tabla-resultados { width: 100%; border-collapse: collapse; margin-top: 16px; background: #ffffff; border-radius: 8px; overflow: hidden; }
+>>>>>>> Stashed changes
         .tabla-resultados th, .tabla-resultados td { border: 1px solid #e5e7eb; padding: 8px; text-align: left; }
         .tabla-resultados th { background: #f3f4f6; }
         .paginacion { display: flex; gap: 8px; justify-content: center; align-items: center; margin-top: 16px; flex-wrap: wrap; }
@@ -161,14 +167,22 @@ function qs(array $data): string {
     </style>
 </head>
 <body>
+<<<<<<< Updated upstream
     <div class="busqueda-container">
         <h1>Búsqueda rápida de pacientes</h1>
+=======
+    <div class="busqueda-container centrado">
+        <div style="display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap;">
+            <h1 style="margin:0;">Búsqueda rápida de pacientes</h1>
+            <a href="Menuprincipal.php" style="background:#3b82f6; color:#fff; padding:8px 12px; border-radius:8px; text-decoration:none; border:1px solid #2563eb;">Regresar al menú</a>
+        </div>
+>>>>>>> Stashed changes
 
         <form method="get" class="filtros" action="">
-            <input type="text" name="q" placeholder="Buscar por nombre o ID" value="<?= htmlspecialchars($termino, ENT_QUOTES, 'UTF-8') ?>" />
-            <select name="filtro">
+            <input id="q" type="text" name="q" placeholder="Buscar por nombre o DNI" value="<?= htmlspecialchars($termino, ENT_QUOTES, 'UTF-8') ?>" />
+            <select id="filtro" name="filtro">
                 <option value="nombre" <?= $filtro === 'nombre' ? 'selected' : '' ?>>Por nombre</option>
-                <option value="id" <?= $filtro === 'id' ? 'selected' : '' ?>>Por ID</option>
+                <option value="dni" <?= $filtro === 'dni' ? 'selected' : '' ?>>Por DNI</option>
             </select>
             <label>Por página
                 <input type="number" name="perPage" min="1" max="<?= (int)$ITEMS_POR_PAGINA_MAX ?>" value="<?= (int)$perPage ?>" style="width:80px" />
@@ -178,6 +192,47 @@ function qs(array $data): string {
                 <input type="checkbox" name="demo" value="1" <?= $modoDemo ? 'checked' : '' ?> onchange="this.form.submit()" /> Demo rendimiento
             </label>
         </form>
+        <script>
+            (function() {
+                const q = document.getElementById('q');
+                const filtro = document.getElementById('filtro');
+
+                function setRules() {
+                    if (filtro.value === 'dni') {
+                        // Solo números
+                        q.setAttribute('inputmode', 'numeric');
+                        q.setAttribute('pattern', '\\d+');
+                        q.placeholder = 'Buscar por DNI (solo números)';
+                    } else {
+                        // Solo letras y espacios (incluye acentos y ñ)
+                        q.setAttribute('inputmode', 'text');
+                        q.setAttribute('pattern', '[A-Za-zÁÉÍÓÚáéíóúÑñ ]+');
+                        q.placeholder = 'Buscar por nombre (solo letras)';
+                    }
+                }
+
+                function keyFilter(e) {
+                    if (filtro.value === 'dni') {
+                        // Permitir dígitos, navegación, borrar
+                        const allowed = /[0-9]/;
+                        const controlKeys = ['Backspace','Delete','ArrowLeft','ArrowRight','Home','End','Tab'];
+                        if (controlKeys.includes(e.key) || (e.ctrlKey || e.metaKey)) return;
+                        if (!allowed.test(e.key)) e.preventDefault();
+                    } else {
+                        // Permitir letras, espacio y acentos comunes
+                        const allowed = /[A-Za-zÁÉÍÓÚáéíóúÑñ ]/;
+                        const controlKeys = ['Backspace','Delete','ArrowLeft','ArrowRight','Home','End','Tab'];
+                        if (controlKeys.includes(e.key) || (e.ctrlKey || e.metaKey)) return;
+                        if (!allowed.test(e.key)) e.preventDefault();
+                    }
+                }
+
+                filtro.addEventListener('change', setRules);
+                q.addEventListener('keydown', keyFilter);
+                // Inicializar con el valor actual
+                setRules();
+            })();
+        </script>
 
         <?php if (!empty($errores)): ?>
             <div class="errores">
@@ -196,33 +251,25 @@ function qs(array $data): string {
                 <thead>
                     <tr>
                         <th>ID</th>
-                        <th>Nombre</th>
-                        <th>Apellido</th>
+                        <th>Nombre completo</th>
+                        <th>DNI</th>
                         <th>Fecha Nacimiento</th>
+                        <th>Edad</th>
                         <th>Teléfono</th>
-                        <th>Email</th>
-                        <th>Estado</th>
                         <th>Acciones</th>
                     </tr>
                 </thead>
                 <tbody>
                     <?php foreach ($resultados as $pac): ?>
                         <tr>
-                            <td><?= (int)$pac['id'] ?></td>
-                            <td><?= htmlspecialchars($pac['nombre'] ?? '', ENT_QUOTES, 'UTF-8') ?></td>
-                            <td><?= htmlspecialchars($pac['apellido'] ?? '', ENT_QUOTES, 'UTF-8') ?></td>
+                            <td><?= (int)$pac['id_pacientes'] ?></td>
+                            <td><?= htmlspecialchars($pac['nombre_completo'] ?? '', ENT_QUOTES, 'UTF-8') ?></td>
+                            <td><?= htmlspecialchars($pac['dni'] ?? '', ENT_QUOTES, 'UTF-8') ?></td>
                             <td><?= htmlspecialchars($pac['fecha_nacimiento'] ?? '', ENT_QUOTES, 'UTF-8') ?></td>
+                            <td><?= htmlspecialchars((string)($pac['edad'] ?? ''), ENT_QUOTES, 'UTF-8') ?></td>
                             <td><?= htmlspecialchars($pac['telefono'] ?? '', ENT_QUOTES, 'UTF-8') ?></td>
-                            <td><?= htmlspecialchars($pac['email'] ?? '', ENT_QUOTES, 'UTF-8') ?></td>
                             <td>
-                                <?php
-                                $estado = strtolower((string)($pac['estado'] ?? ''));
-                                $clase = ($estado === 'activo') ? 'badge activo' : 'badge inactivo';
-                                ?>
-                                <span class="<?= $clase ?>"><?= htmlspecialchars($pac['estado'] ?? '', ENT_QUOTES, 'UTF-8') ?></span>
-                            </td>
-                            <td>
-                                <a href="Registropacientes.php?id=<?= (int)$pac['id'] ?>">Ver</a>
+                                <a href="Registropacientes.php?id=<?= (int)$pac['id_pacientes'] ?>">Ver</a>
                             </td>
                         </tr>
                     <?php endforeach; ?>
