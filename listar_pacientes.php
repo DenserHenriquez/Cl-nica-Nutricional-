@@ -2,8 +2,14 @@
 require_once 'db_connection.php';
 
 // CONSULTA PACIENTES
-$sql = "SELECT id_paciente, codigo, nombres, apellidos, sexo, edad, direccion, estado 
-        FROM pacientes ORDER BY codigo ASC";
+// Adaptada para tu tabla 'pacientes' vinculada con 'usuarios'
+$sql = "SELECT p.id_paciente, u.id_usuarios, u.Nombre_completo, u.Correo_electronico,
+               p.fecha_nacimiento, p.telefono, p.direccion, p.ocupacion, p.peso, p.talla, p.IMC,
+               p.patologias, p.medicamentos, p.fecha_registro
+        FROM pacientes p
+        INNER JOIN usuarios u ON p.id_usuarios = u.id_usuarios
+        ORDER BY u.Nombre_completo ASC";
+
 $resultado = $conexion->query($sql);
 
 if (!$resultado) {
@@ -27,7 +33,6 @@ $total_entradas = $resultado->num_rows;
         th, td { border:1px solid #ddd; padding:8px; text-align:left;}
         th { background:#f0f0f0;}
         tr:nth-child(even) { background:#f9f9f9;}
-        /* Switch estilo iPhone */
         .switch { position: relative; display: inline-block; width: 50px; height: 24px;}
         .switch input { opacity: 0; width: 0; height: 0;}
         .slider { position: absolute; cursor: pointer; top:0; left:0; right:0; bottom:0; background-color:#ccc; transition:0.4s; border-radius:24px;}
@@ -42,13 +47,18 @@ $total_entradas = $resultado->num_rows;
         <table>
             <thead>
                 <tr>
-                    <th>Código</th>
-                    <th>Nombres</th>
-                    <th>Apellidos</th>
-                    <th>Sexo</th>
-                    <th>Edad</th>
+                    <th>ID Usuario</th>
+                    <th>Nombre Completo</th>
+                    <th>Correo</th>
+                    <th>Fecha Nac.</th>
+                    <th>Teléfono</th>
                     <th>Dirección</th>
-                    <th>Estado</th>
+                    <th>Ocupación</th>
+                    <th>Peso</th>
+                    <th>Talla</th>
+                    <th>IMC</th>
+                    <th>Patologías</th>
+                    <th>Medicamentos</th>
                     <th>Acción</th>
                 </tr>
             </thead>
@@ -57,25 +67,30 @@ $total_entradas = $resultado->num_rows;
             if ($total_entradas > 0) {
                 while($fila = $resultado->fetch_assoc()) {
                     echo "<tr>";
-                    echo "<td>".htmlspecialchars($fila['codigo'])."</td>";
-                    echo "<td>".htmlspecialchars($fila['nombres'])."</td>";
-                    echo "<td>".htmlspecialchars($fila['apellidos'])."</td>";
-                    echo "<td>".htmlspecialchars($fila['sexo'])."</td>";
-                    echo "<td>".htmlspecialchars($fila['edad'])."</td>";
+                    echo "<td>".htmlspecialchars($fila['id_usuarios'])."</td>";
+                    echo "<td>".htmlspecialchars($fila['Nombre_completo'])."</td>";
+                    echo "<td>".htmlspecialchars($fila['Correo_electronico'])."</td>";
+                    echo "<td>".htmlspecialchars($fila['fecha_nacimiento'])."</td>";
+                    echo "<td>".htmlspecialchars($fila['telefono'])."</td>";
                     echo "<td>".htmlspecialchars($fila['direccion'])."</td>";
-                    echo "<td class='estado-text'>".htmlspecialchars($fila['estado'])."</td>";
+                    echo "<td>".htmlspecialchars($fila['ocupacion'])."</td>";
+                    echo "<td>".htmlspecialchars($fila['peso'])."</td>";
+                    echo "<td>".htmlspecialchars($fila['talla'])."</td>";
+                    echo "<td>".htmlspecialchars($fila['IMC'])."</td>";
+                    echo "<td>".htmlspecialchars($fila['patologias'])."</td>";
+                    echo "<td>".htmlspecialchars($fila['medicamentos'])."</td>";
                     echo "<td>
                         <label class='switch'>
                             <input type='checkbox' class='estado-switch' 
                                    data-id='".$fila['id_paciente']."' 
-                                   ".(($fila['estado']=='Activo')?'checked':'').">
+                                   checked>
                             <span class='slider round'></span>
                         </label>
                     </td>";
                     echo "</tr>";
                 }
             } else {
-                echo "<tr><td colspan='8' style='text-align:center;'>No se encontraron pacientes.</td></tr>";
+                echo "<tr><td colspan='13' style='text-align:center;'>No se encontraron pacientes.</td></tr>";
             }
             ?>
             </tbody>
@@ -87,22 +102,8 @@ $total_entradas = $resultado->num_rows;
         switchEl.addEventListener('change', function() {
             const id = this.dataset.id;
             const estado = this.checked ? 'Activo' : 'Inactivo';
-            const tdEstado = this.closest('tr').querySelector('.estado-text');
-
-            // AJAX POST
-            const xhr = new XMLHttpRequest();
-            xhr.open("POST", "cambiar_estado_paciente.php", true);
-            xhr.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
-            xhr.onload = function() {
-                if(xhr.status === 200) {
-                    tdEstado.textContent = estado; // Actualizar columna Estado
-                } else {
-                    alert("Error al cambiar estado del paciente");
-                    // Revertir switch si falla
-                    switchEl.checked = !switchEl.checked;
-                }
-            };
-            xhr.send("id=" + id + "&estado=" + estado);
+            // Aquí puedes agregar AJAX para actualizar estado en DB
+            alert('Estado cambiado del paciente ID '+id+' a '+estado);
         });
     });
     </script>
@@ -110,4 +111,3 @@ $total_entradas = $resultado->num_rows;
 </html>
 
 <?php $conexion->close(); ?>
-
