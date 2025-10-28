@@ -2,12 +2,11 @@
 require_once 'db_connection.php';
 
 // CONSULTA PACIENTES + USUARIOS
-$sql = "SELECT p.id_paciente, u.id_usuarios, u.Nombre_completo, u.Correo_electronico,
-               p.fecha_nacimiento, p.telefono, p.direccion, p.ocupacion, p.peso, p.talla, p.IMC,
-               p.patologias, p.medicamentos, p.estado
+$sql = "SELECT p.id_pacientes, p.id_usuarios, p.nombre_completo, p.DNI, p.fecha_nacimiento, p.edad, p.telefono, p.estado,
+               u.Nombre_completo as usuario_nombre, u.Correo_electronico
         FROM pacientes p
         INNER JOIN usuarios u ON p.id_usuarios = u.id_usuarios
-        ORDER BY u.Nombre_completo ASC";
+        ORDER BY p.nombre_completo ASC";
 
 $resultado = $conexion->query($sql);
 if (!$resultado) {
@@ -81,6 +80,18 @@ input:checked + .slider:before { transform: translateX(26px); }
 }
 .menu-btn:hover { background:#1565c0; }
 
+.btn-archivar {
+    background: #d32f2f;
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    border-radius: 5px;
+    cursor: pointer;
+}
+.btn-archivar:hover {
+    background: #b71c1c;
+}
+
 @media(max-width:768px) {
     th, td { font-size:12px; padding:8px; }
 }
@@ -89,25 +100,24 @@ input:checked + .slider:before { transform: translateX(26px); }
 <body>
 
 <div class="main-content">
-    <a href="Menuprincipal.php" class="menu-btn"><i class="fas fa-arrow-left"></i> Menú Principal</a>
-    <h1>Lista de Pacientes</h1>
+    <div style="position: relative; margin-bottom: 16px;">
+        <a href="Menuprincipal.php" style="position: absolute; top: 0; right: 0; display: inline-block; padding: 6px 12px; background: #0d47a1; color: white; text-decoration: none; border-radius: 6px; font-weight: 500; font-size: 0.875rem; transition: background 0.2s;">Menu Principal</a>
+    </div>
+    <h1>Pacientes</h1>
     
     <div class="table-wrapper">
         <table>
             <thead>
                 <tr>
+                    <th>ID Paciente</th>
                     <th>ID Usuario</th>
                     <th>Nombre Completo</th>
-                    <th>Correo</th>
+                    <th>DNI</th>
                     <th>Fecha Nac.</th>
+                    <th>Edad</th>
                     <th>Teléfono</th>
-                    <th>Dirección</th>
-                    <th>Ocupación</th>
-                    <th>Peso</th>
-                    <th>Talla</th>
-                    <th>IMC</th>
-                    <th>Patologías</th>
-                    <th>Medicamentos</th>
+                    <th>Usuario</th>
+                    <th>Correo</th>
                     <th>Estado</th>
                     <th>Acción</th>
                 </tr>
@@ -116,35 +126,29 @@ input:checked + .slider:before { transform: translateX(26px); }
             <?php
             if ($total_entradas > 0) {
                 while($fila = $resultado->fetch_assoc()) {
-                    $estado_clase = 'estado-' . htmlspecialchars($fila['estado']);
-                    $is_checked = ($fila['estado']=='Activo') ? 'checked' : '';
-                    
                     echo "<tr>";
+                    echo "<td>".htmlspecialchars($fila['id_pacientes'])."</td>";
                     echo "<td>".htmlspecialchars($fila['id_usuarios'])."</td>";
-                    echo "<td>".htmlspecialchars($fila['Nombre_completo'])."</td>";
-                    echo "<td>".htmlspecialchars($fila['Correo_electronico'])."</td>";
+                    echo "<td>".htmlspecialchars($fila['nombre_completo'])."</td>";
+                    echo "<td>".htmlspecialchars($fila['DNI'])."</td>";
                     echo "<td>".htmlspecialchars($fila['fecha_nacimiento'])."</td>";
+                    echo "<td>".htmlspecialchars($fila['edad'])."</td>";
                     echo "<td>".htmlspecialchars($fila['telefono'])."</td>";
-                    echo "<td>".htmlspecialchars($fila['direccion'])."</td>";
-                    echo "<td>".htmlspecialchars($fila['ocupacion'])."</td>";
-                    echo "<td>".htmlspecialchars($fila['peso'])."</td>";
-                    echo "<td>".htmlspecialchars($fila['talla'])."</td>";
-                    echo "<td>".htmlspecialchars($fila['IMC'])."</td>";
-                    echo "<td>".htmlspecialchars($fila['patologias'])."</td>";
-                    echo "<td>".htmlspecialchars($fila['medicamentos'])."</td>";
-                    echo "<td class='estado-text {$estado_clase}'>".htmlspecialchars($fila['estado'])."</td>";
+                    echo "<td>".htmlspecialchars($fila['usuario_nombre'])."</td>";
+                    echo "<td>".htmlspecialchars($fila['Correo_electronico'])."</td>";
+                    echo "<td class='estado-text estado-".htmlspecialchars($fila['estado'])."'>".htmlspecialchars($fila['estado'])."</td>";
                     echo "<td>
-                            <label class='switch'>
-                                <input type='checkbox' class='estado-switch' 
-                                       data-id='".$fila['id_paciente']."' 
-                                       {$is_checked}>
-                                <span class='slider round'></span>
-                            </label>
-                          </td>";
+                        <label class='switch'>
+                            <input type='checkbox' class='estado-switch' 
+                                   data-id='".$fila['id_pacientes']."' 
+                                   ".(($fila['estado']=='Activo')?'checked':'').">
+                            <span class='slider round'></span>
+                        </label>
+                    </td>";
                     echo "</tr>";
                 }
             } else {
-                echo "<tr><td colspan='14' style='text-align:center;'>No se encontraron pacientes.</td></tr>";
+                echo "<tr><td colspan='11' style='text-align:center;'>No se encontraron pacientes.</td></tr>";
             }
             ?>
             </tbody>
@@ -159,21 +163,18 @@ document.querySelectorAll('.estado-switch').forEach(function(switchEl) {
         const estado = this.checked ? 'Activo' : 'Inactivo';
         const tdEstado = this.closest('tr').querySelector('.estado-text');
 
-        tdEstado.textContent = estado;
-        tdEstado.classList.remove('estado-Activo', 'estado-Inactivo');
-        tdEstado.classList.add('estado-' + estado);
-        
+        // AJAX POST
         const xhr = new XMLHttpRequest();
         xhr.open("POST", "cambiar_estado_paciente.php", true);
         xhr.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
         xhr.onload = function() {
-            if(xhr.status !== 200) {
-                alert("Error al cambiar estado del paciente. Revirtiendo cambio visual.");
-                switchEl.checked = !switchEl.checked; 
-                const oldEstado = switchEl.checked ? 'Activo' : 'Inactivo';
-                tdEstado.textContent = oldEstado;
-                tdEstado.classList.remove('estado-Activo', 'estado-Inactivo');
-                tdEstado.classList.add('estado-' + oldEstado);
+            if(xhr.status === 200) {
+                tdEstado.textContent = estado; // Actualizar columna Estado
+                tdEstado.className = 'estado-text estado-' + estado; // Actualizar clase para color
+            } else {
+                alert("Error al cambiar estado del paciente");
+                // Revertir switch si falla
+                switchEl.checked = !switchEl.checked;
             }
         };
         xhr.send("id=" + id + "&estado=" + estado);

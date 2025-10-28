@@ -8,7 +8,7 @@ if (isset($_POST['id']) && isset($_POST['estado'])) {
     $nuevo_estado = ($_POST['estado'] === 'Activo') ? 'Activo' : 'Inactivo';
 
     // Preparar consulta segura
-    $sql = "UPDATE pacientes SET estado = ? WHERE id_paciente = ?";
+    $sql = "UPDATE pacientes SET estado = ? WHERE id_pacientes = ?";
     if ($stmt = $conexion->prepare($sql)) {
         $stmt->bind_param("si", $nuevo_estado, $id_paciente);
         if ($stmt->execute()) {
