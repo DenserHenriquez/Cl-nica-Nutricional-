@@ -94,7 +94,7 @@ if ($totalRegistros > 0) {
     }
 
     // 2) Consulta de resultados paginados
-    $sql = "SELECT $selectCampos FROM pacientes p WHERE $where ORDER BY p.nombre_completo ASC LIMIT ? OFFSET ?";
+    $sql = "SELECT $selectCampos FROM pacientes p WHERE $where ORDER BY p.id_pacientes ASC LIMIT ? OFFSET ?";
     $stmt = $conexion->prepare($sql);
     if ($stmt === false) {
         $errores[] = 'Error preparando consulta de resultados: ' . $conexion->error;
@@ -136,14 +136,14 @@ function qs(array $data): string {
     <title>Búsqueda Avanzada de Pacientes</title>
     <link rel="stylesheet" href="assets/css/estilos.css" />
     <style>
-<<<<<<< Updated upstream
+
         /* Estilos mínimos para tabla y paginación si faltan en CSS global */
         .busqueda-container { max-width: 1100px; margin: 20px auto; background: #fff; padding: 16px; border-radius: 8px; }
         .filtros { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
         .filtros input[type="text"] { flex: 1 1 320px; padding: 8px; }
         .filtros select, .filtros input[type="number"] { padding: 8px; }
         .tabla-resultados { width: 100%; border-collapse: collapse; margin-top: 16px; }
-=======
+
         /* Estilos mínimos y ajustes solicitados */
         html, body { height: 100%; background: #ffffff; }
         body { display: flex; align-items: center; justify-content: center; background: #ffffff; }
@@ -153,7 +153,7 @@ function qs(array $data): string {
         .filtros input[type="text"] { flex: 1 1 360px; padding: 10px; }
         .filtros select, .filtros input[type="number"] { padding: 10px; }
         .tabla-resultados { width: 100%; border-collapse: collapse; margin-top: 16px; background: #ffffff; border-radius: 8px; overflow: hidden; }
->>>>>>> Stashed changes
+
         .tabla-resultados th, .tabla-resultados td { border: 1px solid #e5e7eb; padding: 8px; text-align: left; }
         .tabla-resultados th { background: #f3f4f6; }
         .paginacion { display: flex; gap: 8px; justify-content: center; align-items: center; margin-top: 16px; flex-wrap: wrap; }
@@ -167,17 +167,14 @@ function qs(array $data): string {
     </style>
 </head>
 <body>
-<<<<<<< Updated upstream
+
     <div class="busqueda-container">
-        <h1>Búsqueda rápida de pacientes</h1>
-=======
+        
     <div class="busqueda-container centrado">
         <div style="display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap;">
             <h1 style="margin:0;">Búsqueda rápida de pacientes</h1>
             <a href="Menuprincipal.php" style="background:#3b82f6; color:#fff; padding:8px 12px; border-radius:8px; text-decoration:none; border:1px solid #2563eb;">Regresar al menú</a>
         </div>
->>>>>>> Stashed changes
-
         <form method="get" class="filtros" action="">
             <input id="q" type="text" name="q" placeholder="Buscar por nombre o DNI" value="<?= htmlspecialchars($termino, ENT_QUOTES, 'UTF-8') ?>" />
             <select id="filtro" name="filtro">
