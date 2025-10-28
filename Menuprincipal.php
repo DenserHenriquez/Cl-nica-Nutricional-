@@ -252,13 +252,13 @@ function e($str) { return htmlspecialchars((string)$str, ENT_QUOTES, 'UTF-8'); }
                 </span>
             </a>
 
-            <a class="card" href="Archivar_desactivar_paciente.php">
+            <a class="card" href="Activar_desactivar_paciente.php">
                 <span class="card__icon" aria-hidden="true">
                     <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M20 6h-2.586l-2-2H8.586l-2 2H4a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2zm-8 12H6v-2h6zm6-4H6v-2h12z"/></svg>
                 </span>
                 <span>
-                    <div class="card__title">Archivar Paciente</div>
-                    <div class="card__desc">Desactivar o archivar historial clínico</div>
+                    <div class="card__title">Estado del Paciente</div>
+                    <div class="card__desc">Activar o desactivar historial clínico</div>
                 </span>
             </a>
 
