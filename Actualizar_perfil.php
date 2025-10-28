@@ -208,6 +208,9 @@ function u(array $usuario, string $campo): string { return h($usuario[$campo] ??
 </head>
 <body>
     <div class="container">
+        <div style="position: relative; margin-bottom: 16px;">
+            <a href="Menuprincipal.php" style="position: absolute; top: 0; right: 0; display: inline-block; padding: 6px 12px; background: var(--primary-500, #1976d2); color: var(--white, #ffffff); text-decoration: none; border-radius: 6px; font-weight: 500; font-size: 0.875rem; transition: background 0.2s;">Menu Principal</a>
+        </div>
         <h1>Actualizar Perfil</h1>
 
         <?php if ($errores): ?>
@@ -244,9 +247,15 @@ function u(array $usuario, string $campo): string { return h($usuario[$campo] ??
                 </div>
             </div>
 
+<<<<<<< Updated upstream
             <div class="actions">
                 <button type="submit" class="btn btn-primary">Guardar cambios</button>
                 <a class="btn btn-secondary" href="Menuprincipal.php">Volver al menú</a>
+=======
+            <div class="actions" style="display: flex; justify-content: flex-end; gap: 10px;">
+                <button type="button" class="btn btn-historial" id="btnHistorial">Ver Historial</button>
+                <button type="submit" class="btn btn-primary">Guardar cambios</button>
+>>>>>>> Stashed changes
             </div>
         </form>
     </div>
