@@ -1,5 +1,4 @@
 <?php
-<<<<<<< Updated upstream
 // Busqueda_avanzada.php
 // Búsqueda rápida/avanzada de pacientes con filtros por Nombre o ID, resultados paginados y consultas optimizadas.
 // Requisitos cubiertos:
@@ -8,9 +7,6 @@
 // - Paginación eficiente con límites y offsets, controles de navegación
 // - Resultados organizados y paginados
 // - Modo de prueba de rendimiento simulando dataset amplio (opcional)
-=======
-
->>>>>>> Stashed changes
 
 require_once __DIR__ . '/db_connection.php';
 
@@ -20,11 +16,7 @@ $ITEMS_POR_PAGINA_MAX = 100;    // para evitar consultas muy pesadas
 
 // Sanitización y parámetros
 $termino = isset($_GET['q']) ? trim($_GET['q']) : '';
-<<<<<<< Updated upstream
-$filtro  = isset($_GET['filtro']) ? $_GET['filtro'] : 'nombre'; // 'nombre' | 'id'
-=======
 $filtro  = isset($_GET['filtro']) ? $_GET['filtro'] : 'nombre'; // 'nombre' | 'dni'
->>>>>>> Stashed changes
 $page    = isset($_GET['page']) ? max(1, (int)$_GET['page']) : 1;
 $perPage = isset($_GET['perPage']) ? (int)$_GET['perPage'] : $ITEMS_POR_PAGINA_DEFAULT;
 $perPage = $perPage > 0 ? min($perPage, $ITEMS_POR_PAGINA_MAX) : $ITEMS_POR_PAGINA_DEFAULT;
@@ -49,11 +41,7 @@ $totalPaginas = 0;
 $offset = ($page - 1) * $perPage;
 
 // Normalizar filtro
-<<<<<<< Updated upstream
-$filtro = ($filtro === 'id') ? 'id' : 'nombre';
-=======
 $filtro = ($filtro === 'dni') ? 'dni' : 'nombre';
->>>>>>> Stashed changes
 
 // Generar WHERE y parámetros
 $where = '1=1';
@@ -61,22 +49,6 @@ $params = [];
 $types  = '';
 
 if ($termino !== '') {
-<<<<<<< Updated upstream
-    if ($filtro === 'id') {
-        // Buscar por ID exacto o por coincidencia numérica
-        // Solo permitir dígitos para evitar cast innecesario
-        if (!ctype_digit($termino)) {
-            $errores[] = 'Para buscar por ID, ingresa solo números.';
-        } else {
-            $where .= ' AND p.id = ?';
-            $params[] = (int)$termino;
-            $types   .= 'i';
-        }
-    } else {
-        // Búsqueda por nombre con LIKE prefix para usar índice si es posible
-        // Normalizar término para evitar leading wildcards
-        $where .= ' AND p.nombre LIKE ?';
-=======
     if ($filtro === 'dni') {
         // Búsqueda por DNI (prefijo para usabilidad)
         $where .= ' AND p.dni LIKE ?';
@@ -85,18 +57,13 @@ if ($termino !== '') {
     } else {
         // Búsqueda por nombre completo con LIKE (prefijo)
         $where .= ' AND p.nombre_completo LIKE ?';
->>>>>>> Stashed changes
         $params[] = $termino . '%';
         $types   .= 's';
     }
 }
 
 // Campos específicos a seleccionar para evitar SELECT *
-<<<<<<< Updated upstream
-$selectCampos = 'p.id, p.nombre, p.apellido, p.fecha_nacimiento, p.telefono, p.email, p.estado';
-=======
 $selectCampos = 'p.id_pacientes, p.nombre_completo, p.dni, p.fecha_nacimiento, p.edad, p.telefono, p.estado';
->>>>>>> Stashed changes
 
 // 1) Consulta de conteo total (para paginación)
 $sqlCount = "SELECT COUNT(*) AS total FROM pacientes p WHERE $where";
@@ -127,11 +94,7 @@ if ($totalRegistros > 0) {
     }
 
     // 2) Consulta de resultados paginados
-<<<<<<< Updated upstream
-    $sql = "SELECT $selectCampos FROM pacientes p WHERE $where ORDER BY p.nombre ASC, p.apellido ASC LIMIT ? OFFSET ?";
-=======
     $sql = "SELECT $selectCampos FROM pacientes p WHERE $where ORDER BY p.id_pacientes ASC LIMIT ? OFFSET ?";
->>>>>>> Stashed changes
     $stmt = $conexion->prepare($sql);
     if ($stmt === false) {
         $errores[] = 'Error preparando consulta de resultados: ' . $conexion->error;
@@ -172,26 +135,29 @@ function qs(array $data): string {
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Búsqueda Avanzada de Pacientes</title>
     <link rel="stylesheet" href="assets/css/estilos.css" />
-    <link rel="stylesheet" href="assets/css/estilo.css" />
     <style>
+
+        /* Estilos mínimos para tabla y paginación si faltan en CSS global */
+        .busqueda-container { max-width: 1100px; margin: 20px auto; background: #fff; padding: 16px; border-radius: 8px; }
+        .filtros { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+        .filtros input[type="text"] { flex: 1 1 320px; padding: 8px; }
+        .filtros select, .filtros input[type="number"] { padding: 8px; }
+        .tabla-resultados { width: 100%; border-collapse: collapse; margin-top: 16px; }
+
         /* Estilos mínimos y ajustes solicitados */
-<<<<<<< Updated upstream
-        html, body { height: 100%; }
-        body { display: flex; align-items: center; justify-content: center; }
-=======
         html, body { height: 100%; background: #ffffff; }
         body { display: flex; align-items: center; justify-content: center; background: #ffffff; }
->>>>>>> Stashed changes
         .busqueda-container { max-width: 900px; width: 90%; margin: 20px auto; background: #e6f2ff; padding: 24px; border-radius: 12px; box-shadow: 0 10px 25px rgba(2,33,88,0.12); }
         .busqueda-container.centrado { margin: 0 auto; }
         .filtros { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; justify-content: center; }
         .filtros input[type="text"] { flex: 1 1 360px; padding: 10px; }
         .filtros select, .filtros input[type="number"] { padding: 10px; }
         .tabla-resultados { width: 100%; border-collapse: collapse; margin-top: 16px; background: #ffffff; border-radius: 8px; overflow: hidden; }
+
         .tabla-resultados th, .tabla-resultados td { border: 1px solid #e5e7eb; padding: 8px; text-align: left; }
-        .tabla-resultados th { background: #dbeafe; }
+        .tabla-resultados th { background: #f3f4f6; }
         .paginacion { display: flex; gap: 8px; justify-content: center; align-items: center; margin-top: 16px; flex-wrap: wrap; }
-        .paginacion a, .paginacion span { padding: 6px 10px; border: 1px solid #bfdbfe; border-radius: 6px; text-decoration: none; color: #0f172a; background: #ffffff; }
+        .paginacion a, .paginacion span { padding: 6px 10px; border: 1px solid #d1d5db; border-radius: 4px; text-decoration: none; color: #111827; }
         .paginacion .activo { background: #3b82f6; color: #fff; border-color: #3b82f6; }
         .errores { background: #fee2e2; color: #991b1b; padding: 10px; border-radius: 6px; margin-top: 12px; }
         .resumen { color: #374151; margin-top: 8px; }
@@ -201,27 +167,19 @@ function qs(array $data): string {
     </style>
 </head>
 <body>
+
+    <div class="busqueda-container">
+        
     <div class="busqueda-container centrado">
-<<<<<<< Updated upstream
-        <h1>Búsqueda rápida de pacientes</h1>
-
-        <form method="get" class="filtros" action="">
-            <input type="text" name="q" placeholder="Buscar por nombre o ID" value="<?= htmlspecialchars($termino, ENT_QUOTES, 'UTF-8') ?>" />
-            <select name="filtro">
-                <option value="nombre" <?= $filtro === 'nombre' ? 'selected' : '' ?>>Por nombre</option>
-                <option value="id" <?= $filtro === 'id' ? 'selected' : '' ?>>Por ID</option>
-=======
-        <div style="position: relative; margin-bottom: 16px;">
-            <a href="Menuprincipal.php" style="position: absolute; top: 0; right: 0; display: inline-block; padding: 6px 12px; background: #3b82f6; color: #fff; text-decoration: none; border-radius: 6px; font-weight: 500; font-size: 0.875rem; transition: background 0.2s;">Menu Principal</a>
+        <div style="display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap;">
+            <h1 style="margin:0;">Búsqueda rápida de pacientes</h1>
+            <a href="Menuprincipal.php" style="background:#3b82f6; color:#fff; padding:8px 12px; border-radius:8px; text-decoration:none; border:1px solid #2563eb;">Regresar al menú</a>
         </div>
-        <h1 style="margin:0;">Búsqueda rápida de pacientes</h1>
-
         <form method="get" class="filtros" action="">
             <input id="q" type="text" name="q" placeholder="Buscar por nombre o DNI" value="<?= htmlspecialchars($termino, ENT_QUOTES, 'UTF-8') ?>" />
             <select id="filtro" name="filtro">
                 <option value="nombre" <?= $filtro === 'nombre' ? 'selected' : '' ?>>Por nombre</option>
                 <option value="dni" <?= $filtro === 'dni' ? 'selected' : '' ?>>Por DNI</option>
->>>>>>> Stashed changes
             </select>
             <label>Por página
                 <input type="number" name="perPage" min="1" max="<?= (int)$ITEMS_POR_PAGINA_MAX ?>" value="<?= (int)$perPage ?>" style="width:80px" />
@@ -231,8 +189,6 @@ function qs(array $data): string {
                 <input type="checkbox" name="demo" value="1" <?= $modoDemo ? 'checked' : '' ?> onchange="this.form.submit()" /> Demo rendimiento
             </label>
         </form>
-<<<<<<< Updated upstream
-=======
         <script>
             (function() {
                 const q = document.getElementById('q');
@@ -274,7 +230,6 @@ function qs(array $data): string {
                 setRules();
             })();
         </script>
->>>>>>> Stashed changes
 
         <?php if (!empty($errores)): ?>
             <div class="errores">
@@ -293,53 +248,24 @@ function qs(array $data): string {
                 <thead>
                     <tr>
                         <th>ID</th>
-<<<<<<< Updated upstream
-                        <th>Nombre</th>
-                        <th>Apellido</th>
-                        <th>Fecha Nacimiento</th>
-                        <th>Teléfono</th>
-                        <th>Email</th>
-                        <th>Estado</th>
-=======
                         <th>Nombre completo</th>
                         <th>DNI</th>
                         <th>Fecha Nacimiento</th>
                         <th>Edad</th>
                         <th>Teléfono</th>
->>>>>>> Stashed changes
-                        <th>Acciones</th>
+                        <th>Estado</th>
                     </tr>
                 </thead>
                 <tbody>
                     <?php foreach ($resultados as $pac): ?>
                         <tr>
-<<<<<<< Updated upstream
-                            <td><?= (int)$pac['id'] ?></td>
-                            <td><?= htmlspecialchars($pac['nombre'] ?? '', ENT_QUOTES, 'UTF-8') ?></td>
-                            <td><?= htmlspecialchars($pac['apellido'] ?? '', ENT_QUOTES, 'UTF-8') ?></td>
-                            <td><?= htmlspecialchars($pac['fecha_nacimiento'] ?? '', ENT_QUOTES, 'UTF-8') ?></td>
-                            <td><?= htmlspecialchars($pac['telefono'] ?? '', ENT_QUOTES, 'UTF-8') ?></td>
-                            <td><?= htmlspecialchars($pac['email'] ?? '', ENT_QUOTES, 'UTF-8') ?></td>
-                            <td>
-                                <?php
-                                $estado = strtolower((string)($pac['estado'] ?? ''));
-                                $clase = ($estado === 'activo') ? 'badge activo' : 'badge inactivo';
-                                ?>
-                                <span class="<?= $clase ?>"><?= htmlspecialchars($pac['estado'] ?? '', ENT_QUOTES, 'UTF-8') ?></span>
-                            </td>
-                            <td>
-                                <a href="Registropacientes.php?id=<?= (int)$pac['id'] ?>">Ver</a>
-=======
                             <td><?= (int)$pac['id_pacientes'] ?></td>
                             <td><?= htmlspecialchars($pac['nombre_completo'] ?? '', ENT_QUOTES, 'UTF-8') ?></td>
                             <td><?= htmlspecialchars($pac['dni'] ?? '', ENT_QUOTES, 'UTF-8') ?></td>
                             <td><?= htmlspecialchars($pac['fecha_nacimiento'] ?? '', ENT_QUOTES, 'UTF-8') ?></td>
                             <td><?= htmlspecialchars((string)($pac['edad'] ?? ''), ENT_QUOTES, 'UTF-8') ?></td>
                             <td><?= htmlspecialchars($pac['telefono'] ?? '', ENT_QUOTES, 'UTF-8') ?></td>
-                            <td>
-                                <span class="badge <?= strtolower($pac['estado'] ?? 'inactivo') ?>"><?= htmlspecialchars($pac['estado'] ?? 'Inactivo', ENT_QUOTES, 'UTF-8') ?></span>
->>>>>>> Stashed changes
-                            </td>
+                            <td><span class="badge <?= strtolower($pac['estado'] ?? '') ?>"><?= htmlspecialchars($pac['estado'] ?? '', ENT_QUOTES, 'UTF-8') ?></span></td>
                         </tr>
                     <?php endforeach; ?>
                 </tbody>
@@ -380,8 +306,4 @@ function qs(array $data): string {
 
             </div>
 </body>
-<<<<<<< Updated upstream
 </html>
-=======
-</html>
->>>>>>> Stashed changes
