@@ -331,6 +331,16 @@ function e($str) { return htmlspecialchars((string)$str, ENT_QUOTES, 'UTF-8'); }
                     <div class="card__desc">Controle rutinas y progreso físico</div>
                 </span>
             </a>
+
+            <a class="card" href="panelevolucionpaciente.php">
+                <span class="card__icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M3 17a1 1 0 0 1 1-1h2.586l2.707-2.707a1 1 0 0 1 1.414 0L13 15.586l3.293-3.293a1 1 0 0 1 1.414 0L21 15.586V13a1 1 0 0 1 2 0v6a1 1 0 0 1-1 1h-6a1 1 0 0 1 0-2h2.586l-3.293-3.293-3.293 3.293A1 1 0 0 1 11 18H4a1 1 0 0 1-1-1zM7 4h10a2 2 0 0 1 2 2v4a1 1 0 1 1-2 0V6H7v12h4a1 1 0 1 1 0 2H7a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z"/></svg>
+                </span>
+                <span>
+                    <div class="card__title">Evolución del Paciente</div>
+                    <div class="card__desc">Histórico de peso/IMC y notas clínicas</div>
+                </span>
+            </a>
         </section>
     </main>
 
