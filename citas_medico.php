@@ -27,7 +27,70 @@ $startWeekday = intval($firstDay->format('N')); // 1 (Mon) - 7 (Sun)
 $daysInMonth = intval($firstDay->format('t'));
 
 // Identificador del médico (en un sistema real provendría del login). Se permite GET/POST o default 1
-$medico_id = intval(get('medico_id', post('medico_id', 1)));
+$medico_id = intval(get('medico_id', post('medico_id', 0)));
+
+// Datos estáticos de médicos (igual que en citas_medico.php)
+$medicos = [
+    1 => ['nombre' => 'Dr. Denser Henriquez', 'especialidad' => 'Nutrición General', 'email' => 'denser.henriquez@nutri.hn', 'telefono' => '9880-8080', 'imagen' => 'https://www.emagister.com/blog/wp-content/uploads/2017/08/nutricion-3.jpg'],
+    2 => ['nombre' => 'Dra. Genesis Bonilla', 'especialidad' => 'Nutrición Deportiva', 'email' => 'genesis.bonilla@nutri.hn', 'telefono' => '9858-8569', 'imagen' => 'https://blob.medicinaysaludpublica.com/images/2023/06/05/formato-sacs-22-7b57bcca-focus-min0.07-0.49-688-364.png'],
+    3 => ['nombre' => 'Dr. Anthony Rodriguez', 'especialidad' => 'Nutrición Clínica', 'email' => 'Anthony.rodriguez@nutri.hn', 'telefono' => '9632-7895', 'imagen' => 'https://img.freepik.com/fotos-premium/doctor-hombre-manzana-retrato-sonrisa-salud-nutricionista-aislado-fondo-estudio-profesional-medico-feliz-medico-masculino-cuidado-salud-promueven-dieta-nutricion-saludables_590464-179119.jpg'],
+    4 => ['nombre' => 'Dra. Ana Rodríguez', 'especialidad' => 'Nutrición Pediátrica', 'email' => 'ana.rodriguez@nutri.hn', 'telefono' => '9785-2503', 'imagen' => 'https://s3-sa-east-1.amazonaws.com/doctoralia.co/doctor/756cc1/756cc10699684fa2c30c96388a1d0258_large.jpg']
+];
+
+// Si no hay medico_id, mostrar selección de médicos
+if ($medico_id === 0) {
+    // Mostrar página de selección
+    ?>
+    <!DOCTYPE html>
+    <html lang="es">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Seleccionar Médico - Gestión de Citas</title>
+        <link rel="stylesheet" href="assets/css/estilos.css">
+        <style>
+            body { background-color: #87CEEB; background-image: none; font-family: Arial, sans-serif; }
+            .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
+            .medicos-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; margin-top: 20px; }
+            .medico-card {
+                background: #fff; border-radius: 12px; padding: 20px; box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+                text-align: center; cursor: pointer; transition: transform 0.2s, box-shadow 0.2s;
+                border: 2px solid #ddd;
+            }
+            .medico-card:hover { transform: translateY(-5px); box-shadow: 0 8px 16px rgba(0,0,0,0.2); border-color: #1976d2; }
+            .medico-icon { width: 80px; height: 80px; margin: 0 auto 10px; border-radius: 50%; overflow: hidden; border: 2px solid #ddd; }
+            .medico-icon img { width: 100%; height: 100%; object-fit: cover; }
+            .medico-nombre { font-size: 18px; font-weight: bold; margin-bottom: 5px; }
+            .medico-especialidad { color: #666; margin-bottom: 5px; }
+            .medico-email { font-size: 14px; color: #555; margin-bottom: 2px; }
+            .medico-telefono { font-size: 14px; color: #555; }
+            .back-btn { position: absolute; top: 10px; right: 10px; padding: 8px 16px; background: #1976d2; color: #fff; border: none; border-radius: 4px; cursor: pointer; text-decoration: none; }
+        </style>
+    </head>
+    <body>
+        <a href="Menuprincipal.php" class="back-btn">Menú Principal</a>
+        <div class="container">
+            <h1>Seleccionar Médico para Gestión de Citas</h1>
+            <p>Haga clic en el médico para ver su calendario de citas.</p>
+            <div class="medicos-grid">
+                <?php foreach ($medicos as $id => $medico): ?>
+                    <a href="?medico_id=<?php echo $id; ?>" class="medico-card">
+                        <div class="medico-icon">
+                            <img src="<?php echo htmlspecialchars($medico['imagen']); ?>" alt="Foto de <?php echo htmlspecialchars($medico['nombre']); ?>">
+                        </div>
+                        <div class="medico-nombre"><?php echo htmlspecialchars($medico['nombre']); ?></div>
+                        <div class="medico-especialidad"><?php echo htmlspecialchars($medico['especialidad']); ?></div>
+                        <div class="medico-email"><?php echo htmlspecialchars($medico['email']); ?></div>
+                        <div class="medico-telefono"><?php echo htmlspecialchars($medico['telefono']); ?></div>
+                    </a>
+                <?php endforeach; ?>
+            </div>
+        </div>
+    </body>
+    </html>
+    <?php
+    exit; // Salir para no mostrar el resto
+}
 
 // Asegurar tabla "citas" y "disponibilidades" si no existen (defensivo)
 $conn->query("CREATE TABLE IF NOT EXISTS disponibilidades (
@@ -159,11 +222,18 @@ function monthNameEs($m) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gestión de citas del médico</title>
     <link rel="stylesheet" href="assets/css/estilos.css">
+    <!-- FullCalendar CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.min.css" rel="stylesheet">
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <!-- FullCalendar JS -->
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js"></script>
     <style>
-        .calendar { display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px; }
-        .day { border: 1px solid #ccc; min-height: 140px; padding: 6px; background: #fff; position: relative; }
-        .day .date { font-weight: bold; }
-        .day .items { margin-top: 6px; max-height: 100px; overflow-y: auto; }
+        #calendar { max-width: 400px; margin: 0 auto; height: 300px; font-size: 12px; }
+        .fc { font-size: 12px; }
+        .fc-daygrid-day { min-height: 60px; }
+        .fc-daygrid-day-number { font-size: 10px; }
+        .fc-event { font-size: 10px; padding: 2px; }
         .badge { display:inline-block; padding:2px 6px; border-radius:4px; font-size:11px; margin-right:4px; }
         .b-libre { background:#e8f5e9; color:#2e7d32; border:1px solid #a5d6a7; }
         .b-bloq { background:#ffebee; color:#c62828; border:1px solid #ef9a9a; }
@@ -174,7 +244,7 @@ function monthNameEs($m) {
         .legend { margin:10px 0; }
         .legend span { margin-right:10px; }
         .weekdays { display:grid; grid-template-columns:repeat(7,1fr); font-weight:bold; text-align:center; margin-bottom:6px; }
-        .alerta { background:#fff3cd; border:1px solid #ffeeba; color:#856404; padding:10px; border-radius:4px; margin-bottom:10px; }
+        .alerta { background: linear-gradient(135deg, #ffecb3, #ffe082); border: 2px solid #ffb300; color: #bf360c; padding: 15px; border-radius: 10px; margin-bottom: 15px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); font-weight: bold; text-align: center; }
         .sticky-top { position: sticky; top: 0; background: #f9f9f9; padding: 8px 0; z-index: 10; }
         .small { font-size: 12px; }
         .btn { padding:6px 10px; border:1px solid #999; background:#f0f0f0; border-radius:4px; cursor:pointer; }
@@ -187,16 +257,36 @@ function monthNameEs($m) {
         .table th, .table td { border:1px solid #ddd; padding:6px; }
         .table th { background:#f3f3f3; }
         body { background-color: #87CEEB; background-image: none; }
+        /* Modal styles */
+        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.4); }
+        .modal-content { background-color: #fefefe; margin: 15% auto; padding: 20px; border: 1px solid #888; width: 80%; max-width: 600px; border-radius: 8px; }
+        .close { color: #aaa; float: right; font-size: 28px; font-weight: bold; cursor: pointer; }
+        .close:hover { color: black; }
+        #slots-list { margin-top: 20px; }
+        #slots-list .slot-item { display: flex; justify-content: space-between; align-items: center; padding: 8px; border-bottom: 1px solid #ddd; }
+        #slots-list .slot-item:last-child { border-bottom: none; }
+        /* Toast styles */
+        .toast { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: #333; color: #fff; padding: 15px; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.3); z-index: 1001; opacity: 0; transition: opacity 0.5s; }
+        .toast.show { opacity: 1; }
     </style>
 </head>
 <body>
-    <div style="position: absolute; top: 10px; right: 10px;">
+    <div style="position: absolute; top: 10px; right: 10px; display: flex; gap: 10px;">
         <a href="Menuprincipal.php" class="btn">Menu Principal</a>
+        <button class="btn" onclick="backToSelection()">Seleccionar Otro Médico</button>
+    </div>
+    <!-- Div lateral para detalles de cita -->
+    <div id="cita-details" style="position: fixed; right: 10px; top: 50%; transform: translateY(-50%); width: 250px; background: #fff; border: 1px solid #ddd; border-radius: 8px; padding: 15px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); display: none;">
+        <h3>Detalles de la Cita</h3>
+        <p><strong>Nombre:</strong> <span id="cita-nombre"></span></p>
+        <p><strong>Estado:</strong> <span id="cita-estado"></span></p>
+        <p><strong>Motivo:</strong> <span id="cita-motivo"></span></p>
+        <button onclick="closeCitaDetails()" class="btn">Cerrar</button>
     </div>
     <div class="container">
         <h1>Gestión de citas del médico</h1>
         <div class="status">
-            Mes: <?php echo monthNameEs($month) . ' ' . $year; ?> | Médico ID: <?php echo htmlspecialchars((string)$medico_id); ?>
+            Mes: <?php echo monthNameEs($month) . ' ' . $year; ?> | Médico ID: <?php echo htmlspecialchars((string)$medico_id); ?> | <a href="citas_medico.php" class="btn">Seleccionar Otro Médico</a>
         </div>
 
         <?php if ($response_msg): ?>
@@ -208,11 +298,11 @@ function monthNameEs($m) {
 
         <?php if (!empty($alertas)): ?>
             <div class="alerta">
-                Alerta: Tiene paciente(s) en espera próximo(s) a su hora confirmada: 
+                Alerta: Tiene paciente(s) en espera próximo(s) a su hora confirmada:
                 <strong><?php echo htmlspecialchars(implode(', ', $alertas)); ?></strong>
             </div>
             <script>
-                alert('Tiene paciente(s) en espera próxim@ a la hora confirmada: <?php echo addslashes(implode(', ', $alertas)); ?>');
+                showToast('Tiene paciente(s) en espera próxim@ a la hora confirmada: <?php echo addslashes(implode(', ', $alertas)); ?>');
             </script>
         <?php endif; ?>
 
@@ -249,65 +339,7 @@ function monthNameEs($m) {
             <span class="badge b-cita">Cita programada</span>
         </div>
 
-        <div class="weekdays">
-            <div>Lun</div><div>Mar</div><div>Mié</div><div>Jue</div><div>Vie</div><div>Sáb</div><div>Dom</div>
-        </div>
-        <div class="calendar">
-            <?php
-            // Relleno de días vacíos antes del 1er día
-            for ($i=1; $i<$startWeekday; $i++) echo '<div></div>';
-            for ($day=1; $day<=$daysInMonth; $day++) {
-                $fecha = sprintf('%04d-%02d-%02d', $year, $month, $day);
-                echo '<div class="day">';
-                echo '<div class="date">' . $day . '</div>';
-                echo '<div class="items">';
-                // Citas del día
-                if (isset($citas[$fecha])) {
-                    foreach ($citas[$fecha] as $c) {
-                        $label = htmlspecialchars($c['nombre_completo'] ?: 'Sin nombre') . ' - ' . substr($c['hora'],0,5);
-                        $motivo = htmlspecialchars($c['motivo'] ?? '');
-                        echo '<div class="b-cita">' . $label . '<br><span class="small">Motivo: ' . $motivo . '</span><br>';
-                        echo '<form method="post" class="small" style="margin-top:4px;display:flex;gap:6px;align-items:center;flex-wrap:wrap;">';
-                        echo '<input type="hidden" name="action" value="update_estado_cita">';
-                        echo '<input type="hidden" name="cita_id" value="' . (int)$c['id'] . '">';
-                        echo '<input type="hidden" name="medico_id" value="' . (int)$medico_id . '">';
-                        echo '<label>Estado: <select name="nuevo_estado">';
-                        $estados = ['pendiente'=>'Pendiente','confirmada'=>'Confirmada','cancelada'=>'Cancelada','completada'=>'Completada'];
-                        foreach ($estados as $k=>$v) {
-                            $sel = $c['estado']===$k ? 'selected' : '';
-                            echo '<option value="'.$k.'" '.$sel.'>'.$v.'</option>';
-                        }
-                        echo '</select></label>';
-                        echo '<button class="btn success" type="submit">Actualizar</button>';
-                        echo '</form>';
-                        echo '</div>';
-                    }
-                }
-                // Disponibilidades del día
-                if (isset($disp[$fecha])) {
-                    foreach ($disp[$fecha] as $hora => $estadoSlot) {
-                        $badge = $estadoSlot==='libre' ? 'b-libre' : 'b-bloq';
-                        echo '<div class="slot"><span class="badge '.$badge.'">' . substr($hora,0,5) . ' - ' . $estadoSlot . '</span>';
-                        echo '<span class="slot-actions">';
-                        $nuevo = $estadoSlot==='libre' ? 'bloqueado' : 'libre';
-                        echo '<form method="post" onsubmit="return confirm(\'¿Seguro?\')">';
-                        echo '<input type="hidden" name="action" value="toggle_slot">';
-                        echo '<input type="hidden" name="medico_id" value="' . (int)$medico_id . '">';
-                        echo '<input type="hidden" name="fecha" value="' . $fecha . '">';
-                        echo '<input type="hidden" name="hora" value="' . $hora . '">';
-                        echo '<input type="hidden" name="estado" value="' . $nuevo . '">';
-                        $btnClass = $estadoSlot==='libre' ? 'warn' : 'success';
-                        $btnText = $estadoSlot==='libre' ? 'Bloquear' : 'Liberar';
-                        echo '<button class="btn '.$btnClass.' small" type="submit">'.$btnText.'</button>';
-                        echo '</form>';
-                        echo '</span></div>';
-                    }
-                }
-                echo '</div>';
-                echo '</div>';
-            }
-            ?>
-        </div>
+        <div id="calendar"></div>
 
         <h2>Listado de citas del mes</h2>
         <table class="table">
@@ -356,6 +388,139 @@ function monthNameEs($m) {
             </tbody>
         </table>
     </div>
+
+    <!-- Modal -->
+    <div id="modal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal()">&times;</span>
+            <h2>Slots para <span id="modal-date"></span></h2>
+            <div id="slots-list"></div>
+        </div>
+    </div>
+
+    <script>
+        // PHP data to JS
+        var citas = <?php echo json_encode($citas); ?>;
+        var disp = <?php echo json_encode($disp); ?>;
+        var medico_id = <?php echo (int)$medico_id; ?>;
+
+        // Compute days with available slots
+        var hasAvailable = {};
+        for (var date in disp) {
+            for (var hora in disp[date]) {
+                if (disp[date][hora] === 'libre') {
+                    hasAvailable[date] = true;
+                    break;
+                }
+            }
+        }
+
+        // Prepare events for FullCalendar
+        var events = [];
+        for (var date in citas) {
+            citas[date].forEach(function(c) {
+                events.push({
+                    title: c.nombre_completo || 'Sin nombre',
+                    start: date + 'T' + c.hora,
+                    allDay: false,
+                    extendedProps: { estado: c.estado, motivo: c.motivo }
+                });
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            var calendarEl = document.getElementById('calendar');
+            var calendar = new FullCalendar.Calendar(calendarEl, {
+                initialView: 'dayGridMonth',
+                initialDate: '<?php echo $year . '-' . str_pad($month, 2, '0', STR_PAD_LEFT) . '-01'; ?>',
+                events: events,
+                dateClick: function(info) {
+                    openModal(info.dateStr);
+                },
+                eventClick: function(info) {
+                    // Show cita details in lateral div
+                    document.getElementById('cita-nombre').innerText = info.event.title;
+                    document.getElementById('cita-estado').innerText = info.event.extendedProps.estado;
+                    document.getElementById('cita-motivo').innerText = info.event.extendedProps.motivo || 'N/A';
+                    document.getElementById('cita-details').style.display = 'block';
+                },
+                dayCellDidMount: function(info) {
+                    var dateStr = info.date.toISOString().split('T')[0];
+                    if (hasAvailable[dateStr]) {
+                        info.el.style.backgroundColor = 'green';
+                    } else {
+                        info.el.style.backgroundColor = 'blue';
+                    }
+                }
+            });
+            calendar.render();
+        });
+
+        function openModal(date) {
+            document.getElementById('modal-date').innerText = date;
+            var slotsList = document.getElementById('slots-list');
+            slotsList.innerHTML = '';
+            if (disp[date]) {
+                for (var hora in disp[date]) {
+                    var estado = disp[date][hora];
+                    var slotDiv = document.createElement('div');
+                    slotDiv.className = 'slot-item';
+                    slotDiv.innerHTML = '<span>' + hora.substring(0,5) + ' - ' + estado + '</span>' +
+                        '<button class="btn ' + (estado === 'libre' ? 'warn' : 'success') + '" onclick="toggleSlot(\'' + date + '\', \'' + hora + '\', \'' + (estado === 'libre' ? 'bloqueado' : 'libre') + '\')">' + (estado === 'libre' ? 'Bloquear' : 'Liberar') + '</button>';
+                    slotsList.appendChild(slotDiv);
+                }
+            } else {
+                slotsList.innerHTML = '<p>No hay slots disponibles para esta fecha.</p>';
+            }
+            document.getElementById('modal').style.display = 'block';
+        }
+
+        function closeModal() {
+            document.getElementById('modal').style.display = 'none';
+        }
+
+        function toggleSlot(fecha, hora, nuevoEstado) {
+            $.post('', {
+                action: 'toggle_slot',
+                medico_id: medico_id,
+                fecha: fecha,
+                hora: hora,
+                estado: nuevoEstado
+            }, function(data) {
+                // Reload page or update disp
+                location.reload();
+            });
+        }
+
+        // Close modal on outside click
+        window.onclick = function(event) {
+            var modal = document.getElementById('modal');
+            if (event.target == modal) {
+                closeModal();
+            }
+        }
+
+        // Toast function
+        function showToast(message) {
+            var toast = document.createElement('div');
+            toast.className = 'toast';
+            toast.innerText = message;
+            document.body.appendChild(toast);
+            setTimeout(function() { toast.classList.add('show'); }, 100);
+            setTimeout(function() {
+                toast.classList.remove('show');
+                setTimeout(function() { document.body.removeChild(toast); }, 500);
+            }, 3000);
+        }
+
+        function closeCitaDetails() {
+            document.getElementById('cita-details').style.display = 'none';
+        }
+
+        function backToSelection() {
+            window.location.href = '?';
+        }
+    </script>
 
     <script src="assets/js/script.js"></script>
 </body>

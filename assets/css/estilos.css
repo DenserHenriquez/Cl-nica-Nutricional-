@@ -7,11 +7,7 @@
     }
 
     body{
-        background-image: url(../images/bg4.jpg);
-        background-size: cover;
-        background-repeat: no-repeat;
-        background-position: center;
-        background-attachment: fixed;
+        background-color: #87CEEB;
     }
 
     main{
