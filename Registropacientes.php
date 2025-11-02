@@ -11,11 +11,13 @@ if (!isset($_SESSION['id_usuarios'])) {
     exit;
 }
 
-$user_id = (int)$_SESSION['id_usuarios'];
-$user_name = $_SESSION['nombre'] ?? '';
+function e($s){ return htmlspecialchars((string)$s, ENT_QUOTES, 'UTF-8'); }
+
+$user_id = (int)($_SESSION['id_usuarios'] ?? 0);
+$user_name = $_SESSION['nombre'] ?? ($_SESSION['usuario'] ?? 'Usuario');
 
 // Obtener nombre completo del usuario logueado
-if ($user_id > 0 && empty($user_name)) {
+if ($user_id > 0 && empty($_SESSION['nombre'])) {
     if ($stmt = $conexion->prepare('SELECT Nombre_completo FROM usuarios WHERE id_usuarios = ? LIMIT 1')) {
         $stmt->bind_param('i', $user_id);
         $stmt->execute();
@@ -150,298 +152,174 @@ if (empty($_SESSION['csrf'])) {
     $_SESSION['csrf'] = bin2hex(random_bytes(16));
 }
 $csrf = $_SESSION['csrf'];
-
 ?>
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Registro de Pacientes</title>
-    <link rel="stylesheet" href="assets/css/estilos.css" />
-    <style>
-        :root {
-            --primary-900: #0d47a1;
-            --primary-700: #1565c0;
-            --primary-500: #1976d2;
-            --primary-300: #42a5f5;
-            --white: #ffffff;
-            --gray-50: #f9fafb;
-            --gray-100: #f3f4f6;
-            --gray-200: #e5e7eb;
-            --gray-700: #374151;
-            --gray-900: #111827;
-            --success: #10b981;
-            --error: #ef4444;
-            --radius: 8px;
-            --shadow: 0 1px 3px rgba(0,0,0,0.1), 0 1px 2px rgba(0,0,0,0.06);
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Registro de Pacientes · Clínica Nutricional</title>
+<link rel="stylesheet" href="assets/css/estilos.css">
+<style>
+    :root {
+        --primary-900: #0d47a1;
+        --primary-700: #1565c0;
+        --primary-500: #1976d2;
+        --primary-300: #42a5f5;
+        --white: #ffffff;
+        --text-900: #0b1b34;
+        --muted: #475569;
+        --shadow: 0 10px 25px rgba(13,71,161,0.18);
+        --radius-lg: 16px;
+    }
+    *{box-sizing:border-box}
+    body {
+        font-family: 'Segoe UI', Roboto, sans-serif;
+        background: linear-gradient(180deg, #f7fbff 0%, #f3f8ff 100%);
+        margin:0; color:var(--text-900);
+    }
 
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-            background: var(--gray-50);
-            color: var(--gray-900);
-            margin: 0;
-            padding: 0;
-        }
+    /* Topbar (copiado estilo panelevolucion) */
+    .topbar { position: sticky; top:0; z-index:50; background: linear-gradient(90deg,var(--primary-900),var(--primary-700)); color: var(--white); box-shadow: var(--shadow); }
+    .topbar__inner { max-width:1200px; margin:0 auto; padding:12px 20px; display:flex; align-items:center; justify-content:space-between; gap:16px; }
+    .brand { display:flex; align-items:center; gap:12px; font-weight:700; }
+    .brand__logo { width:36px; height:36px; border-radius:50%; background: radial-gradient(120% 120% at 20% 20%, var(--primary-300), var(--primary-900)); display:inline-flex; align-items:center; justify-content:center; box-shadow: 0 6px 14px rgba(0,0,0,.15) inset; }
+    .brand__logo svg{ width:18px; height:18px; fill:#fff; opacity:.95; }
+    .brand__name{ font-size:1.05rem; }
+    .topbar__actions { display:flex; align-items:center; gap:10px; }
+    .topbar__actions a { display:inline-block; padding:8px 14px; background: rgba(255,255,255,.12); border:1px solid rgba(255,255,255,.22); border-radius:999px; color:#fff; font-size:.92rem; }
+    .user-pill { display:inline-flex; align-items:center; gap:10px; padding:6px 10px; background: rgba(255,255,255,.16); border-radius:999px; color:#fff; font-weight:600; }
+    .user-avatar { width:28px; height:28px; border-radius:50%; display:inline-flex; align-items:center; justify-content:center; background: linear-gradient(135deg, rgba(255,255,255,.35), rgba(255,255,255,.05)); color: var(--primary-900); font-weight:800; border:1px solid rgba(255,255,255,.45); }
 
-        .container {
-            max-width: 600px;
-            margin: 20px auto;
-            background: var(--white);
-            padding: 24px;
-            border-radius: var(--radius);
-            box-shadow: var(--shadow);
-        }
+    /* container card */
+    .container { max-width:1100px; margin:24px auto; background:#fff; border-radius:var(--radius-lg); box-shadow:0 6px 16px rgba(13,71,161,0.10); padding:20px; }
 
-        h1 {
-            color: var(--primary-900);
-            text-align: center;
-            margin-bottom: 8px;
-            font-size: 1.5rem;
-            font-weight: 700;
-        }
+    .header-row{ display:flex; gap:16px; align-items:center; margin-bottom:18px; }
+    .avatar-large{ width:72px; height:72px; border-radius:12px; background:url('https://cdn-icons-png.flaticon.com/512/3135/3135715.png') center/cover; }
+    .title-block h1{ margin:0; font-size:1.2rem; color:#0f1724; }
+    .title-block p{ margin:4px 0 0; color:var(--muted); }
 
-        .subtitle {
-            color: var(--gray-700);
-            text-align: center;
-            margin-bottom: 24px;
-            font-size: 1rem;
-        }
+    .card { background:#fbfdff; border:1px solid #e6eefb; border-radius:12px; padding:18px; box-shadow:0 2px 8px rgba(2,6,23,0.04); }
+    .row{ display:flex; gap:16px; flex-wrap:wrap; margin-bottom:12px; }
+    .row > *{ flex:1 1 220px; }
+    label{ display:block; font-weight:600; color:#0f1724; margin-bottom:6px; }
+    input, textarea, select{ width:100%; padding:10px 12px; border:1px solid #e6eefb; border-radius:8px; background:#fff; font-size:1rem; color:#0f1724; }
+    input:focus, textarea:focus{ outline:none; box-shadow:0 4px 18px rgba(25,118,210,0.08); border-color:var(--primary-500); }
 
-        .card {
-            background: var(--white);
-            border: 1px solid var(--gray-200);
-            border-radius: var(--radius);
-            padding: 20px;
-            box-shadow: var(--shadow);
-        }
+    .actions{ display:flex; gap:12px; margin-top:14px; justify-content:flex-end; }
+    .btn{ background:var(--primary-500); color:var(--white); padding:10px 14px; border-radius:8px; border:none; cursor:pointer; font-weight:700; }
+    .btn.secondary{ background:#f1f5f9; color:#0f1724; border:1px solid #e6eefb; padding:10px 12px; text-decoration:none; }
 
-        .row {
-            display: flex;
-            gap: 16px;
-            flex-wrap: wrap;
-            align-items: flex-start;
-            margin-bottom: 16px;
-        }
+    .errores{ background:#fff5f5; color:#b91c1c; padding:12px; border-radius:8px; border:1px solid #fecaca; margin-bottom:12px;}
+    .exito{ background:#f0fdf4; color:#065f46; padding:12px; border-radius:8px; border:1px solid #bbf7d0; margin-bottom:12px;}
 
-        .row > * {
-            flex: 1 1 200px;
-        }
-
-        label {
-            display: block;
-            font-weight: 500;
-            color: var(--gray-700);
-            margin-bottom: 4px;
-        }
-
-        input {
-            width: 100%;
-            padding: 8px 12px;
-            border: 1px solid var(--gray-200);
-            border-radius: 6px;
-            font-size: 1rem;
-            transition: border-color 0.2s, box-shadow 0.2s;
-        }
-
-        input:focus {
-            outline: none;
-            border-color: var(--primary-500);
-            box-shadow: 0 0 0 3px rgba(25, 118, 210, 0.1);
-        }
-
-        textarea {
-            width: 100%;
-            padding: 8px 12px;
-            border: 1px solid var(--gray-200);
-            border-radius: 6px;
-            font-size: 1rem;
-            transition: border-color 0.2s, box-shadow 0.2s;
-            resize: vertical;
-        }
-
-        textarea:focus {
-            outline: none;
-            border-color: var(--primary-500);
-            box-shadow: 0 0 0 3px rgba(25, 118, 210, 0.1);
-        }
-
-        button {
-            background: var(--primary-500);
-            color: var(--white);
-            border: none;
-            cursor: pointer;
-            font-weight: 500;
-            padding: 10px 16px;
-            border-radius: 6px;
-            transition: background 0.2s;
-            width: 100%;
-        }
-
-        button:hover {
-            background: var(--primary-700);
-        }
-
-        .errores {
-            background: #fef2f2;
-            color: var(--error);
-            padding: 12px;
-            border-radius: var(--radius);
-            border: 1px solid #fecaca;
-            margin-bottom: 16px;
-        }
-
-        .exito {
-            background: #f0fdf4;
-            color: var(--success);
-            padding: 12px;
-            border-radius: var(--radius);
-            border: 1px solid #bbf7d0;
-            margin-bottom: 16px;
-        }
-
-        .form-actions {
-            display: flex;
-            gap: 12px;
-            flex-wrap: wrap;
-            margin-top: 20px;
-        }
-
-        .form-actions a {
-            display: inline-block;
-            padding: 10px 16px;
-            background: var(--gray-100);
-            color: var(--gray-700);
-            text-decoration: none;
-            border-radius: 6px;
-            border: 1px solid var(--gray-200);
-            transition: background 0.2s;
-            flex: 1;
-            text-align: center;
-        }
-
-        .form-actions a:hover {
-            background: var(--gray-200);
-        }
-
-        @media (max-width: 768px) {
-            .container {
-                margin: 10px;
-                padding: 16px;
-            }
-            .row {
-                flex-direction: column;
-                gap: 12px;
-            }
-        }
-    </style>
+    @media (max-width:900px){ .container{ margin:12px } .row{ flex-direction:column } }
+</style>
 </head>
 <body>
-    <div class="container">
-        <div style="position: relative; margin-bottom: 16px;">
-            <h1 style="text-align: center;">Registro de Pacientes</h1>
-            <p class="subtitle" style="text-align: center;">Complete los datos para registrar un nuevo paciente.</p>
-            <a href="Menuprincipal.php" style="position: absolute; top: 0; right: 0; display: inline-block; padding: 6px 12px; background: var(--primary-500); color: var(--white); text-decoration: none; border-radius: 6px; font-weight: 500; transition: background 0.2s; white-space: nowrap;">Menu Principal</a>
+<header class="topbar" role="banner">
+    <div class="topbar__inner">
+        <div class="brand" aria-label="Clínica Nutricional">
+            <span class="brand__logo" aria-hidden="true">
+                <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" focusable="false" aria-hidden="true"><path d="M10.5 3a1 1 0 0 0-1 1v5H4.5a1 1 0 0 0-1 1v4a1 1 0 0 0 1 1h5v5a1 1 0 0 0 1 1h4a1 1 0 0 0 1-1v-5h5a1 1 0 0 0 1-1v-4a1 1 0 0 0-1-1h-5V4a1 1 0 0 0-1-1h-4z"/></svg>
+            </span>
+            <span class="brand__name">Clínica Nutricional</span>
         </div>
+        <div class="topbar__actions">
+            <a href="Menuprincipal.php" title="Volver al menú">← Menú Principal</a>
+            <span class="user-pill" title="<?= e($user_name) ?>">
+                <span class="user-avatar" aria-hidden="true"><?= e(mb_strtoupper(mb_substr($user_name,0,1,'UTF-8'))) ?></span>
+                <span><?= e($user_name) ?></span>
+            </span>
+            <a href="Login.php" title="Cerrar sesión">Salir</a>
+        </div>
+    </div>
+</header>
 
-        <?php if (!empty($errores)): ?>
-            <div class="errores">
-                <?php foreach ($errores as $e): ?>
-                    <div>- <?= htmlspecialchars($e, ENT_QUOTES, 'UTF-8') ?></div>
-                <?php endforeach; ?>
-            </div>
-        <?php endif; ?>
-        <?php if ($exito): ?>
-            <div class="exito"><?= htmlspecialchars($exito, ENT_QUOTES, 'UTF-8') ?></div>
-        <?php endif; ?>
-
-        <div class="card">
-            <form method="post">
-                <input type="hidden" name="csrf" value="<?= htmlspecialchars($csrf, ENT_QUOTES, 'UTF-8') ?>">
-
-                <div class="row">
-                    <label>Nombre completo
-                        <input type="text" value="<?= htmlspecialchars($user_name, ENT_QUOTES, 'UTF-8') ?>" readonly />
-                    </label>
-                </div>
-
-                <div class="row">
-                    <label>DNI (13 dígitos)
-                        <input type="text" name="dni" pattern="\d{13}" maxlength="13" placeholder="0823200610125" required />
-                    </label>
-                </div>
-
-                <div class="row">
-                    <label>Fecha de nacimiento
-                        <input type="date" name="fecha_nacimiento" required onchange="calcularEdad()" />
-                    </label>
-                    <label>Edad
-                        <input type="text" id="edad" readonly />
-                    </label>
-                </div>
-
-                <div class="row">
-                    <label>Teléfono (8 dígitos)
-                        <input type="text" name="telefono" pattern="\d{8}" maxlength="8" placeholder="99553364" required />
-                    </label>
-                </div>
-
-                <div class="row">
-                    <label>Talla (cm)
-                        <input type="number" step="0.01" name="talla" placeholder="170.5" />
-                    </label>
-                    <label>Peso (kg)
-                        <input type="number" step="0.01" name="peso" placeholder="70.5" />
-                    </label>
-                </div>
-
-                <div class="row">
-                    <label>Estatura (cm)
-                        <input type="number" step="0.01" name="estatura" placeholder="170.5" />
-                    </label>
-                    <label>Masa muscular (kg)
-                        <input type="number" step="0.01" name="masa_muscular" placeholder="50.0" />
-                    </label>
-                </div>
-
-                <div class="row">
-                    <label>Enfermedades de base
-                        <textarea name="enfermedades_base" rows="3" placeholder="Describa las enfermedades de base"></textarea>
-                    </label>
-                </div>
-
-                <div class="row">
-                    <label>Medicamentos
-                        <textarea name="medicamentos" rows="3" placeholder="Liste los medicamentos"></textarea>
-                    </label>
-                </div>
-
-                <button type="submit">Guardar</button>
-            </form>
+<div class="container">
+    <div class="header-row">
+        <div class="avatar-large" aria-hidden="true"></div>
+        <div class="title-block">
+            <h1>Registro de Pacientes</h1>
+            <p>Complete los datos para registrar un nuevo paciente.</p>
         </div>
     </div>
 
-    <script>
-        function calcularEdad() {
-            const fechaInput = document.querySelector('input[name="fecha_nacimiento"]');
-            const edadInput = document.getElementById('edad');
+    <?php if (!empty($errores)): ?>
+        <div class="errores">
+            <?php foreach ($errores as $e): ?><div>- <?= e($e) ?></div><?php endforeach; ?>
+        </div>
+    <?php endif; ?>
+    <?php if ($exito): ?><div class="exito"><?= e($exito) ?></div><?php endif; ?>
 
-            if (fechaInput.value) {
-                const fechaNac = new Date(fechaInput.value);
-                const hoy = new Date();
-                let edad = hoy.getFullYear() - fechaNac.getFullYear();
-                const mes = hoy.getMonth() - fechaNac.getMonth();
+    <div class="card">
+        <form method="post" novalidate>
+            <input type="hidden" name="csrf" value="<?= e($csrf) ?>">
 
-                if (mes < 0 || (mes === 0 && hoy.getDate() < fechaNac.getDate())) {
-                    edad--;
-                }
+            <div class="row">
+                <div>
+                    <label>Nombre completo</label>
+                    <input type="text" value="<?= e($user_name) ?>" readonly>
+                </div>
+                <div>
+                    <label>DNI (13 dígitos)</label>
+                    <input type="text" name="dni" pattern="\d{13}" maxlength="13" placeholder="0823200610125" required>
+                </div>
+            </div>
 
-                edadInput.value = edad;
-            } else {
-                edadInput.value = '';
-            }
-        }
-    </script>
-</body>
-</html>
+            <div class="row">
+                <div>
+                    <label>Fecha de nacimiento</label>
+                    <input type="date" name="fecha_nacimiento" required onchange="calcularEdad()">
+                </div>
+                <div>
+                    <label>Edad</label>
+                    <input type="text" id="edad" readonly>
+                </div>
+            </div>
+
+            <div class="row">
+                <div>
+                    <label>Teléfono (8 dígitos)</label>
+                    <input type="text" name="telefono" pattern="\d{8}" maxlength="8" placeholder="99553364" required>
+                </div>
+                <div>
+                    <label>Talla (cm)</label>
+                    <input type="number" step="0.01" name="talla" placeholder="170.5">
+                </div>
+            </div>
+
+            <div class="row">
+                <div>
+                    <label>Peso (kg)</label>
+                    <input type="number" step="0.01" name="peso" placeholder="70.5">
+                </div>
+                <div>
+                    <label>Estatura (cm)</label>
+                    <input type="number" step="0.01" name="estatura" placeholder="170.5">
+                </div>
+            </div>
+
+            <div class="row">
+                <div>
+                    <label>Masa muscular (kg)</label>
+                    <input type="number" step="0.01" name="masa_muscular" placeholder="50.0">
+                </div>
+                <div>
+                    <label>Enfermedades de base</label>
+                    <textarea name="enfermedades_base" rows="2" placeholder="Describa las enfermedades de base"></textarea>
+                </div>
+            </div>
+
+            <div class="row">
+                <div style="flex:1 1 100%">
+                    <label>Medicamentos</label>
+                    <textarea name="medicamentos" rows="2" placeholder="Liste los medicamentos"></textarea>
+                </div>
+            </div>
+
+            <div class="actions">
+                <a href="Menuprincipal.php" class="btn secondary" style="text-decoration:none;display:inline-flex;align-items:center;justify-content:center;">Volver</a>
+                <button type="submit" class="btn">Guardar</button>
+            </div>
+        </form

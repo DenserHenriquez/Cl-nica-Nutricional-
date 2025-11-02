@@ -79,7 +79,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if ($rowCheck = $resultCheck->fetch_assoc()) {
             // Eliminar archivo si existe
             if (!empty($rowCheck['foto_path'])) {
-                $filePath = _DIR_ . '/' . $rowCheck['foto_path'];
+                $filePath = __DIR__ . '/' . $rowCheck['foto_path'];
                 if (file_exists($filePath)) {
                     unlink($filePath);
                 }
