@@ -106,7 +106,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())";
         $stmt = $conexion->prepare($sql);
         if ($stmt) {
-            $stmt->bind_param('isssisssssssss', $user_id, $user_name, $dni, $fecha_nacimiento, $edad, $telefono, $talla, $peso, $estatura, $imc, $masa_muscular, $enfermedades_base, $medicamentos);
+            $stmt->bind_param('isssissssssss', $user_id, $user_name, $dni, $fecha_nacimiento, $edad, $telefono, $talla, $peso, $estatura, $imc, $masa_muscular, $enfermedades_base, $medicamentos);
             if ($stmt->execute()) {
                 $exito = 'Paciente registrado correctamente.';
             } else {
@@ -132,267 +132,183 @@ $csrf = $_SESSION['csrf'];
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Registro de Pacientes</title>
-    <link rel="stylesheet" href="assets/css/estilos.css" />
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <style>
-        :root {
-            --primary-900: #0d47a1;
-            --primary-700: #1565c0;
-            --primary-500: #1976d2;
-            --primary-300: #42a5f5;
-            --white: #ffffff;
-            --gray-50: #f9fafb;
-            --gray-100: #f3f4f6;
-            --gray-200: #e5e7eb;
-            --gray-700: #374151;
-            --gray-900: #111827;
-            --success: #10b981;
-            --error: #ef4444;
-            --radius: 8px;
-            --shadow: 0 1px 3px rgba(0,0,0,0.1), 0 1px 2px rgba(0,0,0,0.06);
-        }
-
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-            background: var(--gray-50);
-            color: var(--gray-900);
-            margin: 0;
-            padding: 0;
+            background-color: #f8f9fa;
         }
-
-        .container {
-            max-width: 600px;
-            margin: 20px auto;
-            background: var(--white);
-            padding: 24px;
-            border-radius: var(--radius);
-            box-shadow: var(--shadow);
+        .card {
+            border: none;
+            box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
         }
-
-        h1 {
-            color: var(--primary-900);
-            text-align: center;
-            margin-bottom: 8px;
-            font-size: 1.5rem;
+        .btn-primary {
+            background-color: #0d6efd;
+            border-color: #0d6efd;
+        }
+        .btn-primary:hover {
+            background-color: #0b5ed7;
+            border-color: #0a58ca;
+        }
+        .form-label {
+            font-weight: 600;
+            color: #495057;
+        }
+        .alert {
+            border-radius: 0.375rem;
+        }
+        .header-section {
+            background: linear-gradient(135deg, #0d6efd 0%, #0b5ed7 100%);
+            color: white;
+            padding: 2rem 0;
+            margin-bottom: 2rem;
+        }
+        .header-section h1 {
+            font-size: 2.5rem;
             font-weight: 700;
         }
-
-        .subtitle {
-            color: var(--gray-700);
-            text-align: center;
-            margin-bottom: 24px;
-            font-size: 1rem;
+        .header-section p {
+            font-size: 1.1rem;
+            opacity: 0.9;
         }
-
-        .card {
-            background: var(--white);
-            border: 1px solid var(--gray-200);
-            border-radius: var(--radius);
-            padding: 20px;
-            box-shadow: var(--shadow);
-        }
-
-        .row {
-            display: flex;
-            gap: 16px;
-            flex-wrap: wrap;
-            align-items: flex-start;
-            margin-bottom: 16px;
-        }
-
-        .row > * {
-            flex: 1 1 200px;
-        }
-
-        label {
-            display: block;
-            font-weight: 500;
-            color: var(--gray-700);
-            margin-bottom: 4px;
-        }
-
-        input {
-            width: 100%;
-            padding: 8px 12px;
-            border: 1px solid var(--gray-200);
-            border-radius: 6px;
-            font-size: 1rem;
-            transition: border-color 0.2s, box-shadow 0.2s;
-        }
-
-        input:focus {
-            outline: none;
-            border-color: var(--primary-500);
-            box-shadow: 0 0 0 3px rgba(25, 118, 210, 0.1);
-        }
-
-        textarea {
-            width: 100%;
-            padding: 8px 12px;
-            border: 1px solid var(--gray-200);
-            border-radius: 6px;
-            font-size: 1rem;
-            transition: border-color 0.2s, box-shadow 0.2s;
-            resize: vertical;
-        }
-
-        textarea:focus {
-            outline: none;
-            border-color: var(--primary-500);
-            box-shadow: 0 0 0 3px rgba(25, 118, 210, 0.1);
-        }
-
-        button {
-            background: var(--primary-500);
-            color: var(--white);
-            border: none;
-            cursor: pointer;
-            font-weight: 500;
-            padding: 10px 16px;
-            border-radius: 6px;
-            transition: background 0.2s;
-            width: 100%;
-        }
-
-        button:hover {
-            background: var(--primary-700);
-        }
-
-        .errores {
-            background: #fef2f2;
-            color: var(--error);
-            padding: 12px;
-            border-radius: var(--radius);
-            border: 1px solid #fecaca;
-            margin-bottom: 16px;
-        }
-
-        .exito {
-            background: #f0fdf4;
-            color: var(--success);
-            padding: 12px;
-            border-radius: var(--radius);
-            border: 1px solid #bbf7d0;
-            margin-bottom: 16px;
-        }
-
-        .form-actions {
-            display: flex;
-            gap: 12px;
-            flex-wrap: wrap;
-            margin-top: 20px;
-        }
-
-        .form-actions a {
-            display: inline-block;
-            padding: 10px 16px;
-            background: var(--gray-100);
-            color: var(--gray-700);
-            text-decoration: none;
-            border-radius: 6px;
-            border: 1px solid var(--gray-200);
-            transition: background 0.2s;
-            flex: 1;
-            text-align: center;
-        }
-
-        .form-actions a:hover {
-            background: var(--gray-200);
-        }
-
-        @media (max-width: 768px) {
-            .container {
-                margin: 10px;
-                padding: 16px;
-            }
-            .row {
-                flex-direction: column;
-                gap: 12px;
-            }
+        .medical-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            color: #ffffff;
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <div style="position: relative; margin-bottom: 16px;">
-            <h1 style="text-align: center;">Registro de Pacientes</h1>
-            <p class="subtitle" style="text-align: center;">Complete los datos para registrar un nuevo paciente.</p>
-            <a href="Menuprincipal.php" style="position: absolute; top: 0; right: 0; display: inline-block; padding: 6px 12px; background: var(--primary-500); color: var(--white); text-decoration: none; border-radius: 6px; font-weight: 500; transition: background 0.2s; white-space: nowrap;">Menu Principal</a>
+    <!-- Header Section -->
+    <div class="header-section">
+        <div class="container text-center">
+            <div class="medical-icon">
+                <i class="bi bi-heart-pulse-fill"></i>
+            </div>
+            <h1>Registro de Pacientes</h1>
+            <p>Complete los datos para registrar un nuevo paciente en la clínica nutricional.</p>
+            <a href="Menuprincipal.php" class="btn btn-light position-absolute top-50 end-0 translate-middle-y me-3">
+                <i class="bi bi-house-door"></i> Menú Principal
+            </a>
         </div>
+    </div>
 
+    <div class="container mb-5">
         <?php if (!empty($errores)): ?>
-            <div class="errores">
-                <?php foreach ($errores as $e): ?>
-                    <div>- <?= htmlspecialchars($e, ENT_QUOTES, 'UTF-8') ?></div>
-                <?php endforeach; ?>
+            <div class="alert alert-danger" role="alert">
+                <ul class="mb-0">
+                    <?php foreach ($errores as $e): ?>
+                        <li><?= htmlspecialchars($e, ENT_QUOTES, 'UTF-8') ?></li>
+                    <?php endforeach; ?>
+                </ul>
             </div>
         <?php endif; ?>
         <?php if ($exito): ?>
-            <div class="exito"><?= htmlspecialchars($exito, ENT_QUOTES, 'UTF-8') ?></div>
+            <div class="alert alert-success" role="alert">
+                <i class="bi bi-check-circle-fill me-2"></i><?= htmlspecialchars($exito, ENT_QUOTES, 'UTF-8') ?>
+            </div>
         <?php endif; ?>
 
         <div class="card">
-            <form method="post">
-                <input type="hidden" name="csrf" value="<?= htmlspecialchars($csrf, ENT_QUOTES, 'UTF-8') ?>">
+            <div class="card-header bg-primary text-white">
+                <h5 class="card-title mb-0"><i class="bi bi-person-plus me-2"></i>Información del Paciente</h5>
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    <input type="hidden" name="csrf" value="<?= htmlspecialchars($csrf, ENT_QUOTES, 'UTF-8') ?>">
 
-                <div class="row">
-                    <label>Nombre completo
-                        <input type="text" value="<?= htmlspecialchars($user_name, ENT_QUOTES, 'UTF-8') ?>" readonly />
-                    </label>
-                </div>
+                    <div class="mb-3">
+                        <label for="nombre_completo" class="form-label">
+                            <i class="bi bi-person me-1"></i>Nombre completo
+                        </label>
+                        <input type="text" class="form-control" id="nombre_completo" value="<?= htmlspecialchars($user_name, ENT_QUOTES, 'UTF-8') ?>" readonly>
+                    </div>
 
-                <div class="row">
-                    <label>DNI (13 dígitos)
-                        <input type="text" name="dni" pattern="\d{13}" maxlength="13" placeholder="0823200610125" required />
-                    </label>
-                </div>
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="dni" class="form-label">
+                                <i class="bi bi-card-text me-1"></i>DNI (13 dígitos)
+                            </label>
+                            <input type="text" class="form-control" id="dni" name="dni" pattern="\d{13}" maxlength="13" placeholder="0823200610125" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="telefono" class="form-label">
+                                <i class="bi bi-telephone me-1"></i>Teléfono (8 dígitos)
+                            </label>
+                            <input type="text" class="form-control" id="telefono" name="telefono" pattern="\d{8}" maxlength="8" placeholder="99553364" required>
+                        </div>
+                    </div>
 
-                <div class="row">
-                    <label>Fecha de nacimiento
-                        <input type="date" name="fecha_nacimiento" required onchange="calcularEdad()" />
-                    </label>
-                    <label>Edad
-                        <input type="text" id="edad" readonly />
-                    </label>
-                </div>
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="fecha_nacimiento" class="form-label">
+                                <i class="bi bi-calendar me-1"></i>Fecha de nacimiento
+                            </label>
+                            <input type="date" class="form-control" id="fecha_nacimiento" name="fecha_nacimiento" required onchange="calcularEdad()">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="edad" class="form-label">
+                                <i class="bi bi-hash me-1"></i>Edad
+                            </label>
+                            <input type="text" class="form-control" id="edad" readonly>
+                        </div>
+                    </div>
 
-                <div class="row">
-                    <label>Teléfono (8 dígitos)
-                        <input type="text" name="telefono" pattern="\d{8}" maxlength="8" placeholder="99553364" required />
-                    </label>
-                </div>
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="talla" class="form-label">
+                                <i class="bi bi-rulers me-1"></i>Talla (cm)
+                            </label>
+                            <input type="number" step="0.01" class="form-control" id="talla" name="talla" placeholder="170.5">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="peso" class="form-label">
+                                <i class="bi bi-speedometer2 me-1"></i>Peso (kg)
+                            </label>
+                            <input type="number" step="0.01" class="form-control" id="peso" name="peso" placeholder="70.5">
+                        </div>
+                    </div>
 
-                <div class="row">
-                    <label>Talla (cm)
-                        <input type="number" step="0.01" name="talla" placeholder="170.5" />
-                    </label>
-                    <label>Peso (kg)
-                        <input type="number" step="0.01" name="peso" placeholder="70.5" />
-                    </label>
-                </div>
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="estatura" class="form-label">
+                                <i class="bi bi-arrows-expand me-1"></i>Estatura (cm)
+                            </label>
+                            <input type="number" step="0.01" class="form-control" id="estatura" name="estatura" placeholder="170.5">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="masa_muscular" class="form-label">
+                                <i class="bi bi-activity me-1"></i>Masa muscular (kg)
+                            </label>
+                            <input type="number" step="0.01" class="form-control" id="masa_muscular" name="masa_muscular" placeholder="50.0">
+                        </div>
+                    </div>
 
-                <div class="row">
-                    <label>Estatura (cm)
-                        <input type="number" step="0.01" name="estatura" placeholder="170.5" />
-                    </label>
-                    <label>Masa muscular (kg)
-                        <input type="number" step="0.01" name="masa_muscular" placeholder="50.0" />
-                    </label>
-                </div>
+                    <div class="mb-3">
+                        <label for="enfermedades_base" class="form-label">
+                            <i class="bi bi-clipboard-data me-1"></i>Enfermedades de base
+                        </label>
+                        <textarea class="form-control" id="enfermedades_base" name="enfermedades_base" rows="3" placeholder="Describa las enfermedades de base"></textarea>
+                    </div>
 
-                <div class="row">
-                    <label>Enfermedades de base
-                        <textarea name="enfermedades_base" rows="3" placeholder="Describa las enfermedades de base"></textarea>
-                    </label>
-                </div>
+                    <div class="mb-3">
+                        <label for="medicamentos" class="form-label">
+                            <i class="bi bi-capsule me-1"></i>Medicamentos
+                        </label>
+                        <textarea class="form-control" id="medicamentos" name="medicamentos" rows="3" placeholder="Liste los medicamentos"></textarea>
+                    </div>
 
-                <div class="row">
-                    <label>Medicamentos
-                        <textarea name="medicamentos" rows="3" placeholder="Liste los medicamentos"></textarea>
-                    </label>
-                </div>
-
-                <button type="submit">Guardar</button>
-            </form>
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-primary btn-lg">
+                            <i class="bi bi-save me-2"></i>Guardar Paciente
+                        </button>
+                    </div>
+                </form>
+            </div>
         </div>
     </div>
 

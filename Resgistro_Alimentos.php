@@ -79,7 +79,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if ($rowCheck = $resultCheck->fetch_assoc()) {
             // Eliminar archivo si existe
             if (!empty($rowCheck['foto_path'])) {
-                $filePath = _DIR_ . '/' . $rowCheck['foto_path'];
+                $filePath = __DIR__ . '/' . $rowCheck['foto_path'];
                 if (file_exists($filePath)) {
                     unlink($filePath);
                 }
@@ -229,407 +229,301 @@ if ($vista === 'diaria') {
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Registro de Alimentos</title>
-    <link rel="stylesheet" href="assets/css/estilos.css" />
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <style>
-        :root {
-            --primary-900: #0d47a1;
-            --primary-700: #1565c0;
-            --primary-500: #1976d2;
-            --primary-300: #42a5f5;
-            --white: #ffffff;
-            --gray-50: #f9fafb;
-            --gray-100: #f3f4f6;
-            --gray-200: #e5e7eb;
-            --gray-700: #374151;
-            --gray-900: #111827;
-            --success: #10b981;
-            --error: #ef4444;
-            --radius: 8px;
-            --shadow: 0 1px 3px rgba(0,0,0,0.1), 0 1px 2px rgba(0,0,0,0.06);
-        }
-
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-            background: var(--gray-50);
-            color: var(--gray-900);
-            margin: 0;
-            padding: 0;
+            background-color: #f8f9fa;
         }
-
-        .container {
-            max-width: 1200px;
-            margin: 20px auto;
-            background: var(--white);
-            padding: 24px;
-            border-radius: var(--radius);
-            box-shadow: var(--shadow);
+        .card {
+            border: none;
+            box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
         }
-
-        h1 {
-            color: var(--primary-900);
-            text-align: center;
-            margin-bottom: 8px;
-            font-size: 2rem;
+        .btn-primary {
+            background-color: #0d6efd;
+            border-color: #0d6efd;
+        }
+        .btn-primary:hover {
+            background-color: #0b5ed7;
+            border-color: #0a58ca;
+        }
+        .form-label {
+            font-weight: 600;
+            color: #495057;
+        }
+        .alert {
+            border-radius: 0.375rem;
+        }
+        .header-section {
+            background: linear-gradient(135deg, #0d6efd 0%, #0b5ed7 100%);
+            color: white;
+            padding: 2rem 0;
+            margin-bottom: 2rem;
+        }
+        .header-section h1 {
+            font-size: 2.5rem;
             font-weight: 700;
         }
-
-        .subtitle {
-            color: var(--gray-700);
-            text-align: center;
-            margin-bottom: 24px;
-            font-size: 1rem;
+        .header-section p {
+            font-size: 1.1rem;
+            opacity: 0.9;
         }
-
-        .grid {
-            display: grid;
-            grid-template-columns: 1fr;
-            gap: 24px;
+        .medical-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            color: #ffffff;
         }
-
-        .card {
-            background: var(--white);
-            border: 1px solid var(--gray-200);
-            border-radius: var(--radius);
-            padding: 20px;
-            box-shadow: var(--shadow);
-        }
-
-        .card h2 {
-            color: var(--primary-700);
-            margin-top: 0;
-            margin-bottom: 16px;
-            font-size: 1.25rem;
-            font-weight: 600;
-        }
-
-        .row {
-            display: flex;
-            gap: 16px;
-            flex-wrap: wrap;
-            align-items: flex-start;
-            margin-bottom: 16px;
-        }
-
-        .row > * {
-            flex: 1 1 200px;
-        }
-
-        label {
-            display: block;
-            font-weight: 500;
-            color: var(--gray-700);
-            margin-bottom: 4px;
-        }
-
-        input, select, textarea, button {
-            width: 100%;
-            padding: 8px 12px;
-            border: 1px solid var(--gray-200);
-            border-radius: 6px;
-            font-size: 1rem;
-            transition: border-color 0.2s, box-shadow 0.2s;
-        }
-
-        input:focus, select:focus, textarea:focus {
-            outline: none;
-            border-color: var(--primary-500);
-            box-shadow: 0 0 0 3px rgba(25, 118, 210, 0.1);
-        }
-
-        textarea {
-            resize: vertical;
-            min-height: 80px;
-        }
-
-        button {
-            background: var(--primary-500);
-            color: var(--white);
-            border: none;
-            cursor: pointer;
-            font-weight: 500;
-            padding: 10px 16px;
-            transition: background 0.2s;
-        }
-
-        button:hover {
-            background: var(--primary-700);
-        }
-
         .table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 16px;
+            margin-top: 1rem;
         }
-
-        .table th, .table td {
-            border: 1px solid var(--gray-200);
-            padding: 12px;
-            text-align: left;
-        }
-
         .table th {
-            background: var(--gray-100);
+            background-color: #f8f9fa;
             font-weight: 600;
-            color: var(--gray-900);
         }
-
-        .table tbody tr:hover {
-            background: var(--gray-50);
-        }
-
-        .errores {
-            background: #fef2f2;
-            color: var(--error);
-            padding: 12px;
-            border-radius: var(--radius);
-            border: 1px solid #fecaca;
-            margin-bottom: 16px;
-        }
-
-        .exito {
-            background: #f0fdf4;
-            color: var(--success);
-            padding: 12px;
-            border-radius: var(--radius);
-            border: 1px solid #bbf7d0;
-            margin-bottom: 16px;
-        }
-
         .preview {
             max-height: 90px;
             border-radius: 6px;
-            border: 1px solid var(--gray-200);
+            border: 1px solid #dee2e6;
         }
-
+        .gallery-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 1rem;
+        }
+        .gallery-item {
+            border: 1px solid #dee2e6;
+            border-radius: 0.375rem;
+            padding: 0.75rem;
+            background: #ffffff;
+        }
+        .gallery-item img {
+            width: 100%;
+            height: 150px;
+            object-fit: cover;
+            border-radius: 6px;
+        }
         .muted {
-            color: var(--gray-700);
+            color: #6c757d;
             font-size: 0.875rem;
-        }
-
-        .form-actions {
-            display: flex;
-            gap: 12px;
-            flex-wrap: wrap;
-            margin-top: 20px;
-        }
-
-        .form-actions a {
-            display: inline-block;
-            padding: 10px 16px;
-            background: var(--gray-100);
-            color: var(--gray-700);
-            text-decoration: none;
-            border-radius: 6px;
-            border: 1px solid var(--gray-200);
-            transition: background 0.2s;
-        }
-
-        .form-actions a:hover {
-            background: var(--gray-200);
-        }
-
-        .btn-back {
-            display: inline-block;
-            padding: 8px 16px;
-            background: var(--primary-500);
-            color: var(--white);
-            text-decoration: none;
-            border-radius: 6px;
-            font-weight: 500;
-            transition: background 0.2s;
-            white-space: nowrap;
-        }
-
-        .btn-back:hover {
-            background: var(--primary-700);
-        }
-
-        @media (max-width: 768px) {
-            .container {
-                margin: 10px;
-                padding: 16px;
-            }
-            .row {
-                flex-direction: column;
-                gap: 12px;
-            }
-            .form-actions {
-                flex-direction: column;
-            }
-            .btn-back {
-                margin-top: 16px;
-                align-self: flex-start;
-            }
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
-            <div>
-                <h1>Registro de Alimentos</h1>
-                <p class="subtitle">Paciente #<?= (int)$paciente_id ?> | Registre sus comidas diarias con foto opcional.</p>
+    <!-- Header Section -->
+    <div class="header-section">
+        <div class="container text-center">
+            <div class="medical-icon">
+                <i class="bi bi-heart-pulse-fill"></i>
             </div>
-            <a href="Menuprincipal.php" class="btn-back">← Menu Principal</a>
+            <h1>Registro de Alimentos</h1>
+            <p>Paciente #<?= (int)$paciente_id ?> | Registre sus comidas diarias con foto opcional.</p>
+            <a href="Menuprincipal.php" class="btn btn-light position-absolute top-50 end-0 translate-middle-y me-3">
+                <i class="bi bi-house-door"></i> Menú Principal
+            </a>
         </div>
+    </div>
 
+    <div class="container mb-5">
         <?php if (!empty($errores)): ?>
-            <div class="errores">
-                <?php foreach ($errores as $e): ?>
-                    <div>- <?= htmlspecialchars($e, ENT_QUOTES, 'UTF-8') ?></div>
-                <?php endforeach; ?>
+            <div class="alert alert-danger" role="alert">
+                <ul class="mb-0">
+                    <?php foreach ($errores as $e): ?>
+                        <li><?= htmlspecialchars($e, ENT_QUOTES, 'UTF-8') ?></li>
+                    <?php endforeach; ?>
+                </ul>
             </div>
         <?php endif; ?>
         <?php if ($exito): ?>
-            <div class="exito"><?= htmlspecialchars($exito, ENT_QUOTES, 'UTF-8') ?></div>
+            <div class="alert alert-success" role="alert">
+                <i class="bi bi-check-circle-fill me-2"></i><?= htmlspecialchars($exito, ENT_QUOTES, 'UTF-8') ?>
+            </div>
         <?php endif; ?>
 
         <div class="card">
-            <h2>Nuevo registro</h2>
-            <form method="post" enctype="multipart/form-data">
-                <input type="hidden" name="csrf" value="<?= htmlspecialchars($csrf, ENT_QUOTES, 'UTF-8') ?>">
-                <div class="row">
-                    <label>Fecha
-                        <input type="date" name="fecha" value="<?= htmlspecialchars($hoy, ENT_QUOTES, 'UTF-8') ?>" required />
-                    </label>
-                    <label>Hora
-                        <input type="time" name="hora" required />
-                    </label>
-                    <label>Tipo de comida
-                        <select name="tipo_comida" required>
-                            <option value="desayuno">Desayuno</option>
-                            <option value="almuerzo">Almuerzo</option>
-                            <option value="cena">Cena</option>
-                            <option value="snack">Snack</option>
-                        </select>
-                    </label>
-                </div>
-                <div class="row">
-                    <label style="flex:1 1 100%">Descripción del plato / alimentos
-                        <textarea name="descripcion" rows="3" placeholder="Ej: Ensalada de pollo, arroz integral, agua" required></textarea>
-                    </label>
-                </div>
-                <div class="row">
-                    <label>Foto del plato (opcional)
-                        <input type="file" name="foto" accept="image/jpeg,image/png,image/gif" id="fotoInput" onchange="previewImage(event)" />
+            <div class="card-header bg-primary text-white">
+                <h5 class="card-title mb-0"><i class="bi bi-plus-circle me-2"></i>Nuevo Registro</h5>
+            </div>
+            <div class="card-body">
+                <form method="post" enctype="multipart/form-data">
+                    <input type="hidden" name="csrf" value="<?= htmlspecialchars($csrf, ENT_QUOTES, 'UTF-8') ?>">
+
+                    <div class="row mb-3">
+                        <div class="col-md-4">
+                            <label for="fecha" class="form-label">
+                                <i class="bi bi-calendar me-1"></i>Fecha
+                            </label>
+                            <input type="date" class="form-control" id="fecha" name="fecha" value="<?= htmlspecialchars($hoy, ENT_QUOTES, 'UTF-8') ?>" required>
+                        </div>
+                        <div class="col-md-4">
+                            <label for="hora" class="form-label">
+                                <i class="bi bi-clock me-1"></i>Hora
+                            </label>
+                            <input type="time" class="form-control" id="hora" name="hora" required>
+                        </div>
+                        <div class="col-md-4">
+                            <label for="tipo_comida" class="form-label">
+                                <i class="bi bi-tag me-1"></i>Tipo de comida
+                            </label>
+                            <select class="form-control" id="tipo_comida" name="tipo_comida" required>
+                                <option value="desayuno">Desayuno</option>
+                                <option value="almuerzo">Almuerzo</option>
+                                <option value="cena">Cena</option>
+                                <option value="snack">Snack</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="descripcion" class="form-label">
+                            <i class="bi bi-card-text me-1"></i>Descripción del plato / alimentos
+                        </label>
+                        <textarea class="form-control" id="descripcion" name="descripcion" rows="3" placeholder="Ej: Ensalada de pollo, arroz integral, agua" required></textarea>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="foto" class="form-label">
+                            <i class="bi bi-camera me-1"></i>Foto del plato (opcional)
+                        </label>
+                        <input type="file" class="form-control" id="foto" name="foto" accept="image/jpeg,image/png,image/gif" onchange="previewImage(event)">
                         <span class="muted">Formatos: JPG, PNG, GIF. Máx 3MB.</span>
                         <div id="imagePreview" style="margin-top: 10px; display: none;">
                             <img id="previewImg" class="preview" alt="Vista previa" />
                         </div>
-                    </label>
-                </div>
-                <div class="form-actions">
-                    <button type="submit">Guardar registro</button>
-                    <a href="?id=<?= (int)$paciente_id ?>&vista=diaria&fecha=<?= htmlspecialchars($hoy, ENT_QUOTES, 'UTF-8') ?>">Ver hoy</a>
-                    <a href="?id=<?= (int)$paciente_id ?>&vista=semanal&fecha=<?= htmlspecialchars($hoy, ENT_QUOTES, 'UTF-8') ?>">Ver semana actual</a>
-                </div>
-            </form>
+                    </div>
+
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-primary btn-lg">
+                            <i class="bi bi-save me-2"></i>Guardar Registro
+                        </button>
+                    </div>
+                </form>
+            </div>
         </div>
 
         <div class="card">
-            <h2>Historial <?= $vista === 'semanal' ? 'semanal' : 'diario' ?></h2>
-            <form method="get" class="row" action="">
-                <input type="hidden" name="id" value="<?= (int)$paciente_id ?>" />
-                <label>Vista
-                    <select name="vista">
-                        <option value="diaria" <?= $vista==='diaria'?'selected':'' ?>>Diaria</option>
-                        <option value="semanal" <?= $vista==='semanal'?'selected':'' ?>>Semanal</option>
-                    </select>
-                </label>
-                <label>Fecha base
-                    <input type="date" name="fecha" value="<?= htmlspecialchars($fechaFiltro, ENT_QUOTES, 'UTF-8') ?>" />
-                </label>
-                <button type="submit">Aplicar</button>
-            </form>
+            <div class="card-header bg-primary text-white">
+                <h5 class="card-title mb-0"><i class="bi bi-list me-2"></i>Historial <?= $vista === 'semanal' ? 'Semanal' : 'Diario' ?></h5>
+            </div>
+            <div class="card-body">
+                <form method="get" class="row mb-3">
+                    <input type="hidden" name="id" value="<?= (int)$paciente_id ?>" />
+                    <div class="col-md-4">
+                        <label for="vista" class="form-label">Vista</label>
+                        <select class="form-control" id="vista" name="vista">
+                            <option value="diaria" <?= $vista==='diaria'?'selected':'' ?>>Diaria</option>
+                            <option value="semanal" <?= $vista==='semanal'?'selected':'' ?>>Semanal</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <label for="fecha_filtro" class="form-label">Fecha base</label>
+                        <input type="date" class="form-control" id="fecha_filtro" name="fecha" value="<?= htmlspecialchars($fechaFiltro, ENT_QUOTES, 'UTF-8') ?>" />
+                    </div>
+                    <div class="col-md-4 d-flex align-items-end">
+                        <button type="submit" class="btn btn-primary">Aplicar</button>
+                    </div>
+                </form>
 
-            <?php if (empty($historial)): ?>
-                <p class="muted">No hay registros para el periodo seleccionado.</p>
-            <?php else: ?>
-                <table class="table">
-                    <thead>
-                        <tr>
-                            <?php if ($vista==='semanal'): ?><th>Fecha</th><?php endif; ?>
-                            <th>Hora</th>
-                            <th>Tipo</th>
-                            <th>Descripción</th>
-                            <th>Foto</th>
-                            <th>Acciones</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <?php foreach ($historial as $row): ?>
-                            <tr>
-                                <?php if ($vista==='semanal'): ?><td><?= htmlspecialchars($row['fecha'], ENT_QUOTES, 'UTF-8') ?></td><?php endif; ?>
-                                <td><?= htmlspecialchars(substr($row['hora'],0,5), ENT_QUOTES, 'UTF-8') ?></td>
-                                <td><?= htmlspecialchars(ucfirst($row['tipo_comida']), ENT_QUOTES, 'UTF-8') ?></td>
-                                <td><?= nl2br(htmlspecialchars($row['descripcion'], ENT_QUOTES, 'UTF-8')) ?></td>
-                                <td>
-                                    <?php if (!empty($row['foto_path'])): ?>
-                                        <a href="<?= htmlspecialchars($row['foto_path'], ENT_QUOTES, 'UTF-8') ?>" target="_blank">
-                                            <img class="preview" src="<?= htmlspecialchars($row['foto_path'], ENT_QUOTES, 'UTF-8') ?>" alt="foto" />
-                                        </a>
-                                    <?php else: ?>
-                                        <span class="muted">Sin foto</span>
-                                    <?php endif; ?>
-                                </td>
-                                <td>
-                                    <form method="post" style="display: inline;" onsubmit="return confirm('¿Está seguro de que desea eliminar este registro?');">
-                                        <input type="hidden" name="csrf" value="<?= htmlspecialchars($csrf, ENT_QUOTES, 'UTF-8') ?>">
-                                        <input type="hidden" name="delete_id" value="<?= (int)$row['id'] ?>">
-                                        <button type="submit" style="background: #ef4444; color: white; border: none; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 0.875rem;" onclick="return confirm('¿Eliminar este registro?')">Eliminar</button>
-                                    </form>
-                                </td>
-                            </tr>
-                        <?php endforeach; ?>
-                    </tbody>
-                </table>
-            <?php endif; ?>
+                <?php if (empty($historial)): ?>
+                    <p class="muted">No hay registros para el periodo seleccionado.</p>
+                <?php else: ?>
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <?php if ($vista==='semanal'): ?><th>Fecha</th><?php endif; ?>
+                                    <th>Hora</th>
+                                    <th>Tipo</th>
+                                    <th>Descripción</th>
+                                    <th>Foto</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <?php foreach ($historial as $row): ?>
+                                    <tr>
+                                        <?php if ($vista==='semanal'): ?><td><?= htmlspecialchars($row['fecha'], ENT_QUOTES, 'UTF-8') ?></td><?php endif; ?>
+                                        <td><?= htmlspecialchars(substr($row['hora'],0,5), ENT_QUOTES, 'UTF-8') ?></td>
+                                        <td><?= htmlspecialchars(ucfirst($row['tipo_comida']), ENT_QUOTES, 'UTF-8') ?></td>
+                                        <td><?= nl2br(htmlspecialchars($row['descripcion'], ENT_QUOTES, 'UTF-8')) ?></td>
+                                        <td>
+                                            <?php if (!empty($row['foto_path'])): ?>
+                                                <a href="<?= htmlspecialchars($row['foto_path'], ENT_QUOTES, 'UTF-8') ?>" target="_blank">
+                                                    <img class="preview" src="<?= htmlspecialchars($row['foto_path'], ENT_QUOTES, 'UTF-8') ?>" alt="foto" />
+                                                </a>
+                                            <?php else: ?>
+                                                <span class="muted">Sin foto</span>
+                                            <?php endif; ?>
+                                        </td>
+                                        <td>
+                                            <form method="post" style="display: inline;" onsubmit="return confirm('¿Está seguro de que desea eliminar este registro?');">
+                                                <input type="hidden" name="csrf" value="<?= htmlspecialchars($csrf, ENT_QUOTES, 'UTF-8') ?>">
+                                                <input type="hidden" name="delete_id" value="<?= (int)$row['id'] ?>">
+                                                <button type="submit" class="btn btn-danger btn-sm">
+                                                    <i class="bi bi-trash"></i> Eliminar
+                                                </button>
+                                            </form>
+                                        </td>
+                                    </tr>
+                                <?php endforeach; ?>
+                            </tbody>
+                        </table>
+                    </div>
+                <?php endif; ?>
+            </div>
         </div>
 
         <div class="card">
-            <h2>Galería de Comidas Registradas</h2>
-            <?php
-            // Obtener todas las comidas con fotos del paciente
-            $sqlGaleria = "SELECT fecha, tipo_comida, descripcion, hora, foto_path
-                           FROM alimentos_registro
-                           WHERE paciente_id = ? AND foto_path IS NOT NULL
-                           ORDER BY fecha DESC, hora DESC";
-            $stmtGaleria = $conexion->prepare($sqlGaleria);
-            $galeria = [];
-            if ($stmtGaleria) {
-                $stmtGaleria->bind_param('i', $paciente_id);
-                if ($stmtGaleria->execute()) {
-                    $resGaleria = $stmtGaleria->get_result();
-                    while ($row = $resGaleria->fetch_assoc()) {
-                        $galeria[] = $row;
+            <div class="card-header bg-primary text-white">
+                <h5 class="card-title mb-0"><i class="bi bi-images me-2"></i>Galería de Comidas Registradas</h5>
+            </div>
+            <div class="card-body">
+                <?php
+                // Obtener todas las comidas con fotos del paciente
+                $sqlGaleria = "SELECT fecha, tipo_comida, descripcion, hora, foto_path
+                               FROM alimentos_registro
+                               WHERE paciente_id = ? AND foto_path IS NOT NULL
+                               ORDER BY fecha DESC, hora DESC";
+                $stmtGaleria = $conexion->prepare($sqlGaleria);
+                $galeria = [];
+                if ($stmtGaleria) {
+                    $stmtGaleria->bind_param('i', $paciente_id);
+                    if ($stmtGaleria->execute()) {
+                        $resGaleria = $stmtGaleria->get_result();
+                        while ($row = $resGaleria->fetch_assoc()) {
+                            $galeria[] = $row;
+                        }
                     }
+                    $stmtGaleria->close();
                 }
-                $stmtGaleria->close();
-            }
-            ?>
+                ?>
 
-            <?php if (empty($galeria)): ?>
-                <p class="muted">No hay fotos de comidas registradas aún.</p>
-            <?php else: ?>
-                <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 16px;">
-                    <?php foreach ($galeria as $item): ?>
-                        <div style="border: 1px solid var(--gray-200); border-radius: var(--radius); padding: 12px; background: var(--white);">
-                            <img src="<?= htmlspecialchars($item['foto_path'], ENT_QUOTES, 'UTF-8') ?>" alt="Foto de comida" style="width: 100%; height: 150px; object-fit: cover; border-radius: 6px;" />
-                            <div style="margin-top: 8px;">
-                                <div style="font-weight: 600; color: var(--primary-700); text-transform: capitalize;">
-                                    <?= htmlspecialchars($item['tipo_comida'], ENT_QUOTES, 'UTF-8') ?>
-                                </div>
-                                <div style="font-size: 0.875rem; color: var(--gray-700);">
-                                    <?= htmlspecialchars($item['fecha'], ENT_QUOTES, 'UTF-8') ?> - <?= htmlspecialchars(substr($item['hora'],0,5), ENT_QUOTES, 'UTF-8') ?>
-                                </div>
-                                <div style="font-size: 0.875rem; color: var(--gray-900); margin-top: 4px;">
-                                    <?= nl2br(htmlspecialchars($item['descripcion'], ENT_QUOTES, 'UTF-8')) ?>
+                <?php if (empty($galeria)): ?>
+                    <p class="muted">No hay fotos de comidas registradas aún.</p>
+                <?php else: ?>
+                    <div class="gallery-grid">
+                        <?php foreach ($galeria as $item): ?>
+                            <div class="gallery-item">
+                                <img src="<?= htmlspecialchars($item['foto_path'], ENT_QUOTES, 'UTF-8') ?>" alt="Foto de comida" />
+                                <div style="margin-top: 8px;">
+                                    <div style="font-weight: 600; color: #0d6efd; text-transform: capitalize;">
+                                        <?= htmlspecialchars($item['tipo_comida'], ENT_QUOTES, 'UTF-8') ?>
+                                    </div>
+                                    <div style="font-size: 0.875rem; color: #6c757d;">
+                                        <?= htmlspecialchars($item['fecha'], ENT_QUOTES, 'UTF-8') ?> - <?= htmlspecialchars(substr($item['hora'],0,5), ENT_QUOTES, 'UTF-8') ?>
+                                    </div>
+                                    <div style="font-size: 0.875rem; color: #495057; margin-top: 4px;">
+                                        <?= nl2br(htmlspecialchars($item['descripcion'], ENT_QUOTES, 'UTF-8')) ?>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                    <?php endforeach; ?>
-                </div>
-            <?php endif; ?>
+                        <?php endforeach; ?>
+                    </div>
+                <?php endif; ?>
+            </div>
         </div>
     </div>
 

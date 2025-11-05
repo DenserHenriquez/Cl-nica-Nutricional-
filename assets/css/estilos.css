@@ -1,172 +1,72 @@
-*{
-        margin: 0;
-        padding: 0;
-        box-sizing: border-box;
-        text-decoration: none;
-        font-family: 'Roboto', sans-serif;
+/* Custom overrides for Bootstrap 5 in nutrition clinic theme */
+
+body {
+    font-family: 'Roboto', sans-serif;
+}
+
+/* Custom background overlay for better text readability */
+.container-fluid {
+    position: relative;
+}
+
+.container-fluid::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(173, 216, 230, 0.7); /* Soft blue overlay */
+    z-index: 1;
+}
+
+.container-fluid > .row {
+    position: relative;
+    z-index: 2;
+}
+
+/* Custom card styling */
+.card {
+    backdrop-filter: blur(10px);
+    background: rgba(255, 255, 255, 0.95);
+    border: 2px solid #32CD32; /* Green border */
+}
+
+/* Custom nav tabs */
+.nav-tabs .nav-link {
+    border: none;
+    border-radius: 0;
+    transition: all 0.3s ease;
+}
+
+.nav-tabs .nav-link:hover {
+    background-color: rgba(255, 255, 255, 0.2);
+}
+
+.nav-tabs .nav-link.active {
+    background-color: rgba(255, 255, 255, 0.3);
+    border-bottom: 3px solid #fff;
+}
+
+/* Custom form controls */
+.form-control:focus {
+    border-color: #198754;
+    box-shadow: 0 0 0 0.25rem rgba(25, 135, 84, 0.25);
+}
+
+/* Custom buttons */
+.btn-success:hover {
+    background-color: #157347;
+    border-color: #146c43;
+}
+
+/* Responsive adjustments */
+@media (max-width: 576px) {
+    .card {
+        margin: 1rem;
     }
 
-    body{
-        background-color: #87CEEB;
+    .fa-3x {
+        font-size: 2.5rem !important;
     }
-
-    main{
-        width: 100%;
-        padding: 20px;
-        margin: auto;
-        margin-top: 100px;
-    }
-
-    .contenedor__todo{
-        width: 100%;
-        max-width: 800px;
-        margin: auto;
-        position: relative;
-    }
-
-    .caja__trasera{
-        width: 100%;
-        padding: 10px 20px;
-        display: flex;
-        justify-content: center;
-        -webkit-backdrop-filter: blur(10px);
-        backdrop-filter: blur(10px);
-        background-color: rgba(0, 128, 255, 0.5);
-
-    }
-
-    .caja__trasera div{
-        margin: 100px 40px;
-        color: white;
-        transition: all 500ms;
-    }
-
-
-    .caja__trasera div p,
-    .caja__trasera button{
-        margin-top: 30px;
-    }
-
-    .caja__trasera div h3{
-        font-weight: 400;
-        font-size: 26px;
-    }
-
-    .caja__trasera div p{
-        font-size: 16px;
-        font-weight: 300;
-    }
-
-    .caja__trasera button{
-        padding: 10px 40px;
-        border: 2px solid #fff;
-        font-size: 14px;
-        background: transparent;
-        font-weight: 600;
-        cursor: pointer;
-        color: white;
-        outline: none;
-        transition: all 300ms;
-    }
-
-    .caja__trasera button:hover{
-        background: #fff;
-        color: #46A2FD;
-    }
-
-    /*Formularios*/
-
-    .contenedor__login-register{
-        display: flex;
-        align-items: center;
-        width: 100%;
-        max-width: 380px;
-        position: relative;
-        top: -185px;
-        left: 10px;
-
-        /*La transicion va despues del codigo JS*/
-        transition: left 500ms cubic-bezier(0.175, 0.885, 0.320, 1.275);
-    }
-
-    .contenedor__login-register form{
-        width: 100%;
-        padding: 80px 20px;
-        background: white;
-        position: absolute;
-        border-radius: 20px;
-    }
-
-    .contenedor__login-register form h2{
-        font-size: 30px;
-        text-align: center;
-        margin-bottom: 20px;
-        color: #46A2FD;
-    }
-
-    .contenedor__login-register form input{
-        width: 100%;
-        margin-top: 20px;
-        padding: 10px;
-        border: none;
-        background: #F2F2F2;
-        font-size: 16px;
-        outline: none;
-    }
-
-    .contenedor__login-register form button{
-        padding: 10px 40px;
-        margin-top: 40px;
-        border: none;
-        font-size: 14px;
-        background: #46A2FD;
-        font-weight: 600;
-        cursor: pointer;
-        color: white;
-        outline: none;
-    }
-
-
-
-
-    .formulario__login{
-        opacity: 1;
-        display: block;
-    }
-    .formulario__register{
-        display: none;
-    }
-
-
-
-    @media screen and (max-width: 850px){
-
-        main{
-            margin-top: 50px;
-        }
-
-        .caja__trasera{
-            max-width: 350px;
-            height: 300px;
-            flex-direction: column;
-            margin: auto;
-        }
-
-        .caja__trasera div{
-            margin: 0px;
-            position: absolute;
-        }
-
-
-        /*Formularios*/
-
-        .contenedor__login-register{
-            top: -10px;
-            left: -5px;
-            margin: auto;
-        }
-
-        .contenedor__login-register form{
-            position: relative;
-        }
-    }
+}

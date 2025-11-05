@@ -36,6 +36,10 @@ function e($str) { return htmlspecialchars((string)$str, ENT_QUOTES, 'UTF-8'); }
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Menú Principal | Clínica Nutricional</title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
     <style>
         :root {
             --primary-900: #0d47a1; /* azul profundo */
@@ -233,111 +237,77 @@ function e($str) { return htmlspecialchars((string)$str, ENT_QUOTES, 'UTF-8'); }
         </div>
     </header>
 
-    <section class="hero">
-        <div class="hero__inner">
-            <h1>Bienvenidos a <span>Clínica Nutricional</span></h1>
-            <p>Seleccione una opción del menú para continuar</p>
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Sidebar -->
+            <nav class="col-md-3 col-lg-2 d-md-block bg-light sidebar">
+                <div class="position-sticky">
+                    <h5 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-muted">
+                        <span>Menú Principal</span>
+                    </h5>
+                    <ul class="nav flex-column">
+                        <li class="nav-item">
+                            <a class="nav-link" href="Actualizar_perfil.php" target="main-content">
+                                <i class="bi bi-person-circle"></i> Actualizar Perfil
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="Activar_desactivar_paciente.php" target="main-content">
+                                <i class="bi bi-toggle-on"></i> Estado del Paciente
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="Busqueda_avanzada.php" target="main-content">
+                                <i class="bi bi-search"></i> Búsqueda Avanzada
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="Carga_fotografias.php" target="main-content">
+                                <i class="bi bi-camera"></i> Carga Fotográfica
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="citas_medico.php" target="main-content">
+                                <i class="bi bi-calendar-event"></i> Citas Médicas
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="Disponibilidad_citas.php" target="main-content">
+                                <i class="bi bi-clock"></i> Disponibilidad de Citas
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="Registropacientes.php" target="main-content">
+                                <i class="bi bi-person-plus"></i> Registro de Pacientes
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="Resgistro_Alimentos.php" target="main-content">
+                                <i class="bi bi-apple"></i> Registro de Alimentos
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="Seguimiento_ejercicio.php" target="main-content">
+                                <i class="bi bi-activity"></i> Seguimiento de Ejercicios
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </nav>
+
+            <!-- Main content -->
+            <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
+                <iframe name="main-content" src="" style="width: 100%; height: 80vh; border: none;"></iframe>
+            </main>
         </div>
-    </section>
+    </div>
 
-    <main class="container" role="main">
-        <section class="menu-grid" aria-label="Menú principal">
-            <a class="card" href="Actualizar_perfil.php">
-                <span class="card__icon" aria-hidden="true">
-                    <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 12a5 5 0 1 0-5-5 5.006 5.006 0 0 0 5 5zm-7 9a7 7 0 0 1 14 0 1 1 0 0 1-1 1H6a1 1 0 0 1-1-1z"/></svg>
-                </span>
-                <span>
-                    <div class="card__title">Actualizar Perfil</div>
-                    <div class="card__desc">Gestione su información personal y credenciales</div>
-                </span>
-            </a>
-
-            <a class="card" href="Activar_desactivar_paciente.php">
-                <span class="card__icon" aria-hidden="true">
-                    <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M20 6h-2.586l-2-2H8.586l-2 2H4a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2zm-8 12H6v-2h6zm6-4H6v-2h12z"/></svg>
-                </span>
-                <span>
-                    <div class="card__title">Estado del Paciente</div>
-                    <div class="card__desc">Activar o desactivar historial clínico</div>
-                </span>
-            </a>
-
-            <a class="card" href="Busqueda_avanzada.php">
-                <span class="card__icon" aria-hidden="true">
-                    <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M21.707 20.293l-4.387-4.387A7.939 7.939 0 0 0 20 10a8 8 0 1 0-8 8 7.939 7.939 0 0 0 5.906-2.68l4.387 4.387a1 1 0 0 0 1.414-1.414zM4 10a6 6 0 1 1 6 6 6.006 6.006 0 0 1-6-6z"/></svg>
-                </span>
-                <span>
-                    <div class="card__title">Búsqueda Avanzada</div>
-                    <div class="card__desc">Encuentre pacientes, citas y registros rápidamente</div>
-                </span>
-            </a>
-
-            <a class="card" href="Carga_fotografias.php">
-                <span class="card__icon" aria-hidden="true">
-                    <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M21 6h-3.586l-1.707-1.707A.996.996 0 0 0 15 4H9a.996.996 0 0 0-.707.293L6.586 6H3a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h18a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2zM12 18a4 4 0 1 1 4-4 4.005 4.005 0 0 1-4 4z"/></svg>
-                </span>
-                <span>
-                    <div class="card__title">Carga Fotográfica</div>
-                    <div class="card__desc">Suba y gestione fotografías clínicas</div>
-                </span>
-            </a>
-
-            <a class="card" href="citas_medico.php">
-                <span class="card__icon" aria-hidden="true">
-                    <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M19 4h-1V2h-2v2H8V2H6v2H5a3 3 0 0 0-3 3v11a3 3 0 0 0 3 3h14a3 3 0 0 0 3-3V7a3 3 0 0 0-3-3zm1 14a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V10h16zm-4-7h-4v4h4z"/></svg>
-                </span>
-                <span>
-                    <div class="card__title">Citas Médicas</div>
-                    <div class="card__desc">Programe y gestione citas con pacientes</div>
-                </span>
-            </a>
-
-            <a class="card" href="Disponibilidad_citas.php">
-                <span class="card__icon" aria-hidden="true">
-                    <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M19 3a1 1 0 0 1 1 1v1h1a1 1 0 0 1 0 2h-1v2h1a1 1 0 0 1 0 2h-1v2h1a1 1 0 0 1 0 2h-1v1a1 1 0 0 1-1 1h-1v1a1 1 0 0 1-2 0v-1h-2v1a1 1 0 0 1-2 0v-1H9v1a1 1 0 0 1-2 0v-1H6a1 1 0 0 1-1-1v-1H4a1 1 0 0 1 0-2h1v-2H4a1 1 0 0 1 0-2h1V7H4a1 1 0 0 1 0-2h1V4a1 1 0 0 1 1-1h1V2a1 1 0 0 1 2 0v1h2V2a1 1 0 0 1 2 0v1h1zM7 9v6h10V9z"/></svg>
-                </span>
-                <span>
-                    <div class="card__title">Disponibilidad de Citas</div>
-                    <div class="card__desc">Defina horarios y franjas disponibles</div>
-                </span>
-            </a>
-
-            <a class="card" href="Registropacientes.php">
-                <span class="card__icon" aria-hidden="true">
-                    <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M19 2H8a2 2 0 0 0-2 2v2H5a3 3 0 0 0-3 3v9a3 3 0 0 0 3 3h11a3 3 0 0 0 3-3v-2h1a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2zM5 20a1 1 0 0 1-1-1v-9a1 1 0 0 1 1-1h1v10a1 1 0 0 1-1 1zm13-3a1 1 0 0 1-1 1H8V4h11zM10 7h7v2h-7zm0 4h7v2h-7zm0 4h5v2h-5z"/></svg>
-                </span>
-                <span>
-                    <div class="card__title">Registro de Pacientes</div>
-                    <div class="card__desc">Cree y administre nuevos pacientes</div>
-                </span>
-            </a>
-
-            <a class="card" href="Resgistro_Alimentos.php">
-                <span class="card__icon" aria-hidden="true">
-                    <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M20 3h-7a1 1 0 0 0-1 1v7H4a1 1 0 0 0-1 1v7a1 1 0 0 0 1 1h7v-7h7a1 1 0 0 0 1-1V4a1 1 0 0 0-1-1z"/></svg>
-                </span>
-                <span>
-                    <div class="card__title">Registro de Alimentos</div>
-                    <div class="card__desc">Gestione planes y registros alimentarios</div>
-                </span>
-            </a>
-
-            <a class="card" href="Seguimiento_ejercicio.php">
-                <span class="card__icon" aria-hidden="true">
-                    <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M21 11h-2V9a1 1 0 0 0-2 0v2h-4V9a1 1 0 0 0-2 0v2H7V9a1 1 0 0 0-2 0v2H3a1 1 0 0 0 0 2h2v2a1 1 0 0 0 2 0v-2h4v2a1 1 0 0 0 2 0v-2h4v2a1 1 0 0 0 2 0v-2h2a1 1 0 0 0 0-2z"/></svg>
-                </span>
-                <span>
-                    <div class="card__title">Seguimiento de Ejercicios</div>
-                    <div class="card__desc">Controle rutinas y progreso físico</div>
-                </span>
-            </a>
-        </section>
-    </main>
-
-    <footer>
+    <footer class="text-center text-muted py-3">
         © <span id="year"></span> Clínica Nutricional. Todos los derechos reservados.
     </footer>
 
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         document.getElementById('year').textContent = new Date().getFullYear();
     </script>
