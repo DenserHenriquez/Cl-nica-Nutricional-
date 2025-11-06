@@ -233,10 +233,80 @@ function e($str) { return htmlspecialchars((string)$str, ENT_QUOTES, 'UTF-8'); }
         </div>
     </header>
 
+<<<<<<< Updated upstream
     <section class="hero">
         <div class="hero__inner">
             <h1>Bienvenidos a <span>Clínica Nutricional</span></h1>
             <p>Seleccione una opción del menú para continuar</p>
+=======
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Sidebar -->
+            <nav class="col-md-3 col-lg-2 d-md-block bg-light sidebar">
+                <div class="position-sticky">
+                    <h5 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-muted">
+                        <span>Menú Principal</span>
+                    </h5>
+                    <ul class="nav flex-column">
+                        <li class="nav-item">
+                            <a class="nav-link" href="Actualizar_perfil.php" target="main-content">
+                                <i class="bi bi-person-circle"></i> Actualizar Perfil
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="Activar_desactivar_paciente.php" target="main-content">
+                                <i class="bi bi-toggle-on"></i> Estado del Paciente
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="Busqueda_avanzada.php" target="main-content">
+                                <i class="bi bi-search"></i> Búsqueda Avanzada
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="Carga_fotografias.php" target="main-content">
+                                <i class="bi bi-camera"></i> Carga Fotográfica
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="citas_medico.php" target="main-content">
+                                <i class="bi bi-calendar-event"></i> Citas Médicas
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="Disponibilidad_citas.php" target="main-content">
+                                <i class="bi bi-clock"></i> Disponibilidad de Citas
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="Registropacientes.php" target="main-content">
+                                <i class="bi bi-person-plus"></i> Registro de Pacientes
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="Resgistro_Alimentos.php" target="main-content">
+                                <i class="bi bi-apple"></i> Registro de Alimentos
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="Seguimiento_ejercicio.php" target="main-content">
+                                <i class="bi bi-activity"></i> Seguimiento de Ejercicios
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="Clasificacion_alimentos.php" target="main-content">
+                                <i class="bi bi-apple"></i> Clasificación de Alimentos
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </nav>
+
+            <!-- Main content -->
+            <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
+                <iframe name="main-content" src="" style="width: 100%; height: 80vh; border: none;"></iframe>
+            </main>
+>>>>>>> Stashed changes
         </div>
     </section>
 
