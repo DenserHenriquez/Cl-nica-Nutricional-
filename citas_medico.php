@@ -48,24 +48,286 @@ if ($medico_id === 0) {
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>Seleccionar Médico - Gestión de Citas</title>
         <link rel="stylesheet" href="assets/css/estilos.css">
-        <style>
-            body { background-color: #87CEEB; background-image: none; font-family: Arial, sans-serif; }
-            .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
-            .medicos-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; margin-top: 20px; }
-            .medico-card {
-                background: #fff; border-radius: 12px; padding: 20px; box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-                text-align: center; cursor: pointer; transition: transform 0.2s, box-shadow 0.2s;
-                border: 2px solid #ddd;
+    <style>
+        :root {
+            --primary-900: #0d47a1;
+            --primary-700: #1565c0;
+            --primary-500: #1976d2;
+            --primary-300: #42a5f5;
+            --primary-100: #e3f2fd;
+            --white: #ffffff;
+            --text-900: #0b1b34;
+            --text-700: #22426e;
+            --text-500: #64748b;
+            --shadow: 0 10px 25px rgba(13, 71, 161, 0.18);
+            --shadow-light: 0 4px 6px rgba(0, 0, 0, 0.1);
+            --radius-lg: 16px;
+            --radius-md: 12px;
+            --radius-sm: 10px;
+            --bg-sky-blue: #87CEEB;
+            --gradient-card: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+        }
+
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", sans-serif;
+            color: var(--text-900);
+            background: var(--bg-sky-blue);
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 30px 20px;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            background: var(--white);
+            padding: 20px;
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow);
+        }
+
+        h1 {
+            margin: 0;
+            font-size: 2.5rem;
+            font-weight: 700;
+            background: linear-gradient(45deg, var(--primary-700), var(--primary-500));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .btn-menu {
+            display: inline-block;
+            padding: 10px 20px;
+            background: var(--primary-500);
+            color: var(--white);
+            text-decoration: none;
+            border-radius: var(--radius-md);
+            font-weight: 600;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            box-shadow: var(--shadow-light);
+        }
+
+        .btn-menu:hover {
+            background: var(--primary-700);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .message {
+            padding: 15px;
+            margin-bottom: 25px;
+            border-radius: var(--radius-md);
+            color: #155724;
+            background: linear-gradient(135deg, #d4edda, #c3e6cb);
+            border: 1px solid #c3e6cb;
+            box-shadow: var(--shadow-light);
+            animation: fadeIn 0.5s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .form-section, .report-section {
+            background: var(--gradient-card);
+            border-radius: var(--radius-lg);
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: var(--shadow);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .form-section:hover, .report-section:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 35px rgba(13, 71, 161, 0.25);
+        }
+
+        .form-section h2, .report-section h2 {
+            margin-top: 0;
+            margin-bottom: 20px;
+            font-size: 1.8rem;
+            font-weight: 600;
+            color: var(--primary-900);
+            border-bottom: 2px solid var(--primary-300);
+            padding-bottom: 10px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: var(--text-700);
+        }
+
+        input, textarea, select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e2e8f0;
+            border-radius: var(--radius-sm);
+            font-size: 1rem;
+            transition: border-color 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        input:focus, textarea:focus, select:focus {
+            outline: none;
+            border-color: var(--primary-500);
+            box-shadow: 0 0 0 3px rgba(25, 118, 210, 0.1);
+        }
+
+        button {
+            background: linear-gradient(135deg, var(--primary-500), var(--primary-700));
+            color: var(--white);
+            padding: 12px 25px;
+            border: none;
+            border-radius: var(--radius-md);
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: var(--shadow-light);
+        }
+
+        button:hover {
+            background: linear-gradient(135deg, var(--primary-700), var(--primary-900));
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .report-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            border-radius: var(--radius-md);
+            overflow: hidden;
+            box-shadow: var(--shadow-light);
+        }
+
+        .report-table th, .report-table td {
+            padding: 15px;
+            text-align: left;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .report-table th {
+            background: linear-gradient(135deg, var(--primary-100), var(--primary-300));
+            font-weight: 600;
+            color: var(--text-900);
+        }
+
+        .report-table tbody tr {
+            transition: background-color 0.3s ease;
+        }
+
+        .report-table tbody tr:hover {
+            background-color: rgba(25, 118, 210, 0.05);
+        }
+
+        .report-table img {
+            border-radius: var(--radius-sm);
+            transition: transform 0.3s ease;
+        }
+
+        .report-table img:hover {
+            transform: scale(1.1);
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px 10px;
             }
-            .medico-card:hover { transform: translateY(-5px); box-shadow: 0 8px 16px rgba(0,0,0,0.2); border-color: #1976d2; }
-            .medico-icon { width: 80px; height: 80px; margin: 0 auto 10px; border-radius: 50%; overflow: hidden; border: 2px solid #ddd; }
-            .medico-icon img { width: 100%; height: 100%; object-fit: cover; }
-            .medico-nombre { font-size: 18px; font-weight: bold; margin-bottom: 5px; }
-            .medico-especialidad { color: #666; margin-bottom: 5px; }
-            .medico-email { font-size: 14px; color: #555; margin-bottom: 2px; }
-            .medico-telefono { font-size: 14px; color: #555; }
-            .back-btn { position: absolute; top: 10px; right: 10px; padding: 8px 16px; background: #1976d2; color: #fff; border: none; border-radius: 4px; cursor: pointer; text-decoration: none; }
-        </style>
+            .header {
+                flex-direction: column;
+                text-align: center;
+                gap: 15px;
+            }
+            h1 {
+                font-size: 2rem;
+            }
+            .form-section, .report-section {
+                padding: 20px;
+            }
+            .report-table th, .report-table td {
+                padding: 10px;
+                font-size: 0.9rem;
+            }
+        }
+
+        /* Estilos específicos para citas_medico */
+        .medicos-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; margin-top: 20px; }
+        .medico-card {
+            background: var(--gradient-card);
+            border-radius: var(--radius-lg);
+            padding: 20px;
+            box-shadow: var(--shadow);
+            text-align: center;
+            cursor: pointer;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            border: 2px solid #ddd;
+        }
+        .medico-card:hover { transform: translateY(-5px); box-shadow: 0 15px 35px rgba(13, 71, 161, 0.25); border-color: var(--primary-500); }
+        .medico-icon { width: 80px; height: 80px; margin: 0 auto 10px; border-radius: 50%; overflow: hidden; border: 2px solid #ddd; }
+        .medico-icon img { width: 100%; height: 100%; object-fit: cover; }
+        .medico-nombre { font-size: 18px; font-weight: bold; margin-bottom: 5px; }
+        .medico-especialidad { color: #666; margin-bottom: 5px; }
+        .medico-email { font-size: 14px; color: #555; margin-bottom: 2px; }
+        .medico-telefono { font-size: 14px; color: #555; }
+        .back-btn { position: absolute; top: 10px; right: 10px; padding: 8px 16px; background: var(--primary-500); color: var(--white); border: none; border-radius: var(--radius-md); cursor: pointer; text-decoration: none; transition: all 0.3s ease; }
+        .back-btn:hover { background: var(--primary-700); transform: translateY(-2px); box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15); }
+
+        #calendar { max-width: 400px; margin: 0 auto; height: 300px; font-size: 12px; }
+        .fc { font-size: 12px; }
+        .fc-daygrid-day { min-height: 60px; }
+        .fc-daygrid-day-number { font-size: 10px; }
+        .fc-event { font-size: 10px; padding: 2px; }
+        .badge { display:inline-block; padding:2px 6px; border-radius:4px; font-size:11px; margin-right:4px; }
+        .b-libre { background:#e8f5e9; color:#2e7d32; border:1px solid #a5d6a7; }
+        .b-bloq { background:#ffebee; color:#c62828; border:1px solid #ef9a9a; }
+        .b-cita { background:#e3f2fd; color:#1565c0; border:1px solid #90caf9; display:block; margin:2px 0; }
+        .controls { margin: 10px 0; display:flex; gap:10px; flex-wrap:wrap; }
+        .controls form { display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
+        .status { font-size: 12px; color:#555; }
+        .legend { margin:10px 0; }
+        .legend span { margin-right:10px; }
+        .weekdays { display:grid; grid-template-columns:repeat(7,1fr); font-weight:bold; text-align:center; margin-bottom:6px; }
+        .alerta { background: linear-gradient(135deg, #ffecb3, #ffe082); border: 2px solid #ffb300; color: #bf360c; padding: 15px; border-radius: var(--radius-md); margin-bottom: 15px; box-shadow: var(--shadow-light); font-weight: bold; text-align: center; }
+        .sticky-top { position: sticky; top: 0; background: #f9f9f9; padding: 8px 0; z-index: 10; }
+        .small { font-size: 12px; }
+        .btn { padding:6px 10px; border:1px solid #999; background:#f0f0f0; border-radius:4px; cursor:pointer; }
+        .btn.primary { background:var(--primary-500); color:var(--white); border-color:var(--primary-700); }
+        .btn.warn { background:#e53935; color:#fff; border-color:#b71c1c; }
+        .btn.success { background:#2e7d32; color:#fff; border-color:#1b5e20; }
+        .slot { display:flex; justify-content:space-between; align-items:center; gap:6px; }
+        .slot-actions form { display:inline; }
+        .table { width:100%; border-collapse: collapse; }
+        .table th, .table td { border:1px solid #ddd; padding:6px; }
+        .table th { background:#f3f3f3; }
+        /* Modal styles */
+        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.4); }
+        .modal-content { background-color: #fefefe; margin: 15% auto; padding: 20px; border: 1px solid #888; width: 80%; max-width: 600px; border-radius: var(--radius-lg); }
+        .close { color: #aaa; float: right; font-size: 28px; font-weight: bold; cursor: pointer; }
+        .close:hover { color: black; }
+        #slots-list { margin-top: 20px; }
+        #slots-list .slot-item { display: flex; justify-content: space-between; align-items: center; padding: 8px; border-bottom: 1px solid #ddd; }
+        #slots-list .slot-item:last-child { border-bottom: none; }
+        /* Toast styles */
+        .toast { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: #333; color: #fff; padding: 15px; border-radius: var(--radius-md); box-shadow: 0 4px 8px rgba(0,0,0,0.3); z-index: 1001; opacity: 0; transition: opacity 0.5s; }
+        .toast.show { opacity: 1; }
+    </style>
     </head>
     <body>
         <a href="Menuprincipal.php" class="back-btn">Menú Principal</a>

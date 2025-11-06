@@ -320,27 +320,54 @@ $historial = cargarHistorial($conexion, $TABLE_HISTORY, $userId);
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Actualizar Perfil</title>
-    <link rel="stylesheet" href="assets/css/estilos.css">
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <style>
-        body { 
-            background: #b3e5fc; /* azul celeste */
-            min-height: 100vh;
-            margin: 0;
+        body {
+            background-color: #f8f9fa;
         }
-        .container { max-width: 900px; margin: 30px auto; background: #ffffff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,.1); }
-        .row { display: flex; gap: 20px; flex-wrap: wrap; }
-        .col { flex: 1 1 300px; }
-        label { display:block; margin: 10px 0 6px; font-weight: 600; }
-        input[type="text"], input[type="email"], input[type="date"], select, textarea { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 6px; }
-        .actions { margin-top: 20px; display:flex; gap: 10px; }
-        .btn { padding: 10px 16px; border: none; border-radius: 6px; cursor: pointer; }
-        .btn-primary { background: #28a745; color: #fff; }
-        .btn-secondary { background: #6c757d; color: #fff; }
-        .alert { padding: 10px 12px; border-radius: 6px; margin-bottom: 15px; }
-        .alert-error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
-        .alert-success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
-        .avatar { width: 140px; height: 140px; border-radius: 50%; object-fit: cover; border: 2px solid #eee; }
-        input[readonly] { background-color: #f5f5f5; cursor: not-allowed; }
+        .card {
+            border: none;
+            box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+        }
+        .btn-primary {
+            background-color: #0d6efd;
+            border-color: #0d6efd;
+        }
+        .btn-primary:hover {
+            background-color: #0b5ed7;
+            border-color: #0a58ca;
+        }
+        .form-label {
+            font-weight: 600;
+            color: #495057;
+        }
+        .alert {
+            border-radius: 0.375rem;
+        }
+        .header-section {
+            background: linear-gradient(135deg, #0d6efd 0%, #0b5ed7 100%);
+            color: white;
+            padding: 2rem 0;
+            margin-bottom: 2rem;
+        }
+        .header-section h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+        }
+        .header-section p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+        .medical-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            color: #ffffff;
+        }
         /* Estilos para el modal */
         .modal { display: none; position: fixed; z-index: 1; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.4); }
         .modal-content { background-color: #ffffff; margin: 15% auto; padding: 20px; border: 1px solid #888; width: 80%; max-width: 800px; border-radius: 8px; }
@@ -358,59 +385,105 @@ $historial = cargarHistorial($conexion, $TABLE_HISTORY, $userId);
     </style>
 </head>
 <body>
-    <div class="container">
-        <div style="position: relative; margin-bottom: 16px;">
+    <!-- Header Section -->
+    <div class="header-section">
+        <div class="container text-center">
+            <div class="medical-icon">
+                <i class="bi bi-person-gear"></i>
+            </div>
             <h1>Actualizar Perfil</h1>
-            <a href="Menuprincipal.php" style="position: absolute; top: 0; right: 0; display: inline-block; padding: 6px 12px; background: #007bff; color: #fff; text-decoration: none; border-radius: 6px; font-weight: 500; transition: background 0.2s; white-space: nowrap;">Menu Principal</a>
+            <p>Actualice su información personal y de paciente en la clínica nutricional.</p>
+            <a href="Menuprincipal.php" class="btn btn-light position-absolute top-50 end-0 translate-middle-y me-3">
+                <i class="bi bi-house-door"></i> Menú Principal
+            </a>
         </div>
+    </div>
 
-        <?php if ($errores): ?>
-            <div class="alert alert-error">
-                <ul style="margin:0 0 0 18px;">
+    <div class="container mb-5">
+        <?php if (!empty($errores)): ?>
+            <div class="alert alert-danger" role="alert">
+                <ul class="mb-0">
                     <?php foreach ($errores as $e): ?>
-                        <li><?php echo h($e); ?></li>
+                        <li><?= htmlspecialchars($e, ENT_QUOTES, 'UTF-8') ?></li>
                     <?php endforeach; ?>
                 </ul>
             </div>
         <?php endif; ?>
-
         <?php if ($exito): ?>
-            <div class="alert alert-success"><?php echo h($exito); ?></div>
+            <div class="alert alert-success" role="alert">
+                <i class="bi bi-check-circle-fill me-2"></i><?= htmlspecialchars($exito, ENT_QUOTES, 'UTF-8') ?>
+            </div>
         <?php endif; ?>
 
-        <form method="post" enctype="multipart/form-data">
-            <div class="row">
-                <div class="col">
-                    <h3>Información del Usuario</h3>
-                    <label for="Correo_electronico">Correo electrónico</label>
-                    <input type="email" id="Correo_electronico" name="Correo_electronico" value="<?php echo u($usuario, 'Correo_electronico'); ?>" required>
-
-                    <label for="Contrasena">Nueva contraseña</label>
-                    <input type="password" id="Contrasena" name="Contrasena" placeholder="Dejar en blanco para no cambiar">
-
-                    <h3>Información del Paciente</h3>
-                    <label for="nombre_completo">Nombre completo</label>
-                    <input type="text" id="nombre_completo" name="nombre_completo" value="<?php echo p($paciente, 'nombre_completo'); ?>" required>
-
-                    <label for="DNI">DNI</label>
-                    <input type="text" id="DNI" name="DNI" value="<?php echo p($paciente, 'DNI'); ?>" required>
-
-                    <label for="fecha_nacimiento">Fecha de nacimiento</label>
-                    <input type="date" id="fecha_nacimiento" name="fecha_nacimiento" value="<?php echo p($paciente, 'fecha_nacimiento'); ?>" required>
-
-                    <label for="edad">Edad</label>
-                    <input type="number" id="edad" name="edad" value="<?php echo p($paciente, 'edad'); ?>" readonly required>
-
-                    <label for="telefono">Teléfono</label>
-                    <input type="text" id="telefono" name="telefono" value="<?php echo p($paciente, 'telefono'); ?>" required>
-                </div>
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h5 class="card-title mb-0"><i class="bi bi-person-plus me-2"></i>Información del Perfil</h5>
             </div>
+            <div class="card-body">
+                <form method="post" enctype="multipart/form-data">
 
-            <div class="actions" style="display: flex; justify-content: flex-end; gap: 10px;">
-                <button type="submit" class="btn btn-primary">Guardar cambios</button>
-                <button type="button" class="btn btn-historial" id="btnHistorial">Ver Historial</button>
+                    <div class="mb-3">
+                        <label for="Correo_electronico" class="form-label">
+                            <i class="bi bi-envelope me-1"></i>Correo electrónico
+                        </label>
+                        <input type="email" class="form-control" id="Correo_electronico" name="Correo_electronico" value="<?= htmlspecialchars($usuario['Correo_electronico'] ?? '', ENT_QUOTES, 'UTF-8') ?>" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="Contrasena" class="form-label">
+                            <i class="bi bi-lock me-1"></i>Nueva contraseña
+                        </label>
+                        <input type="password" class="form-control" id="Contrasena" name="Contrasena" placeholder="Dejar en blanco para no cambiar">
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="nombre_completo" class="form-label">
+                            <i class="bi bi-person me-1"></i>Nombre completo
+                        </label>
+                        <input type="text" class="form-control" id="nombre_completo" name="nombre_completo" value="<?= htmlspecialchars($paciente['nombre_completo'] ?? '', ENT_QUOTES, 'UTF-8') ?>" required>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="DNI" class="form-label">
+                                <i class="bi bi-card-text me-1"></i>DNI
+                            </label>
+                            <input type="text" class="form-control" id="DNI" name="DNI" value="<?= htmlspecialchars($paciente['DNI'] ?? '', ENT_QUOTES, 'UTF-8') ?>" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="telefono" class="form-label">
+                                <i class="bi bi-telephone me-1"></i>Teléfono
+                            </label>
+                            <input type="text" class="form-control" id="telefono" name="telefono" value="<?= htmlspecialchars($paciente['telefono'] ?? '', ENT_QUOTES, 'UTF-8') ?>" required>
+                        </div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="fecha_nacimiento" class="form-label">
+                                <i class="bi bi-calendar me-1"></i>Fecha de nacimiento
+                            </label>
+                            <input type="date" class="form-control" id="fecha_nacimiento" name="fecha_nacimiento" value="<?= htmlspecialchars($paciente['fecha_nacimiento'] ?? '', ENT_QUOTES, 'UTF-8') ?>" required onchange="calcularEdad()">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="edad" class="form-label">
+                                <i class="bi bi-hash me-1"></i>Edad
+                            </label>
+                            <input type="text" class="form-control" id="edad" value="<?= htmlspecialchars($paciente['edad'] ?? '', ENT_QUOTES, 'UTF-8') ?>" readonly>
+                        </div>
+                    </div>
+
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <button type="submit" class="btn btn-primary btn-lg">
+                            <i class="bi bi-save me-2"></i>Guardar Cambios
+                        </button>
+                        <button type="button" class="btn btn-secondary btn-lg" id="btnHistorial">
+                            <i class="bi bi-clock-history me-2"></i>Ver Historial
+                        </button>
+                    </div>
+                </form>
             </div>
-        </form>
+        </div>
     </div>
 
     <!-- Modal para el historial -->
