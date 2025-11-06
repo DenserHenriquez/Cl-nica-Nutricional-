@@ -32,6 +32,18 @@ $medico_id = intval(get('medico_id', 0));
 // Obtener nombre del usuario logueado
 $userName = $_SESSION['nombre'] ?? '';
 
+// Obtener citas confirmadas del paciente
+$citas_confirmadas = [];
+if ($userName) {
+    $stmt = $conn->prepare("SELECT nombre_completo, motivo, fecha, hora FROM citas WHERE nombre_completo = ? AND estado = 'confirmada' ORDER BY fecha ASC, hora ASC");
+    $stmt->bind_param('s', $userName);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    while ($row = $result->fetch_assoc()) {
+        $citas_confirmadas[] = $row;
+    }
+}
+
 // Datos estáticos de médicos (igual que en citas_medico.php)
 $medicos = [
     1 => ['nombre' => 'Dr. Denser Henriquez', 'especialidad' => 'Nutrición General', 'email' => 'denser.henriquez@nutri.hn', 'telefono' => '9880-8080', 'imagen' => 'https://www.emagister.com/blog/wp-content/uploads/2017/08/nutricion-3.jpg'],
