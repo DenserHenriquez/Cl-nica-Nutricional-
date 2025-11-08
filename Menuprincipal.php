@@ -295,7 +295,11 @@ function e($str) { return htmlspecialchars((string)$str, ENT_QUOTES, 'UTF-8'); }
                         </li>
                         <li class="nav-item">
                             <a class="nav-link" href="Clasificacion_alimentos.php" target="main-content">
+<<<<<<< Updated upstream
                                 <i class="bi bi-apple"></i> Clasificación de Alimentos
+=======
+                                <i class="bi bi-list"></i> Clasificacion alimentos
+>>>>>>> Stashed changes
                             </a>
                         </li>
                     </ul>
