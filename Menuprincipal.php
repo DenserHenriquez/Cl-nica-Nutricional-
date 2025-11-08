@@ -292,6 +292,11 @@ function e($str) { return htmlspecialchars((string)$str, ENT_QUOTES, 'UTF-8'); }
                             <a class="nav-link" href="Seguimiento_ejercicio.php" target="main-content">
                                 <i class="bi bi-activity"></i> Seguimiento de Ejercicios
                             </a>
+                             </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="Clasificacion_alimentos.php" target="main-content">
+                                <i class="bi bi-apple"></i> Clasificacion de Alimentos
+                            </a>
                         </li>
                         <li class="nav-item">
                             <a class="nav-link" href="Clasificacion_alimentos.php" target="main-content">
