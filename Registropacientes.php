@@ -101,20 +101,42 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $imc = $peso / (($estatura / 100) ** 2);
         }
 
-        // Insertar paciente
-        $sql = "INSERT INTO pacientes (id_usuarios, nombre_completo, DNI, fecha_nacimiento, edad, telefono, talla, peso, estatura, IMC, masa_muscular, enfermedades_base, medicamentos, fecha_registro)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())";
+        // Insertar paciente (NOTA: la tabla pacientes no incluye campos clínicos como talla/peso/IMC)
+        $sql = "INSERT INTO pacientes (id_usuarios, nombre_completo, DNI, fecha_nacimiento, edad, telefono) VALUES (?,?,?,?,?,?)";
         $stmt = $conexion->prepare($sql);
         if ($stmt) {
-            $stmt->bind_param('isssissssssss', $user_id, $user_name, $dni, $fecha_nacimiento, $edad, $telefono, $talla, $peso, $estatura, $imc, $masa_muscular, $enfermedades_base, $medicamentos);
+            $stmt->bind_param('isssis', $user_id, $user_name, $dni, $fecha_nacimiento, $edad, $telefono);
             if ($stmt->execute()) {
+                $nuevoPacienteId = $stmt->insert_id;
                 $exito = 'Paciente registrado correctamente.';
+                // Insertar registro inicial de expediente si hay al menos un dato clínico
+                $hayClinicos = ($talla !== '' || $peso !== '' || $estatura !== '' || $masa_muscular !== '' || $enfermedades_base !== '' || $medicamentos !== '' || $imc !== null);
+                if ($hayClinicos) {
+                    $sqlExp = "INSERT INTO expediente (id_pacientes, talla, peso, estatura, IMC, masa_muscular, enfermedades_base, medicamentos) VALUES (?,?,?,?,?,?,?,?)";
+                    if ($stmtExp = $conexion->prepare($sqlExp)) {
+                        // Usamos valores NULL cuando estén vacíos para claridad
+                        $valTalla = ($talla !== '') ? $talla : null;
+                        $valPeso = ($peso !== '') ? $peso : null;
+                        $valEst = ($estatura !== '') ? $estatura : null;
+                        $valIMC = ($imc !== null) ? $imc : null;
+                        $valMasa = ($masa_muscular !== '') ? $masa_muscular : null;
+                        $valEnf = ($enfermedades_base !== '') ? $enfermedades_base : null;
+                        $valMed = ($medicamentos !== '') ? $medicamentos : null;
+                        $stmtExp->bind_param('isssssss', $nuevoPacienteId, $valTalla, $valPeso, $valEst, $valIMC, $valMasa, $valEnf, $valMed);
+                        if ($stmtExp->execute()) {
+                            $exito .= ' Se creó expediente inicial.';
+                        } else {
+                            $errores[] = 'Paciente creado pero fallo al crear expediente: ' . $stmtExp->error;
+                        }
+                        $stmtExp->close();
+                    }
+                }
             } else {
-                $errores[] = 'Error al guardar en BD: ' . $stmt->error;
+                $errores[] = 'Error al guardar paciente: ' . $stmt->error;
             }
             $stmt->close();
         } else {
-            $errores[] = 'Error preparando consulta: ' . $conexion->error;
+            $errores[] = 'Error preparando inserción de paciente: ' . $conexion->error;
         }
     }
 }

@@ -376,11 +376,10 @@ if (exp.length > 0) {
       type: 'line',
       data: {
         labels: exp.map(e => {
-          try {
-            return new Date(e.fecha_registro).toLocaleDateString('es-ES');
-          } catch {
-            return e.fecha_registro || '';
-          }
+          const raw = e.fecha_registro || '';
+          const safe = typeof raw === 'string' ? raw.replace(' ', 'T') : raw;
+          const d = new Date(safe);
+          return isNaN(d.getTime()) ? (e.fecha_registro || '') : d.toLocaleDateString('es-ES');
         }),
         datasets: [
           {

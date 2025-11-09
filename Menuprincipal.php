@@ -298,6 +298,11 @@ function e($str) { return htmlspecialchars((string)$str, ENT_QUOTES, 'UTF-8'); }
                                 <i class="bi bi-activity"></i> Seguimiento de Ejercicios
                             </a>
                         </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="retoalimentacion.php" target="main-content">
+                                <i class="bi bi-chat-dots"></i> Retoalimentación
+                            </a>
+                        </li>
                     </ul>
                 </div>
             </nav>

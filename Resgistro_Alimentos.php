@@ -124,19 +124,43 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if ($file['size'] > $maxSize) {
                 $errores[] = 'La imagen excede el tamaño máximo (3MB).';
             }
-            // Validar MIME
+            // Validar MIME: aceptar cualquier imagen (image/*) y mapear extensión
             $finfo = new finfo(FILEINFO_MIME_TYPE);
-            $mime  = $finfo->file($file['tmp_name']);
+            $mime  = $finfo->file($file['tmp_name']) ?: '';
             $ext = null;
-            $allowed = [
-                'image/jpeg' => 'jpg',
-                'image/png'  => 'png',
-                'image/gif'  => 'gif'
-            ];
-            if (!isset($allowed[$mime])) {
-                $errores[] = 'Formato de imagen inválido. Solo JPG, PNG o GIF.';
+            if (strpos($mime, 'image/') !== 0) {
+                $errores[] = 'Archivo inválido. Debe ser una imagen.';
             } else {
-                $ext = $allowed[$mime];
+                // Mapeo de tipos comunes -> extensión
+                $map = [
+                    'image/jpeg' => 'jpg',
+                    'image/pjpeg' => 'jpg',
+                    'image/png'  => 'png',
+                    'image/gif'  => 'gif',
+                    'image/webp' => 'webp',
+                    'image/bmp'  => 'bmp',
+                    'image/x-ms-bmp' => 'bmp',
+                    'image/tiff' => 'tiff',
+                    'image/svg+xml' => 'svg',
+                    'image/x-icon' => 'ico',
+                    'image/vnd.microsoft.icon' => 'ico',
+                    'image/avif' => 'avif',
+                    'image/heic' => 'heic',
+                    'image/heif' => 'heif'
+                ];
+                if (isset($map[$mime])) {
+                    $ext = $map[$mime];
+                } else {
+                    // Fallback: usar la extensión original si existe, sanearla
+                    $ext = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
+                    if ($ext === '') {
+                        $ext = 'img';
+                    }
+                    $ext = preg_replace('/[^a-z0-9]+/', '', $ext);
+                    if ($ext === '') {
+                        $ext = 'img';
+                    }
+                }
             }
             // Si todo ok, mover archivo
             if (empty($errores)) {
@@ -388,8 +412,8 @@ if ($vista === 'diaria') {
                         <label for="foto" class="form-label">
                             <i class="bi bi-camera me-1"></i>Foto del plato (opcional)
                         </label>
-                        <input type="file" class="form-control" id="foto" name="foto" accept="image/jpeg,image/png,image/gif" onchange="previewImage(event)">
-                        <span class="muted">Formatos: JPG, PNG, GIF. Máx 3MB.</span>
+                        <input type="file" class="form-control" id="foto" name="foto" accept="image/*" onchange="previewImage(event)">
+                        <span class="muted">Formatos: cualquier imagen (JPG, PNG, GIF, WEBP, SVG, etc.). Máx 3MB.</span>
                         <div id="imagePreview" style="margin-top: 10px; display: none;">
                             <img id="previewImg" class="preview" alt="Vista previa" />
                         </div>

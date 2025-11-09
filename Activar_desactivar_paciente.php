@@ -141,6 +141,10 @@ $total_entradas = $resultado->num_rows;
         <a href='panelevolucionpaciente.php?id=".htmlspecialchars($fila['id_pacientes'])."' class='btn btn-outline-info btn-sm' title='Panel evolución'>
             <i class='bi bi-bar-chart-line'></i>
         </a>
+        <!-- Actualizar Perfil -->
+        <a href='Actualizar_perfil.php?id=".htmlspecialchars($fila['id_usuarios'])."' class='btn btn-outline-primary btn-sm' title='Actualizar perfil'>
+            <i class='bi bi-person-gear'></i>
+        </a>
         <!-- Eliminar -->
         <button onclick=\"if(confirm('¿Eliminar paciente?')) location.href='eliminar_paciente.php?id=".htmlspecialchars($fila['id_pacientes'])."';\" class='btn btn-outline-danger btn-sm' title='Eliminar'>
             <i class='bi bi-trash'></i>
