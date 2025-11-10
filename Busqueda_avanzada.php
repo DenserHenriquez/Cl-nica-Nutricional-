@@ -272,9 +272,6 @@ function qs(array $data): string {
             </div>
             <h1>Búsqueda de Pacientes</h1>
             <p>Busca y filtra pacientes registrados en la clínica nutricional.</p>
-            <a href="Menuprincipal.php" class="btn btn-light position-absolute top-50 end-0 translate-middle-y me-3">
-                <i class="bi bi-house-door"></i> Menú Principal
-            </a>
         </div>
     </div>
 
