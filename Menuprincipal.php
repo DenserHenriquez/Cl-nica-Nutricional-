@@ -307,6 +307,11 @@ function e($str) { return htmlspecialchars((string)$str, ENT_QUOTES, 'UTF-8'); }
 >>>>>>> Stashed changes
                             </a>
                         </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="Clasificacion_alimentos.php" target="main-content">
+                                <i class="bi bi-list"></i> Clasificación de Alimentos
+                            </a>
+                        </li>
                     </ul>
                 </div>
             </nav>

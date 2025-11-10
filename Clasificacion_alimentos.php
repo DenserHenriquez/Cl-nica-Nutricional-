@@ -207,9 +207,12 @@ if ($stmtList) {
             </div>
             <h1>Clasificación de Alimentos</h1>
             <p>Médico | Registre alimentos y platos con información nutricional para construir dietas.</p>
+<<<<<<< Updated upstream
             <a href="Menuprincipal.php" class="btn btn-light position-absolute top-50 end-0 translate-middle-y me-3">
                 <i class="bi bi-house-door"></i> Menú Principal
             </a>
+=======
+>>>>>>> Stashed changes
         </div>
     </div>
 
