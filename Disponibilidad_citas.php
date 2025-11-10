@@ -345,7 +345,6 @@ if ($medico_id === 0) {
     </style>
     </head>
     <body>
-        <a href="Menuprincipal.php" class="back-btn">Menú Principal</a>
         <div class="container">
             <h1>Agendar Cita - Seleccionar Médico</h1>
             <p>Haga clic en el médico para ver su calendario de disponibilidad.</p>
@@ -517,7 +516,6 @@ function monthNameEs($m) {
 </head>
 <body>
     <div style="position: absolute; top: 10px; right: 10px;">
-        <a href="Menuprincipal.php" class="btn">Menu Principal</a>
         <button class="btn" onclick="backToSelection()">Seleccionar Otro Médico</button>
     </div>
     <div class="container">

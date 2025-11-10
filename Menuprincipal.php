@@ -262,11 +262,6 @@ function e($str) { return htmlspecialchars((string)$str, ENT_QUOTES, 'UTF-8'); }
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="Carga_fotografias.php" target="main-content">
-                                <i class="bi bi-camera"></i> Carga Fotográfica
-                            </a>
-                        </li>
-                        <li class="nav-item">
                             <a class="nav-link" href="citas_medico.php" target="main-content">
                                 <i class="bi bi-calendar-event"></i> Citas Médicas
                             </a>
@@ -284,6 +279,11 @@ function e($str) { return htmlspecialchars((string)$str, ENT_QUOTES, 'UTF-8'); }
                         <li class="nav-item">
                             <a class="nav-link" href="Resgistro_Alimentos.php" target="main-content">
                                 <i class="bi bi-apple"></i> Registro de Alimentos
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="Clasificacion_alimentos.php" target="main-content">
+                                <i class="bi bi-apple"></i> Clasificación de Alimentos
                             </a>
                         </li>
                         <li class="nav-item">

@@ -323,9 +323,6 @@ if ($vista === 'diaria') {
             </div>
             <h1>Seguimiento de Ejercicios</h1>
             <p>Paciente #<?= (int)$paciente_id ?> | Registre sus rutinas de ejercicio con foto opcional.</p>
-            <a href="Menuprincipal.php" class="btn btn-light position-absolute top-50 end-0 translate-middle-y me-3">
-                <i class="bi bi-house-door"></i> Menú Principal
-            </a>
         </div>
     </div>
 
