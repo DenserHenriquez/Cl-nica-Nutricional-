@@ -133,13 +133,28 @@ $total_entradas = $resultado->num_rows;
                                 echo "<td>".htmlspecialchars($fila['Correo_electronico'])."</td>";
                                 echo "<td class='estado-text estado-".htmlspecialchars($fila['estado'])."'>".htmlspecialchars($fila['estado'])."</td>";
                                 echo "<td>
-                                    <label class='switch'>
-                                        <input type='checkbox' class='estado-switch'
-                                               data-id='".$fila['id_pacientes']."'
-                                               ".(($fila['estado']=='Activo')?'checked':'').">
-                                        <span class='slider round'></span>
-                                    </label>
-                                </td>";
+    <div class='d-flex align-items-center gap-2'>
+        <!-- Panel evolución -->
+        <a href='panelevolucionpaciente.php?id=".htmlspecialchars($fila['id_pacientes'])."' class='btn btn-outline-info btn-sm' title='Panel evolución'>
+            <i class='bi bi-bar-chart-line'></i>
+        </a>
+        <!-- Actualizar Perfil -->
+        <a href='Actualizar_perfil.php?id=".htmlspecialchars($fila['id_usuarios'])."' class='btn btn-outline-primary btn-sm' title='Actualizar perfil'>
+            <i class='bi bi-person-gear'></i>
+        </a>
+        <!-- Eliminar -->
+        <button onclick=\"if(confirm('¿Eliminar paciente?')) location.href='eliminar_paciente.php?id=".htmlspecialchars($fila['id_pacientes'])."';\" class='btn btn-outline-danger btn-sm' title='Eliminar'>
+            <i class='bi bi-trash'></i>
+        </button>
+        <!-- Activar/Desactivar -->
+        <label class='switch ms-2' title='Activar/Desactivar'>
+            <input type='checkbox' class='estado-switch'
+                   data-id='".$fila['id_pacientes']."'
+                   ".(($fila['estado']=='Activo')?'checked':'').">
+            <span class='slider round'></span>
+        </label>
+    </div>
+</td>";
                                 echo "</tr>";
                             }
                         } else {

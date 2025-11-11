@@ -44,20 +44,20 @@ $exito = '';
 
 // Crear tabla si no existe (defensivo)
 // Tabla sugerida: alimentos_registro
-// columnas: id (PK), paciente_id (FK -> pacientes.id_pacientes), fecha (DATE),
+// columnas: id (PK), id_pacientes (FK -> pacientes.id_pacientes), fecha (DATE),
 // tipo_comida (ENUM o VARCHAR: desayuno|almuerzo|cena|snack), descripcion (TEXT),
 // hora (TIME), foto_path (VARCHAR), created_at (DATETIME)
 $conexion->query("CREATE TABLE IF NOT EXISTS alimentos_registro (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    paciente_id INT NOT NULL,
+    id_pacientes INT NOT NULL,
     fecha DATE NOT NULL,
     tipo_comida VARCHAR(20) NOT NULL,
     descripcion TEXT NOT NULL,
     hora TIME NOT NULL,
     foto_path VARCHAR(255) DEFAULT NULL,
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    INDEX idx_paciente_fecha (paciente_id, fecha),
-    CONSTRAINT fk_alimentos_paciente FOREIGN KEY (paciente_id) REFERENCES pacientes(id_pacientes) ON DELETE CASCADE
+    INDEX idx_paciente_fecha (id_pacientes, fecha),
+    CONSTRAINT fk_alimentos_paciente FOREIGN KEY (id_pacientes) REFERENCES pacientes(id_pacientes) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;");
 
 // Manejo de POST
@@ -72,7 +72,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $delete_id = (int)$_POST['delete_id'];
 
         // Verificar que el registro pertenece al paciente
-        $stmtCheck = $conexion->prepare("SELECT foto_path FROM alimentos_registro WHERE id = ? AND paciente_id = ? LIMIT 1");
+        $stmtCheck = $conexion->prepare("SELECT foto_path FROM alimentos_registro WHERE id = ? AND id_pacientes = ? LIMIT 1");
         $stmtCheck->bind_param('ii', $delete_id, $paciente_id);
         $stmtCheck->execute();
         $resultCheck = $stmtCheck->get_result();
@@ -86,7 +86,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
 
             // Eliminar de BD
-            $stmtDelete = $conexion->prepare("DELETE FROM alimentos_registro WHERE id = ? AND paciente_id = ?");
+            $stmtDelete = $conexion->prepare("DELETE FROM alimentos_registro WHERE id = ? AND id_pacientes = ?");
             $stmtDelete->bind_param('ii', $delete_id, $paciente_id);
             if ($stmtDelete->execute()) {
                 $exito = 'Registro eliminado correctamente.';
@@ -124,19 +124,43 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if ($file['size'] > $maxSize) {
                 $errores[] = 'La imagen excede el tamaño máximo (3MB).';
             }
-            // Validar MIME
+            // Validar MIME: aceptar cualquier imagen (image/*) y mapear extensión
             $finfo = new finfo(FILEINFO_MIME_TYPE);
-            $mime  = $finfo->file($file['tmp_name']);
+            $mime  = $finfo->file($file['tmp_name']) ?: '';
             $ext = null;
-            $allowed = [
-                'image/jpeg' => 'jpg',
-                'image/png'  => 'png',
-                'image/gif'  => 'gif'
-            ];
-            if (!isset($allowed[$mime])) {
-                $errores[] = 'Formato de imagen inválido. Solo JPG, PNG o GIF.';
+            if (strpos($mime, 'image/') !== 0) {
+                $errores[] = 'Archivo inválido. Debe ser una imagen.';
             } else {
-                $ext = $allowed[$mime];
+                // Mapeo de tipos comunes -> extensión
+                $map = [
+                    'image/jpeg' => 'jpg',
+                    'image/pjpeg' => 'jpg',
+                    'image/png'  => 'png',
+                    'image/gif'  => 'gif',
+                    'image/webp' => 'webp',
+                    'image/bmp'  => 'bmp',
+                    'image/x-ms-bmp' => 'bmp',
+                    'image/tiff' => 'tiff',
+                    'image/svg+xml' => 'svg',
+                    'image/x-icon' => 'ico',
+                    'image/vnd.microsoft.icon' => 'ico',
+                    'image/avif' => 'avif',
+                    'image/heic' => 'heic',
+                    'image/heif' => 'heif'
+                ];
+                if (isset($map[$mime])) {
+                    $ext = $map[$mime];
+                } else {
+                    // Fallback: usar la extensión original si existe, sanearla
+                    $ext = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
+                    if ($ext === '') {
+                        $ext = 'img';
+                    }
+                    $ext = preg_replace('/[^a-z0-9]+/', '', $ext);
+                    if ($ext === '') {
+                        $ext = 'img';
+                    }
+                }
             }
             // Si todo ok, mover archivo
             if (empty($errores)) {
@@ -153,7 +177,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     if (empty($errores)) {
-        $sql = "INSERT INTO alimentos_registro (paciente_id, fecha, tipo_comida, descripcion, hora, foto_path)
+        $sql = "INSERT INTO alimentos_registro (id_pacientes, fecha, tipo_comida, descripcion, hora, foto_path)
                 VALUES (?, ?, ?, ?, ?, ?)";
         $stmt = $conexion->prepare($sql);
         if ($stmt) {
@@ -185,7 +209,7 @@ $historial = [];
 if ($vista === 'diaria') {
     $sqlH = "SELECT id, fecha, tipo_comida, descripcion, hora, foto_path
              FROM alimentos_registro
-             WHERE paciente_id = ? AND fecha = ?
+             WHERE id_pacientes = ? AND fecha = ?
              ORDER BY hora ASC, id ASC";
     $stmtH = $conexion->prepare($sqlH);
     if ($stmtH) {
@@ -207,7 +231,7 @@ if ($vista === 'diaria') {
 
     $sqlH = "SELECT id, fecha, tipo_comida, descripcion, hora, foto_path
              FROM alimentos_registro
-             WHERE paciente_id = ? AND fecha BETWEEN ? AND ?
+             WHERE id_pacientes = ? AND fecha BETWEEN ? AND ?
              ORDER BY fecha ASC, hora ASC, id ASC";
     $stmtH = $conexion->prepare($sqlH);
     if ($stmtH) {
@@ -385,8 +409,8 @@ if ($vista === 'diaria') {
                         <label for="foto" class="form-label">
                             <i class="bi bi-camera me-1"></i>Foto del plato (opcional)
                         </label>
-                        <input type="file" class="form-control" id="foto" name="foto" accept="image/jpeg,image/png,image/gif" onchange="previewImage(event)">
-                        <span class="muted">Formatos: JPG, PNG, GIF. Máx 3MB.</span>
+                        <input type="file" class="form-control" id="foto" name="foto" accept="image/*" onchange="previewImage(event)">
+                        <span class="muted">Formatos: cualquier imagen (JPG, PNG, GIF, WEBP, SVG, etc.). Máx 3MB.</span>
                         <div id="imagePreview" style="margin-top: 10px; display: none;">
                             <img id="previewImg" class="preview" alt="Vista previa" />
                         </div>
@@ -482,7 +506,7 @@ if ($vista === 'diaria') {
                 // Obtener todas las comidas con fotos del paciente
                 $sqlGaleria = "SELECT fecha, tipo_comida, descripcion, hora, foto_path
                                FROM alimentos_registro
-                               WHERE paciente_id = ? AND foto_path IS NOT NULL
+                               WHERE id_pacientes = ? AND foto_path IS NOT NULL
                                ORDER BY fecha DESC, hora DESC";
                 $stmtGaleria = $conexion->prepare($sqlGaleria);
                 $galeria = [];
