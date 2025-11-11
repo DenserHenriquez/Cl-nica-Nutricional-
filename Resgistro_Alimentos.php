@@ -18,6 +18,11 @@ if (!isset($_SESSION['id_usuarios'])) {
 
 $user_id = (int)$_SESSION['id_usuarios'];
 
+// Verificar si el usuario tiene información de paciente registrada
+$necesita_registro = false;
+$mensaje_registro = '';
+$paciente_id = null;
+
 // Obtener id_pacientes desde la BD usando id_usuarios
 $stmt = $conexion->prepare("SELECT id_pacientes FROM pacientes WHERE id_usuarios = ? LIMIT 1");
 $stmt->bind_param('i', $user_id);
@@ -27,8 +32,8 @@ if ($row = $result->fetch_assoc()) {
     $paciente_id = (int)$row['id_pacientes'];
 } else {
     // Usuario no es paciente registrado
-    header('Location: Menuprincipal.php?error=No eres un paciente registrado.');
-    exit;
+    $necesita_registro = true;
+    $mensaje_registro = 'Debe registrarse como paciente antes de poder registrar alimentos. Por favor, complete su registro de paciente primero.';
 }
 $stmt->close();
 
@@ -62,7 +67,11 @@ $conexion->query("CREATE TABLE IF NOT EXISTS alimentos_registro (
 
 // Manejo de POST
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    // Validar token CSRF simple
+    // Verificar primero si el usuario necesita registrarse como paciente
+    if ($necesita_registro) {
+        $errores[] = 'Debe registrarse como paciente antes de poder registrar alimentos.';
+    } else {
+        // Validar token CSRF simple
     if (!isset($_POST['csrf']) || !isset($_SESSION['csrf']) || $_POST['csrf'] !== $_SESSION['csrf']) {
         $errores[] = 'Token inválido. Recargue la página.';
     }
@@ -192,6 +201,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $errores[] = 'Error preparando consulta: ' . $conexion->error;
         }
     }
+    } // Cierre del bloque else principal (verificar si necesita_registro)
 }
 
 // CSRF token
@@ -200,13 +210,14 @@ if (empty($_SESSION['csrf'])) {
 }
 $csrf = $_SESSION['csrf'];
 
-// Filtros de historial
+// Filtros de historial (solo si el usuario está registrado como paciente)
 $vista = isset($_GET['vista']) && $_GET['vista'] === 'semanal' ? 'semanal' : 'diaria';
 $hoy = date('Y-m-d');
 $fechaFiltro = isset($_GET['fecha']) && preg_match('/^\d{4}-\d{2}-\d{2}$/', $_GET['fecha']) ? $_GET['fecha'] : $hoy;
 
 $historial = [];
-if ($vista === 'diaria') {
+if (!$necesita_registro && $paciente_id) {
+    if ($vista === 'diaria') {
     $sqlH = "SELECT id, fecha, tipo_comida, descripcion, hora, foto_path
              FROM alimentos_registro
              WHERE id_pacientes = ? AND fecha = ?
@@ -244,7 +255,8 @@ if ($vista === 'diaria') {
         }
         $stmtH->close();
     }
-}
+    } // Fin del bloque semanal
+} // Fin de if (!$necesita_registro && $paciente_id)
 
 ?>
 <!DOCTYPE html>
@@ -349,6 +361,21 @@ if ($vista === 'diaria') {
     </div>
 
     <div class="container mb-5">
+        <?php if ($necesita_registro): ?>
+            <div class="alert alert-warning" role="alert">
+                <div class="d-flex align-items-center">
+                    <i class="bi bi-exclamation-triangle-fill me-3" style="font-size: 2rem;"></i>
+                    <div>
+                        <h5 class="mb-1">Registro de paciente requerido</h5>
+                        <p class="mb-2"><?= htmlspecialchars($mensaje_registro, ENT_QUOTES, 'UTF-8') ?></p>
+                        <a href="Registropacientes.php" class="btn btn-primary">
+                            <i class="bi bi-person-plus me-2"></i>Registrarse como paciente
+                        </a>
+                    </div>
+                </div>
+            </div>
+        <?php endif; ?>
+        
         <?php if (!empty($errores)): ?>
             <div class="alert alert-danger" role="alert">
                 <ul class="mb-0">
@@ -364,6 +391,7 @@ if ($vista === 'diaria') {
             </div>
         <?php endif; ?>
 
+        <?php if (!$necesita_registro): ?>
         <div class="card">
             <div class="card-header bg-primary text-white">
                 <h5 class="card-title mb-0"><i class="bi bi-plus-circle me-2"></i>Nuevo Registro</h5>
@@ -546,6 +574,7 @@ if ($vista === 'diaria') {
                 <?php endif; ?>
             </div>
         </div>
+        <?php endif; // Fin de if (!$necesita_registro) ?>
     </div>
 
     <script>
