@@ -257,6 +257,11 @@ function e($str) { return htmlspecialchars((string)$str, ENT_QUOTES, 'UTF-8'); }
                             </a>
                         </li>
                         <li class="nav-item">
+                            <a class="nav-link" href="panelevolucionpaciente.php" target="main-content">
+                                <i class="bi bi-graph-up"></i> Panel de Evolución
+                            </a>
+                        </li>
+                        <li class="nav-item">
                             <a class="nav-link" href="Busqueda_avanzada.php" target="main-content">
                                 <i class="bi bi-search"></i> Búsqueda Avanzada
                             </a>
@@ -289,6 +294,11 @@ function e($str) { return htmlspecialchars((string)$str, ENT_QUOTES, 'UTF-8'); }
                         <li class="nav-item">
                             <a class="nav-link" href="Seguimiento_ejercicio.php" target="main-content">
                                 <i class="bi bi-activity"></i> Seguimiento de Ejercicios
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="retroalimentacion1.php" target="main-content">
+                                <i class="bi bi-chat-dots"></i> Retroalimentación
                             </a>
                         </li>
                     </ul>

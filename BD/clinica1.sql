@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Oct 28, 2025 at 07:05 AM
+-- Generation Time: Nov 11, 2025 at 03:09 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -24,12 +24,38 @@ SET time_zone = "+00:00";
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `alimentos_nutricionales`
+--
+
+CREATE TABLE `alimentos_nutricionales` (
+  `id_alimento` int(11) NOT NULL,
+  `nombre` varchar(255) NOT NULL,
+  `tipo` enum('alimento','plato') NOT NULL,
+  `calorias` decimal(10,2) NOT NULL,
+  `proteinas` decimal(10,2) NOT NULL,
+  `grasas` decimal(10,2) NOT NULL,
+  `carbohidratos` decimal(10,2) NOT NULL,
+  `created_by` int(11) NOT NULL,
+  `fecha_creacion` datetime NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `alimentos_nutricionales`
+--
+
+INSERT INTO `alimentos_nutricionales` (`id_alimento`, `nombre`, `tipo`, `calorias`, `proteinas`, `grasas`, `carbohidratos`, `created_by`, `fecha_creacion`) VALUES
+(1, 'Huevo Cocido', 'alimento', 78.00, 6.30, 5.30, 0.60, 1, '2025-11-07 18:37:13'),
+(2, 'Pollo a la plancha con Arroz', 'plato', 420.00, 38.00, 12.00, 40.00, 1, '2025-11-07 18:45:03');
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `alimentos_registro`
 --
 
 CREATE TABLE `alimentos_registro` (
   `id` int(11) NOT NULL,
-  `paciente_id` int(11) NOT NULL,
+  `id_pacientes` int(11) NOT NULL,
   `fecha` date NOT NULL,
   `tipo_comida` varchar(20) NOT NULL,
   `descripcion` text NOT NULL,
@@ -42,13 +68,15 @@ CREATE TABLE `alimentos_registro` (
 -- Dumping data for table `alimentos_registro`
 --
 
-INSERT INTO `alimentos_registro` (`id`, `paciente_id`, `fecha`, `tipo_comida`, `descripcion`, `hora`, `foto_path`, `created_at`) VALUES
+INSERT INTO `alimentos_registro` (`id`, `id_pacientes`, `fecha`, `tipo_comida`, `descripcion`, `hora`, `foto_path`, `created_at`) VALUES
 (1, 6, '2025-10-26', 'desayuno', 'Pan integral con huevo picado , jamon y ensalada', '07:00:00', 'assets/images/alimentos/paciente_6_20251028_025321_b05ab5cf.jpg', '2025-10-27 19:53:21'),
 (2, 3, '2025-10-17', 'desayuno', 'Pan Integral con aguacate y huevo tibio', '08:10:00', 'assets/images/alimentos/paciente_3_20251028_031206_38c2c6c7.jpg', '2025-10-27 20:12:06'),
 (3, 3, '2025-10-17', 'almuerzo', 'Pollo a la plancha con ensalada', '12:00:00', 'assets/images/alimentos/paciente_3_20251028_031902_651d8125.png', '2025-10-27 20:19:02'),
 (5, 6, '2025-10-12', 'almuerzo', 'Pollo cosido', '12:00:00', 'assets/images/alimentos/paciente_6_20251028_041537_de8301ae.png', '2025-10-27 21:15:37'),
 (7, 4, '2025-10-27', 'desayuno', 'Bowl de frutas', '07:30:00', 'assets/images/alimentos/paciente_420251028_064942fd3904f3.png', '2025-10-27 23:49:42'),
-(8, 4, '2025-10-28', 'almuerzo', 'Arroz, Pollo y ensalada de aguacate y tomate', '12:00:00', 'assets/images/alimentos/paciente_420251028_065200d392ddce.jpg', '2025-10-27 23:52:00');
+(8, 4, '2025-10-28', 'almuerzo', 'Arroz, Pollo y ensalada de aguacate y tomate', '12:00:00', 'assets/images/alimentos/paciente_420251028_065200d392ddce.jpg', '2025-10-27 23:52:00'),
+(9, 1, '2025-10-29', 'almuerzo', 'Arroz, pollo, ensalada de aguacate y tomate', '12:20:00', 'assets/images/alimentos/paciente_120251029_224346b63ec590.jpg', '2025-10-29 15:43:46'),
+(10, 1, '2025-11-11', 'cena', 'Pan integral con aguacate', '20:23:00', 'assets/images/alimentos/paciente_120251111_022503d1dc2d66.jpg', '2025-11-10 19:25:03');
 
 -- --------------------------------------------------------
 
@@ -71,14 +99,29 @@ CREATE TABLE `citas` (
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `disponibilidades`
+--
+
+CREATE TABLE `disponibilidades` (
+  `id` int(11) NOT NULL,
+  `medico_id` int(11) NOT NULL,
+  `fecha` date NOT NULL,
+  `hora` time NOT NULL,
+  `estado` enum('libre','bloqueado') NOT NULL DEFAULT 'libre'
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `ejercicios`
 --
 
 CREATE TABLE `ejercicios` (
   `id_ejercicio` int(11) NOT NULL,
-  `id_pacientes` int(11) NOT NULL,
+  `paciente_id` int(11) NOT NULL,
   `tipo_ejercicio` varchar(100) NOT NULL,
   `tiempo` int(11) NOT NULL COMMENT 'Duración en minutos',
+  `hora` time NOT NULL DEFAULT '00:00:00',
   `fecha` date NOT NULL,
   `imagen_evidencia` varchar(255) DEFAULT NULL,
   `notas` text DEFAULT NULL,
@@ -89,11 +132,11 @@ CREATE TABLE `ejercicios` (
 -- Dumping data for table `ejercicios`
 --
 
-INSERT INTO `ejercicios` (`id_ejercicio`, `id_pacientes`, `tipo_ejercicio`, `tiempo`, `fecha`, `imagen_evidencia`, `notas`, `fecha_registro`) VALUES
-(1, 1, 'Gimnasio', 30, '2025-10-27', NULL, 'Realize remo con mancuernas', '2025-10-27 19:19:53'),
-(2, 1, 'Caminata', 30, '2025-10-28', 'uploads/ejercicios/69003be939acb_Caminata.jpg', '', '2025-10-28 03:43:37'),
-(3, 1, 'Caminata', 30, '2025-10-28', 'uploads/ejercicios/69003c817865a_Caminata.jpg', '', '2025-10-28 03:46:09'),
-(4, 4, 'Correr', 30, '2025-10-27', 'uploads/ejercicios/690055ed4d1a3_Caminata.jpg', '', '2025-10-28 05:34:37');
+INSERT INTO `ejercicios` (`id_ejercicio`, `paciente_id`, `tipo_ejercicio`, `tiempo`, `hora`, `fecha`, `imagen_evidencia`, `notas`, `fecha_registro`) VALUES
+(1, 1, 'Gimnasio', 30, '00:00:00', '2025-10-27', NULL, 'Realize remo con mancuernas', '2025-10-27 19:19:53'),
+(2, 1, 'Caminata', 30, '00:00:00', '2025-10-28', 'uploads/ejercicios/69003be939acb_Caminata.jpg', '', '2025-10-28 03:43:37'),
+(3, 1, 'Caminata', 30, '00:00:00', '2025-10-28', 'uploads/ejercicios/69003c817865a_Caminata.jpg', '', '2025-10-28 03:46:09'),
+(4, 4, 'Correr', 30, '00:00:00', '2025-10-27', 'uploads/ejercicios/690055ed4d1a3_Caminata.jpg', '', '2025-10-28 05:34:37');
 
 -- --------------------------------------------------------
 
@@ -113,6 +156,20 @@ CREATE TABLE `expediente` (
   `medicamentos` text DEFAULT NULL COMMENT 'Medicamentos',
   `fecha_registro` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `expediente`
+--
+
+INSERT INTO `expediente` (`id_expediente`, `id_pacientes`, `talla`, `peso`, `estatura`, `IMC`, `masa_muscular`, `enfermedades_base`, `medicamentos`, `fecha_registro`) VALUES
+(1, 5, 172.10, 76.00, 172.01, 25.69, 55.01, 'a', 'b', '2025-10-28 23:40:36'),
+(2, 6, 170.00, 70.00, 170.00, 24.22, 55.00, 'ninguno', 'cocacola', '2025-10-31 03:00:52'),
+(4, 8, 170.00, 77.00, 170.00, 26.64, 60.00, NULL, NULL, '2025-10-31 03:34:06'),
+(5, 5, 172.10, 74.00, 172.01, 25.01, 55.01, 'a', 'b', '2025-11-08 05:32:26'),
+(6, 5, 172.10, 72.00, 172.01, 24.33, 55.01, 'a', 'b', '2025-11-08 05:33:18'),
+(7, 5, 172.10, 76.00, 172.01, 25.69, 55.01, 'a', 'b', '2025-11-08 05:33:35'),
+(8, 5, 172.10, 72.00, 172.01, 24.33, 55.01, 'a', 'b', '2025-11-08 05:34:13'),
+(9, 9, 180.00, NULL, 180.00, NULL, 25.00, 'n', 'n', '2025-11-09 04:26:04');
 
 -- --------------------------------------------------------
 
@@ -145,7 +202,10 @@ INSERT INTO `historial_actualizaciones` (`id_historial`, `id_usuarios`, `campo`,
 (8, 1, 'Contrasena', '$2y$10$ol852jxpvXxZpoiJX2eQQ.bCQHeM4o2gEQKLSRQpoRHJZFrKBb0oO', '$2y$10$eA.D3HQlEoX0bfcVDOcHReCJ/2Om3YtPnFm/a3kKrYpbJcnZ.aue6', 1, '2025-10-27 23:34:25'),
 (9, 1, 'nombre_completo', 'Damaris E Bonilla Garcia', 'Damaris  Bonilla Garcia', 1, '2025-10-27 23:34:25'),
 (10, 1, 'fecha_nacimiento', '2006-08-01', '2005-08-01', 1, '2025-10-27 23:34:25'),
-(11, 1, 'edad', '19', '20', 1, '2025-10-27 23:34:25');
+(11, 1, 'edad', '19', '20', 1, '2025-10-27 23:34:25'),
+(12, 1, 'Contrasena', '$2y$10$eA.D3HQlEoX0bfcVDOcHReCJ/2Om3YtPnFm/a3kKrYpbJcnZ.aue6', '$2y$10$N3MAup0mWpMx9ZePPZru1OYzMaHJJIKJtDvwmQ76o56dKUBU6O89e', 1, '2025-10-28 16:01:16'),
+(13, 1, 'Contrasena', '$2y$10$N3MAup0mWpMx9ZePPZru1OYzMaHJJIKJtDvwmQ76o56dKUBU6O89e', '$2y$10$SPA6cFDoZ7RC/DgE5PJOheZ3rG7h/taCA9uRbG6e7NAU0IDHCwtdW', 1, '2025-10-30 22:29:27'),
+(14, 1, 'telefono', '99553211', '33456012', 1, '2025-10-30 22:29:27');
 
 -- --------------------------------------------------------
 
@@ -169,10 +229,36 @@ CREATE TABLE `pacientes` (
 --
 
 INSERT INTO `pacientes` (`id_pacientes`, `id_usuarios`, `nombre_completo`, `DNI`, `fecha_nacimiento`, `edad`, `telefono`, `estado`) VALUES
-(1, 1, 'Damaris  Bonilla Garcia', '0823200610125', '2005-08-01', 20, '99553211', 'Activo'),
-(2, 2, 'Jose Levi Canales', '1705201000216', '2010-10-08', 15, '32653641', 'Inactivo'),
-(3, 3, 'Juan David Perez ', '0801200015300', '2025-04-08', 25, '33452018', 'Activo'),
-(4, 4, 'Evelenth Garcia', '0823200013256', '2000-07-06', 25, '33654892', 'Activo');
+(1, 1, 'Damaris  Bonilla Garcia', '0823200610125', '2005-08-01', 20, '33456012', 'Activo'),
+(2, 2, 'Jose Levi Canales', '1705201000216', '2010-10-08', 15, '32653641', 'Activo'),
+(3, 3, 'Juan David Perez ', '0801200015300', '2025-04-08', 25, '33452018', 'Inactivo'),
+(4, 4, 'Evelenth Garcia', '0823200013256', '2000-07-06', 25, '33654892', 'Inactivo');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `retroalimentacion`
+--
+
+CREATE TABLE `retroalimentacion` (
+  `id` int(11) NOT NULL,
+  `id_pacientes` int(11) NOT NULL,
+  `id_nutricionista` int(11) NOT NULL,
+  `comentario` text NOT NULL,
+  `notificar` tinyint(1) DEFAULT 0,
+  `creado_at` datetime DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `retroalimentacion`
+--
+
+INSERT INTO `retroalimentacion` (`id`, `id_pacientes`, `id_nutricionista`, `comentario`, `notificar`, `creado_at`) VALUES
+(1, 8, 5, 'mas cebolla', 1, '2025-11-08 22:04:02'),
+(2, 5, 5, 'no tome mucha pepsi', 0, '2025-11-08 22:09:08'),
+(3, 8, 5, 'mas agua', 0, '2025-11-08 22:09:40'),
+(4, 5, 5, 'tome mas agua', 0, '2025-11-08 22:12:37'),
+(5, 5, 5, 'x', 0, '2025-11-09 18:11:37');
 
 -- --------------------------------------------------------
 
@@ -193,21 +279,33 @@ CREATE TABLE `usuarios` (
 --
 
 INSERT INTO `usuarios` (`id_usuarios`, `Nombre_completo`, `Correo_electronico`, `Usuario`, `Contrasena`) VALUES
-(1, 'Damaris Bonilla Garcia', 'Dambg@gmail.com', 'Damaris Bonilla G', '$2y$10$eA.D3HQlEoX0bfcVDOcHReCJ/2Om3YtPnFm/a3kKrYpbJcnZ.aue6'),
+(1, 'Damaris Bonilla Garcia', 'Dambg@gmail.com', 'Damaris Bonilla G', '$2y$10$SPA6cFDoZ7RC/DgE5PJOheZ3rG7h/taCA9uRbG6e7NAU0IDHCwtdW'),
 (2, 'Jose Levi Canales', 'canaleslevi@hotmail.com', 'Levi Canales', '$2y$10$RsWgM5yK7EInM92pAjfnae7wr86PaHUaO8oi5Q.Ek96CMMdh6XQQe'),
 (3, 'Juan Perez', 'Jperez30@gmail.com', 'J Perez', '$2y$10$81Yn2vE2K4QflfgSeK2Eb.yh/ThDlGcECAQxT45Tt205D7HENpfK2'),
-(4, 'Evelenth Garcia', 'Eygarcia@gmail.com', 'E Garcia', '$2y$10$NCVgVAoAz40berzOj0cUR.yaXRX6tgmtnwRS1dEiHLJIHWpsbkPKu');
+(4, 'Evelenth Garcia', 'Eygarcia@gmail.com', 'E Garcia', '$2y$10$NCVgVAoAz40berzOj0cUR.yaXRX6tgmtnwRS1dEiHLJIHWpsbkPKu'),
+(5, 'Jazel Bonilla', 'gjazelbonilla@gmail.com', 'G Jazel Bonilla', '$2y$10$ubreqJoa9ejIWJyw98/cBO/mAGHDjaI/Vyg2OKv4mZ6qjahrkEb8C'),
+(6, 'Lizbeth Dominguez', 'lizd@gmail.com', 'Lizbeth D', '$2y$10$z6sy5o8yGEtwxNoZq9aqLePBdEfVsI5B1B4S38.IvRFlY/.9jtMyO'),
+(7, 'Arnold Cruz', 'cruz01@gmail.com', 'Arnold Cruz B', '$2y$10$AiBaVE0Ef.j3vu.gfAHlUeZrWVT4IE8bRjZmaPTuxTI.NlOWN08gm'),
+(8, 'Luli Garcia', 'lugarci01@gmail.com', 'luli', '$2y$10$s0TUmmufgCLn/cvH2SLzDesoVOGcyTL/wWhDABB6LUdyu1vjKNv5i');
 
 --
 -- Indexes for dumped tables
 --
 
 --
+-- Indexes for table `alimentos_nutricionales`
+--
+ALTER TABLE `alimentos_nutricionales`
+  ADD PRIMARY KEY (`id_alimento`),
+  ADD KEY `idx_tipo` (`tipo`),
+  ADD KEY `idx_created_by` (`created_by`);
+
+--
 -- Indexes for table `alimentos_registro`
 --
 ALTER TABLE `alimentos_registro`
   ADD PRIMARY KEY (`id`),
-  ADD KEY `idx_paciente_fecha` (`paciente_id`,`fecha`);
+  ADD KEY `idx_paciente_fecha` (`id_pacientes`,`fecha`);
 
 --
 -- Indexes for table `citas`
@@ -217,11 +315,17 @@ ALTER TABLE `citas`
   ADD UNIQUE KEY `unique_cita` (`medico_id`,`fecha`,`hora`);
 
 --
+-- Indexes for table `disponibilidades`
+--
+ALTER TABLE `disponibilidades`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `unique_slot` (`medico_id`,`fecha`,`hora`);
+
+--
 -- Indexes for table `ejercicios`
 --
 ALTER TABLE `ejercicios`
-  ADD PRIMARY KEY (`id_ejercicio`),
-  ADD KEY `id_pacientes` (`id_pacientes`);
+  ADD PRIMARY KEY (`id_ejercicio`);
 
 --
 -- Indexes for table `expediente`
@@ -246,6 +350,12 @@ ALTER TABLE `pacientes`
   ADD KEY `id_usuarios` (`id_usuarios`);
 
 --
+-- Indexes for table `retroalimentacion`
+--
+ALTER TABLE `retroalimentacion`
+  ADD PRIMARY KEY (`id`);
+
+--
 -- Indexes for table `usuarios`
 --
 ALTER TABLE `usuarios`
@@ -256,15 +366,27 @@ ALTER TABLE `usuarios`
 --
 
 --
+-- AUTO_INCREMENT for table `alimentos_nutricionales`
+--
+ALTER TABLE `alimentos_nutricionales`
+  MODIFY `id_alimento` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+
+--
 -- AUTO_INCREMENT for table `alimentos_registro`
 --
 ALTER TABLE `alimentos_registro`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
 
 --
 -- AUTO_INCREMENT for table `citas`
 --
 ALTER TABLE `citas`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT for table `disponibilidades`
+--
+ALTER TABLE `disponibilidades`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
@@ -277,13 +399,13 @@ ALTER TABLE `ejercicios`
 -- AUTO_INCREMENT for table `expediente`
 --
 ALTER TABLE `expediente`
-  MODIFY `id_expediente` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id_expediente` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
 
 --
 -- AUTO_INCREMENT for table `historial_actualizaciones`
 --
 ALTER TABLE `historial_actualizaciones`
-  MODIFY `id_historial` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
+  MODIFY `id_historial` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=15;
 
 --
 -- AUTO_INCREMENT for table `pacientes`
@@ -292,26 +414,20 @@ ALTER TABLE `pacientes`
   MODIFY `id_pacientes` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
+-- AUTO_INCREMENT for table `retroalimentacion`
+--
+ALTER TABLE `retroalimentacion`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+
+--
 -- AUTO_INCREMENT for table `usuarios`
 --
 ALTER TABLE `usuarios`
-  MODIFY `id_usuarios` int(15) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+  MODIFY `id_usuarios` int(15) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
 
 --
 -- Constraints for dumped tables
 --
-
---
--- Constraints for table `ejercicios`
---
-ALTER TABLE `ejercicios`
-  ADD CONSTRAINT `ejercicios_ibfk_1` FOREIGN KEY (`id_pacientes`) REFERENCES `pacientes` (`id_pacientes`) ON DELETE CASCADE;
-
---
--- Constraints for table `expediente`
---
-ALTER TABLE `expediente`
-  ADD CONSTRAINT `expediente_ibfk_1` FOREIGN KEY (`id_pacientes`) REFERENCES `pacientes` (`id_pacientes`) ON DELETE CASCADE;
 
 --
 -- Constraints for table `historial_actualizaciones`
