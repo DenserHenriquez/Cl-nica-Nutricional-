@@ -292,6 +292,16 @@ function e($str) { return htmlspecialchars((string)$str, ENT_QUOTES, 'UTF-8'); }
                             </a>
                         </li>
                         <li class="nav-item">
+                            <a class="nav-link" href="Crear_Receta.php" target="main-content">
+                                <i class="bi bi-receipt"></i> Crear Receta
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="Gestion_Receta.php" target="main-content">
+                                <i class="bi bi-journal-text"></i> Gestión de Recetas
+                            </a>
+                        </li>
+                        <li class="nav-item">
                             <a class="nav-link" href="Seguimiento_ejercicio.php" target="main-content">
                                 <i class="bi bi-activity"></i> Seguimiento de Ejercicios
                             </a>
