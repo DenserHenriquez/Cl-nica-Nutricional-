@@ -137,9 +137,6 @@ if ($res = $conexion->query($sqlLast)) {
 
 	<main class="content">
 		<div class="section-title">
-			<h4 class="mb-0">Actividad reciente de los pacientes</h4>
-			<a class="btn btn-sm btn-outline-primary" href="retroalimentacion1.php">Vista clásica</a>
-		</div>
 		<?php if (empty($cards)): ?>
 			<div class="alert alert-secondary">No hay actividad reciente.</div>
 		<?php else: ?>
