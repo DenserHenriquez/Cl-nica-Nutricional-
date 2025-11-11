@@ -416,9 +416,6 @@ $historial = cargarHistorial($conexion, $TABLE_HISTORY, $userId);
             </div>
             <h1>Actualizar Perfil</h1>
             <p>Actualice su información personal y de paciente en la clínica nutricional.</p>
-            <a href="Menuprincipal.php" class="btn btn-light position-absolute top-50 end-0 translate-middle-y me-3">
-                <i class="bi bi-house-door"></i> Menú Principal
-            </a>
         </div>
     </div>
 

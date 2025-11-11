@@ -201,7 +201,6 @@ if ($vista === 'diaria') {
   <div class="container py-4">
     <div class="d-flex justify-content-between align-items-center mb-3">
       <h2 class="mb-0"><i class="bi bi-activity text-primary me-2"></i>Seguimiento de Ejercicios</h2>
-      <a href="Menuprincipal.php" class="btn btn-outline-primary"><i class="bi bi-house-door me-1"></i>Menú Principal</a>
     </div>
 
     <?php if ($errores): ?>

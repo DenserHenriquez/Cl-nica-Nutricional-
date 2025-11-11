@@ -299,8 +299,8 @@ function e($str) { return htmlspecialchars((string)$str, ENT_QUOTES, 'UTF-8'); }
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="retoalimentacion.php" target="main-content">
-                                <i class="bi bi-chat-dots"></i> Retoalimentación
+                            <a class="nav-link" href="retroalimentacion1.php" target="main-content">
+                                <i class="bi bi-chat-dots"></i> Retroalimentación
                             </a>
                         </li>
                     </ul>
