@@ -98,7 +98,7 @@ $cambio = $pesoActual - $pesoInicial;
 
   <style>
     :root{
-      --brand-primary:#0d6efd;
+      --brand-primary:#198754;
       --brand-primary-dark:#0b5ed7;
       --brand-bg:#f5f7fb;
       --brand-surface:#ffffff;
@@ -109,7 +109,7 @@ $cambio = $pesoActual - $pesoInicial;
     }
     body{ background:var(--brand-bg); font-family:'Segoe UI',sans-serif; }
     .header-section {
-      background: linear-gradient(135deg, #0d6efd 0%, #0b5ed7 100%);
+      background: linear-gradient(135deg, #198754 0%, #146c43 100%);
       color: white;
       padding: 2rem 0;
       margin-bottom: 2rem;
@@ -128,15 +128,15 @@ $cambio = $pesoActual - $pesoInicial;
       color: #ffffff;
     }
     .header-card{
-      background: linear-gradient(135deg,var(--brand-primary-dark) 0%,var(--brand-primary) 100%);
+      background: linear-gradient(135deg, #198754 0%, #146c43 100%);
       color:#fff; border-radius:15px; padding:2rem; margin-bottom:2rem;
     }
     .btn-back{ 
-      background:#fff; color:var(--brand-primary); border:2px solid #fff;
+      background:#fff; color:#0d6efd; border:2px solid #fff;
       border-radius:10px; padding:.5rem 1.25rem; font-weight:600; transition:.2s;
       text-decoration:none; display:inline-block;
     }
-    .btn-back:hover{ background:transparent; color:#fff; border-color:#fff; transform:translateX(-4px); }
+    .btn-back:hover{ background:#0d6efd; color:#fff; border-color:#0d6efd; transform:translateX(-4px); box-shadow: 0 0 15px rgba(13, 110, 253, 0.6); }
     
     .stat-card{
       background:var(--brand-surface); border-radius:15px; padding:1.5rem;
@@ -387,8 +387,8 @@ const exp = <?= json_encode($expediente, JSON_NUMERIC_CHECK | JSON_UNESCAPED_UNI
 const eje = <?= json_encode($ejercicios, JSON_NUMERIC_CHECK | JSON_UNESCAPED_UNICODE) ?>;
 
 // Paleta
-const cPrimary = '#0d6efd';
-const cPrimaryFill = 'rgba(13,110,253,.12)';
+const cPrimary = '#198754';
+const cPrimaryFill = 'rgba(25,135,84,.12)';
 const cPurple = '#6f42c1';
 const cPurpleFill = 'rgba(111,66,193,.12)';
 const cSuccess = '#20c997';

@@ -18,11 +18,6 @@ if (!isset($_SESSION['id_usuarios'])) {
 
 $user_id = (int)$_SESSION['id_usuarios'];
 
-// Verificar si el usuario tiene información de paciente registrada
-$necesita_registro = false;
-$mensaje_registro = '';
-$paciente_id = null;
-
 // Obtener id_pacientes desde la BD usando id_usuarios
 $stmt = $conexion->prepare("SELECT id_pacientes FROM pacientes WHERE id_usuarios = ? LIMIT 1");
 $stmt->bind_param('i', $user_id);
@@ -32,8 +27,8 @@ if ($row = $result->fetch_assoc()) {
     $paciente_id = (int)$row['id_pacientes'];
 } else {
     // Usuario no es paciente registrado
-    $necesita_registro = true;
-    $mensaje_registro = 'Debe registrarse como paciente antes de poder registrar alimentos. Por favor, complete su registro de paciente primero.';
+    header('Location: Menuprincipal.php?error=No eres un paciente registrado.');
+    exit;
 }
 $stmt->close();
 
@@ -67,11 +62,7 @@ $conexion->query("CREATE TABLE IF NOT EXISTS alimentos_registro (
 
 // Manejo de POST
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    // Verificar primero si el usuario necesita registrarse como paciente
-    if ($necesita_registro) {
-        $errores[] = 'Debe registrarse como paciente antes de poder registrar alimentos.';
-    } else {
-        // Validar token CSRF simple
+    // Validar token CSRF simple
     if (!isset($_POST['csrf']) || !isset($_SESSION['csrf']) || $_POST['csrf'] !== $_SESSION['csrf']) {
         $errores[] = 'Token inválido. Recargue la página.';
     }
@@ -201,7 +192,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $errores[] = 'Error preparando consulta: ' . $conexion->error;
         }
     }
-    } // Cierre del bloque else principal (verificar si necesita_registro)
 }
 
 // CSRF token
@@ -210,14 +200,13 @@ if (empty($_SESSION['csrf'])) {
 }
 $csrf = $_SESSION['csrf'];
 
-// Filtros de historial (solo si el usuario está registrado como paciente)
+// Filtros de historial
 $vista = isset($_GET['vista']) && $_GET['vista'] === 'semanal' ? 'semanal' : 'diaria';
 $hoy = date('Y-m-d');
 $fechaFiltro = isset($_GET['fecha']) && preg_match('/^\d{4}-\d{2}-\d{2}$/', $_GET['fecha']) ? $_GET['fecha'] : $hoy;
 
 $historial = [];
-if (!$necesita_registro && $paciente_id) {
-    if ($vista === 'diaria') {
+if ($vista === 'diaria') {
     $sqlH = "SELECT id, fecha, tipo_comida, descripcion, hora, foto_path
              FROM alimentos_registro
              WHERE id_pacientes = ? AND fecha = ?
@@ -255,8 +244,7 @@ if (!$necesita_registro && $paciente_id) {
         }
         $stmtH->close();
     }
-    } // Fin del bloque semanal
-} // Fin de if (!$necesita_registro && $paciente_id)
+}
 
 ?>
 <!DOCTYPE html>
@@ -280,22 +268,25 @@ if (!$necesita_registro && $paciente_id) {
             box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
         }
         .btn-primary {
-            background-color: #0d6efd;
-            border-color: #0d6efd;
+            background-color: #198754;
+            border-color: #198754;
         }
         .btn-primary:hover {
-            background-color: #0b5ed7;
-            border-color: #0a58ca;
+            background-color: #146c43;
+            border-color: #13653f;
+        }
+        .bg-primary {
+            background-color: #198754 !important;
         }
         .form-label {
             font-weight: 600;
-            color: #495057;
+            color: #198754;
         }
         .alert {
             border-radius: 0.375rem;
         }
         .header-section {
-            background: linear-gradient(135deg, #0d6efd 0%, #0b5ed7 100%);
+            background: linear-gradient(135deg, #198754 0%, #146c43 100%);
             color: white;
             padding: 2rem 0;
             margin-bottom: 2rem;
@@ -361,21 +352,6 @@ if (!$necesita_registro && $paciente_id) {
     </div>
 
     <div class="container mb-5">
-        <?php if ($necesita_registro): ?>
-            <div class="alert alert-warning" role="alert">
-                <div class="d-flex align-items-center">
-                    <i class="bi bi-exclamation-triangle-fill me-3" style="font-size: 2rem;"></i>
-                    <div>
-                        <h5 class="mb-1">Registro de paciente requerido</h5>
-                        <p class="mb-2"><?= htmlspecialchars($mensaje_registro, ENT_QUOTES, 'UTF-8') ?></p>
-                        <a href="Registropacientes.php" class="btn btn-primary">
-                            <i class="bi bi-person-plus me-2"></i>Registrarse como paciente
-                        </a>
-                    </div>
-                </div>
-            </div>
-        <?php endif; ?>
-        
         <?php if (!empty($errores)): ?>
             <div class="alert alert-danger" role="alert">
                 <ul class="mb-0">
@@ -391,7 +367,6 @@ if (!$necesita_registro && $paciente_id) {
             </div>
         <?php endif; ?>
 
-        <?php if (!$necesita_registro): ?>
         <div class="card">
             <div class="card-header bg-primary text-white">
                 <h5 class="card-title mb-0"><i class="bi bi-plus-circle me-2"></i>Nuevo Registro</h5>
@@ -558,7 +533,7 @@ if (!$necesita_registro && $paciente_id) {
                             <div class="gallery-item">
                                 <img src="<?= htmlspecialchars($item['foto_path'], ENT_QUOTES, 'UTF-8') ?>" alt="Foto de comida" />
                                 <div style="margin-top: 8px;">
-                                    <div style="font-weight: 600; color: #0d6efd; text-transform: capitalize;">
+                                    <div style="font-weight: 600; color: #198754; text-transform: capitalize;">
                                         <?= htmlspecialchars($item['tipo_comida'], ENT_QUOTES, 'UTF-8') ?>
                                     </div>
                                     <div style="font-size: 0.875rem; color: #6c757d;">
@@ -574,7 +549,6 @@ if (!$necesita_registro && $paciente_id) {
                 <?php endif; ?>
             </div>
         </div>
-        <?php endif; // Fin de if (!$necesita_registro) ?>
     </div>
 
     <script>

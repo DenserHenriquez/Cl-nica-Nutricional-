@@ -310,7 +310,7 @@ if ($medico_id === 0) {
         .fc-daygrid-day-number { font-size: 10px; }
         .fc-event { font-size: 10px; padding: 2px; }
         .badge { display:inline-block; padding:2px 6px; border-radius:4px; font-size:11px; margin-right:4px; }
-        .b-libre { background:#e8f5e9; color:#2e7d32; border:1px solid #a5d6a7; }
+        .b-libre { background:#d1e7dd; color:#0d5132; border:1px solid #a3cfbb; }
         .b-bloq { background:#ffebee; color:#c62828; border:1px solid #ef9a9a; }
         .b-cita { background:#e3f2fd; color:#1565c0; border:1px solid #90caf9; display:block; margin:2px 0; }
         .controls { margin: 10px 0; display:flex; gap:10px; flex-wrap:wrap; }
@@ -325,7 +325,7 @@ if ($medico_id === 0) {
         .btn { padding:6px 10px; border:1px solid #999; background:#f0f0f0; border-radius:4px; cursor:pointer; }
         .btn.primary { background:var(--primary-500); color:var(--white); border-color:var(--primary-700); }
         .btn.warn { background:#e53935; color:#fff; border-color:#b71c1c; }
-        .btn.success { background:#2e7d32; color:#fff; border-color:#1b5e20; }
+        .btn.success { background:#146c43; color:#fff; border-color:#0d5132; }
         .slot { display:flex; justify-content:space-between; align-items:center; gap:6px; }
         .slot-actions form { display:inline; }
         .table { width:100%; border-collapse: collapse; }
@@ -521,7 +521,7 @@ function monthNameEs($m) {
     <div class="container">
         <h1>Disponibilidad de Citas</h1>
         <?php if (isset($_SESSION['message'])): ?>
-            <div class="alerta" style="background:#e8f5e9;border-color:#a5d6a7;color:#1b5e20;"><?php echo htmlspecialchars($_SESSION['message']); unset($_SESSION['message']); ?></div>
+            <div class="alerta" style="background:#d1e7dd;border-color:#a3cfbb;color:#0d5132;"><?php echo htmlspecialchars($_SESSION['message']); unset($_SESSION['message']); ?></div>
         <?php endif; ?>
         <?php if (isset($_SESSION['error'])): ?>
             <div class="alerta" style="background:#ffebee;border-color:#ef9a9a;color:#b71c1c;">Error: <?php echo htmlspecialchars($_SESSION['error']); unset($_SESSION['error']); ?></div>
