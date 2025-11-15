@@ -47,7 +47,8 @@ if ($userRole === 'Medico') {
 
 // Definir qué opciones puede ver cada rol
 $menuItems = [
-    'actualizar_perfil' => ['Medico', 'Paciente', 'Administrador'],
+    // Actualizar perfil disponible solo para Medico y Administrador (no para Paciente)
+    'actualizar_perfil' => ['Medico', 'Administrador'],
     'estado_paciente' => ['Medico', 'Administrador'],
     'panel_evolucion' => ['Medico', 'Paciente', 'Administrador'],
     'busqueda_avanzada' => ['Medico', 'Administrador'],
@@ -660,10 +661,12 @@ function e($str) { return htmlspecialchars((string)$str, ENT_QUOTES, 'UTF-8'); }
                             <div class="name"><?php echo e($userName ?: 'Usuario'); ?></div>
                             <div class="role"><?php echo e($userRole); ?></div>
                         </div>
+                        <?php if (hasAccess('actualizar_perfil', $userRole, $menuItems)): ?>
                         <a href="Actualizar_perfil.php" target="main-content" class="user-dropdown-item">
                             <i class="bi bi-person-circle"></i>
                             <span>Actualizar Perfil</span>
                         </a>
+                        <?php endif; ?>
                         <a href="Login.php" class="user-dropdown-item">
                             <i class="bi bi-box-arrow-right"></i>
                             <span>Cerrar Sesion</span>
@@ -777,7 +780,7 @@ function e($str) { return htmlspecialchars((string)$str, ENT_QUOTES, 'UTF-8'); }
                         <?php if (hasAccess('retroalimentacion', $userRole, $menuItems)): ?>
                         <li class="nav-item">
                             <a class="nav-link" href="retroalimentacion1.php" target="main-content">
-                                <i class="bi bi-chat-dots"></i> Retroalimentacion
+                                <i class="bi bi-chat-dots"></i> <?php echo $userRole === 'Paciente' ? 'Hacks de Menus' : 'Retroalimentacion'; ?>
                             </a>
                         </li>
                         <?php endif; ?>

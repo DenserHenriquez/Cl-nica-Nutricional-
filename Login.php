@@ -25,10 +25,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $usuario     = isset($_POST['Usuario']) ? trim($_POST['Usuario']) : '';
     $contrasena  = isset($_POST['contrasena']) ? (string)$_POST['contrasena'] : '';
     $contrasena2 = isset($_POST['contrasena_confirm']) ? (string)$_POST['contrasena_confirm'] : '';
-    $rol         = isset($_POST['rol']) ? trim($_POST['rol']) : '';
 
     // Detectar registro cuando vienen todos los campos principales
-    $is_register = $nombre !== '' && $correo !== '' && $usuario !== '' && $contrasena !== '' && $contrasena2 !== '' && $rol !== '';
+    $is_register = $nombre !== '' && $correo !== '' && $usuario !== '' && $contrasena !== '' && $contrasena2 !== '';
 
     if ($is_register) {
         // --- FLUJO DE REGISTRO ---
@@ -42,7 +41,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if ($contrasena !== $contrasena2) {
             redirect_with_message('Las contrasenas no coinciden');
         }
-        $rolValido = in_array($rol, ['Medico','Paciente'], true) ? $rol : 'Paciente';
+        // Todos los usuarios nuevos se registran como Paciente por defecto
+        $rolValido = 'Paciente';
 
         // Comprobar unicidad de usuario y correo
         $stmt = $conexion->prepare('SELECT 1 FROM usuarios WHERE Usuario = ? OR Correo_electronico = ? LIMIT 1');

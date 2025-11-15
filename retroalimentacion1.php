@@ -89,7 +89,8 @@ if ($res = $conexion->query($sqlLast)) {
 <head>
 	<meta charset="utf-8" />
 	<meta name="viewport" content="width=device-width,initial-scale=1" />
-	<title>Retroalimentación | Actividad reciente</title>
+	<?php $tituloPrincipal = ($_SESSION['rol'] ?? '') === 'Paciente' ? 'Hacks de Menus' : 'Retroalimentación'; ?>
+	<title><?= h($tituloPrincipal) ?> | Actividad reciente</title>
 	<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 	<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
 	<style>
@@ -156,15 +157,17 @@ if ($res = $conexion->query($sqlLast)) {
 			<div class="medical-icon">
 				<i class="bi bi-activity"></i>
 			</div>
-			<h1>Actividad reciente de los pacientes</h1>
-			<p>Nutricionista | Monitorea y retroalimenta a tus pacientes.</p>
+			<h1><?= ($_SESSION['rol'] ?? '') === 'Paciente' ? 'Hacks de Menus' : 'Actividad reciente de los pacientes'; ?></h1>
+			<p><?= ($_SESSION['rol'] ?? '') === 'Paciente' ? 'Ideas y sugerencias de menus saludables.' : 'Nutricionista | Monitorea y retroalimenta a tus pacientes.'; ?></p>
 		</div>
 	</div>
 
 	<main class="content">
 		<div class="section-title">
-			<h4 class="mb-0">Actividad reciente de los pacientes</h4>
+			<h4 class="mb-0"><?= ($_SESSION['rol'] ?? '') === 'Paciente' ? 'Hacks de Menus' : 'Actividad reciente de los pacientes'; ?></h4>
+			<?php if(($_SESSION['rol'] ?? '') !== 'Paciente'): ?>
 			<a class="btn btn-sm btn-outline-primary" href="retroalimentacion1.php">Vista clásica</a>
+			<?php endif; ?>
 		</div>
 		<?php if (empty($cards)): ?>
 			<div class="alert alert-secondary">No hay actividad reciente.</div>

@@ -1,9 +1,19 @@
 <?php
+session_start();
 require_once 'db_connection.php';
 
-// CONSULTA PACIENTES + USUARIOS
+// Obtener el rol del usuario actual
+$userRole = $_SESSION['rol'] ?? 'Paciente';
+
+// Verificar que la columna Rol exista en la tabla usuarios
+$checkRol = $conexion->query("SHOW COLUMNS FROM usuarios LIKE 'Rol'");
+if ($checkRol->num_rows === 0) {
+    $conexion->query("ALTER TABLE usuarios ADD COLUMN Rol VARCHAR(20) NOT NULL DEFAULT 'Paciente'");
+}
+
+// CONSULTA PACIENTES + USUARIOS (incluir Rol)
 $sql = "SELECT p.id_pacientes, p.id_usuarios, p.nombre_completo, p.DNI, p.fecha_nacimiento, p.edad, p.telefono, p.estado,
-               u.Nombre_completo as usuario_nombre, u.Correo_electronico
+               u.Nombre_completo as usuario_nombre, u.Correo_electronico, u.Rol
         FROM pacientes p
         INNER JOIN usuarios u ON p.id_usuarios = u.id_usuarios
         ORDER BY p.nombre_completo ASC";
@@ -210,6 +220,9 @@ $total_entradas = $resultado->num_rows;
                                 <th class="col-hide-sm">Teléfono</th>
                                 <th class="col-hide-lg">Usuario</th>
                                 <th class="col-hide-lg">Correo</th>
+                                <?php if($userRole === 'Administrador'): ?>
+                                <th class="col-hide-md">Rol</th>
+                                <?php endif; ?>
                                 <th class="col-hide-xs">Estado</th>
                                 <th class="col-acciones">Acción</th>
                             </tr>
@@ -228,6 +241,18 @@ $total_entradas = $resultado->num_rows;
                                 echo "<td class='col-hide-sm'>".htmlspecialchars($fila['telefono'])."</td>";
                                 echo "<td class='col-hide-lg'>".htmlspecialchars($fila['usuario_nombre'])."</td>";
                                 echo "<td class='col-hide-lg'>".htmlspecialchars($fila['Correo_electronico'])."</td>";
+                                
+                                // Columna Rol (solo visible para Administrador)
+                                if($userRole === 'Administrador') {
+                                    $rolActual = htmlspecialchars($fila['Rol']);
+                                    echo "<td class='col-hide-md'>
+                                        <select class='form-select form-select-sm rol-select' data-usuario-id='".$fila['id_usuarios']."' style='min-width: 100px;'>
+                                            <option value='Paciente' ".($rolActual=='Paciente'?'selected':'').">👤 Paciente</option>
+                                            <option value='Medico' ".($rolActual=='Medico'?'selected':'').">👨‍⚕️ Medico</option>
+                                        </select>
+                                    </td>";
+                                }
+                                
                                 echo "<td class='estado-text estado-".htmlspecialchars($fila['estado'])." col-hide-xs'>".htmlspecialchars($fila['estado'])."</td>";
                                 echo "<td class='col-acciones'>
     <div class='d-flex align-items-center gap-1'>
@@ -255,7 +280,8 @@ $total_entradas = $resultado->num_rows;
                                 echo "</tr>";
                             }
                         } else {
-                            echo "<tr><td colspan='11' class='text-center'>No se encontraron pacientes.</td></tr>";
+                            $colspan = ($userRole === 'Administrador') ? 12 : 11;
+                            echo "<tr><td colspan='$colspan' class='text-center'>No se encontraron pacientes.</td></tr>";
                         }
                         ?>
                         </tbody>
@@ -266,6 +292,7 @@ $total_entradas = $resultado->num_rows;
     </div>
 
 <script>
+// Switch de estado (Activo/Inactivo)
 document.querySelectorAll('.estado-switch').forEach(function(switchEl) {
     switchEl.addEventListener('change', function() {
         const id = this.dataset.id;
@@ -287,6 +314,52 @@ document.querySelectorAll('.estado-switch').forEach(function(switchEl) {
             }
         };
         xhr.send("id=" + id + "&estado=" + estado);
+    });
+});
+
+// Select de rol (Paciente/Medico) - Solo para Administrador
+document.querySelectorAll('.rol-select').forEach(function(selectEl) {
+    selectEl.addEventListener('change', function() {
+        const idUsuario = this.dataset.usuarioId;
+        const nuevoRol = this.value;
+        const selectOriginal = this;
+        const valorAnterior = Array.from(selectOriginal.options).find(opt => opt.selected && opt !== selectOriginal.options[selectOriginal.selectedIndex]);
+
+        if(!confirm('¿Cambiar el rol de este usuario a ' + nuevoRol + '?')) {
+            // Revertir selección si cancela
+            if(valorAnterior) selectOriginal.value = valorAnterior.value;
+            return;
+        }
+
+        // AJAX POST a cambiar_rol_usuario.php
+        const xhr = new XMLHttpRequest();
+        xhr.open("POST", "cambiar_rol_usuario.php", true);
+        xhr.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+        xhr.onload = function() {
+            if(xhr.status === 200) {
+                try {
+                    const response = JSON.parse(xhr.responseText);
+                    if(response.success) {
+                        alert("Rol actualizado exitosamente a " + nuevoRol);
+                    } else {
+                        alert("Error: " + response.message);
+                        // Revertir selección si falla
+                        if(valorAnterior) selectOriginal.value = valorAnterior.value;
+                    }
+                } catch(e) {
+                    alert("Error al procesar respuesta del servidor");
+                    if(valorAnterior) selectOriginal.value = valorAnterior.value;
+                }
+            } else {
+                alert("Error al cambiar el rol del usuario");
+                if(valorAnterior) selectOriginal.value = valorAnterior.value;
+            }
+        };
+        xhr.onerror = function() {
+            alert("Error de conexión");
+            if(valorAnterior) selectOriginal.value = valorAnterior.value;
+        };
+        xhr.send("id_usuarios=" + idUsuario + "&rol=" + nuevoRol);
     });
 });
 </script>

@@ -23,12 +23,23 @@ $stmt = $conexion->prepare("SELECT id_pacientes FROM pacientes WHERE id_usuarios
 $stmt->bind_param('i', $user_id);
 $stmt->execute();
 $result = $stmt->get_result();
+$noRegistrado = false;
+$userRole = $_SESSION['rol'] ?? 'Paciente';
+$isStaff = in_array($userRole, ['Medico', 'Administrador'], true);
+
 if ($row = $result->fetch_assoc()) {
     $paciente_id = (int)$row['id_pacientes'];
 } else {
-    // Usuario no es paciente registrado
-    header('Location: Menuprincipal.php?error=No eres un paciente registrado.');
-    exit;
+    // Si el usuario es un Paciente que aún no está registrado como paciente en la tabla,
+    // mostramos un aviso en la interfaz en lugar de redirigir inmediatamente.
+    if ($userRole === 'Paciente') {
+        $paciente_id = 0;
+        $noRegistrado = true;
+    } else {
+        // Médico/Administrador no necesitan registro de paciente; acceso completo sin restricciones
+        $paciente_id = 0;
+        $noRegistrado = false;
+    }
 }
 $stmt->close();
 
@@ -367,6 +378,16 @@ if ($vista === 'diaria') {
             </div>
         <?php endif; ?>
 
+        <?php if (!empty($noRegistrado) && isset($_SESSION['rol']) && $_SESSION['rol'] === 'Paciente'): ?>
+            <div class="alert alert-warning">
+                <i class="bi bi-exclamation-triangle-fill"></i>
+                Paciente nuevo: primero necesitas actualizar tus datos con tu médico tratante. Si aún no estás registrado como paciente en la clínica, ponte en contacto con el personal o tu médico para completar tu registro.
+            </div>
+        <?php endif; ?>
+
+        <?php if (!empty($noRegistrado) && isset($_SESSION['rol']) && $_SESSION['rol'] === 'Paciente'): ?>
+            <!-- No mostrar formulario ni historial para usuario Paciente no registrado -->
+        <?php else: ?>
         <div class="card">
             <div class="card-header bg-primary text-white">
                 <h5 class="card-title mb-0"><i class="bi bi-plus-circle me-2"></i>Nuevo Registro</h5>
@@ -544,9 +565,11 @@ if ($vista === 'diaria') {
                                     </div>
                                 </div>
                             </div>
+
                         <?php endforeach; ?>
                     </div>
                 <?php endif; ?>
+        <?php endif; ?>
             </div>
         </div>
     </div>

@@ -28,9 +28,6 @@
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav ms-auto">
                     <li class="nav-item">
-                        <a class="nav-link" href="#inicio">Inicio</a>
-                    </li>
-                    <li class="nav-item">
                         <a class="nav-link" href="#servicios">Servicios</a>
                     </li>
                     <li class="nav-item">
@@ -131,9 +128,6 @@
             <p class="lead mb-4">
                 Agenda tu consulta inicial y comienza tu camino hacia una vida más saludable.
             </p>
-            <a href="tel:+1234567890" class="btn btn-light btn-lg me-3">
-                <i class="fas fa-phone me-2"></i>Llamar Ahora
-            </a>
             <button class="btn btn-outline-light btn-lg" data-bs-toggle="modal" data-bs-target="#loginModal">
                 <i class="fas fa-calendar-plus me-2"></i>Agendar Cita
             </button>
@@ -268,30 +262,24 @@
                                     <label for="registerPassword" class="form-label fw-semibold">
                                         <i class="fas fa-lock me-2 text-success"></i>Contraseña
                                     </label>
-                                    <input type="password" class="form-control" id="registerPassword" name="contrasena" placeholder="Tu contraseña" required>
+                                    <div class="position-relative">
+                                        <input type="password" class="form-control" id="registerPassword" name="contrasena" placeholder="Tu contraseña" required>
+                                        <button type="button" class="btn btn-link position-absolute end-0 top-50 translate-middle-y" style="z-index: 10; text-decoration: none;" onclick="togglePasswordVisibility('registerPassword', this)">
+                                            <i class="fas fa-eye text-muted"></i>
+                                        </button>
+                                    </div>
                                 </div>
                                 <div class="mb-3">
                                     <label for="registerPasswordConfirm" class="form-label fw-semibold">
                                         <i class="fas fa-lock me-2 text-success"></i>Confirmar Contraseña
                                     </label>
-                                    <input type="password" class="form-control" id="registerPasswordConfirm" name="contrasena_confirm" placeholder="Repite tu contraseña" required>
-                                    <div id="passwordHelp" class="form-text text-danger d-none">Las contraseñas no coinciden</div>
-                                </div>
-                                <div class="mb-3">
-                                    <label class="form-label fw-semibold">
-                                        <i class="fas fa-user-shield me-2 text-success"></i>Rol
-                                    </label>
-                                    <div class="d-flex gap-4">
-                                        <div class="form-check">
-                                            <input class="form-check-input" type="radio" name="rol" id="rolPaciente" value="Paciente" checked>
-                                            <label class="form-check-label" for="rolPaciente"><i class="fas fa-user-injured me-1"></i>Paciente</label>
-                                        </div>
-                                        <div class="form-check">
-                                            <input class="form-check-input" type="radio" name="rol" id="rolMedico" value="Medico">
-                                            <label class="form-check-label" for="rolMedico"><i class="fas fa-user-md me-1"></i>Medico</label>
-                                        </div>
+                                    <div class="position-relative">
+                                        <input type="password" class="form-control" id="registerPasswordConfirm" name="contrasena_confirm" placeholder="Repite tu contraseña" required>
+                                        <button type="button" class="btn btn-link position-absolute end-0 top-50 translate-middle-y" style="z-index: 10; text-decoration: none;" onclick="togglePasswordVisibility('registerPasswordConfirm', this)">
+                                            <i class="fas fa-eye text-muted"></i>
+                                        </button>
                                     </div>
-                                    <div class="form-text">Selecciona tu rol. Paciente por defecto.</div>
+                                    <div id="passwordHelp" class="form-text text-danger d-none">Las contraseñas no coinciden</div>
                                 </div>
                                 <input type="hidden" name="origen" value="index">
                                 <div class="d-grid">
@@ -312,6 +300,21 @@
     <!-- Custom JS -->
     <script src="assets/js/script.js"></script>
     <script>
+        // Toggle password visibility
+        function togglePasswordVisibility(inputId, button) {
+            const input = document.getElementById(inputId);
+            const icon = button.querySelector('i');
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.classList.remove('fa-eye');
+                icon.classList.add('fa-eye-slash');
+            } else {
+                input.type = 'password';
+                icon.classList.remove('fa-eye-slash');
+                icon.classList.add('fa-eye');
+            }
+        }
+
         document.addEventListener('DOMContentLoaded', function () {
             const pass = document.getElementById('registerPassword');
             const pass2 = document.getElementById('registerPasswordConfirm');
