@@ -20,21 +20,29 @@ function redirect_with_message($msg, $ok = false) {
 try {
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // Normalizar claves esperadas del formulario
-    $nombre = isset($_POST['nombre_completo']) ? trim($_POST['nombre_completo']) : '';
-    $correo = isset($_POST['Correo_electronico']) ? trim($_POST['Correo_electronico']) : '';
-    $usuario = isset($_POST['Usuario']) ? trim($_POST['Usuario']) : '';
-    $contrasena = isset($_POST['contrasena']) ? (string)$_POST['contrasena'] : '';
+    $nombre      = isset($_POST['nombre_completo']) ? trim($_POST['nombre_completo']) : '';
+    $correo      = isset($_POST['Correo_electronico']) ? trim($_POST['Correo_electronico']) : '';
+    $usuario     = isset($_POST['Usuario']) ? trim($_POST['Usuario']) : '';
+    $contrasena  = isset($_POST['contrasena']) ? (string)$_POST['contrasena'] : '';
+    $contrasena2 = isset($_POST['contrasena_confirm']) ? (string)$_POST['contrasena_confirm'] : '';
 
-    $is_register = $nombre !== '' && $correo !== '' && $usuario !== '' && $contrasena !== '';
+    // Detectar registro cuando vienen todos los campos principales
+    $is_register = $nombre !== '' && $correo !== '' && $usuario !== '' && $contrasena !== '' && $contrasena2 !== '';
 
     if ($is_register) {
+        // --- FLUJO DE REGISTRO ---
         // Validaciones básicas
         if (!filter_var($correo, FILTER_VALIDATE_EMAIL)) {
-            redirect_with_message('Correo electrónico inválido');
+            redirect_with_message('Correo electronico invalido');
         }
         if (strlen($contrasena) < 6) {
-            redirect_with_message('La contraseña debe tener al menos 6 caracteres');
+            redirect_with_message('La contrasena debe tener al menos 6 caracteres');
         }
+        if ($contrasena !== $contrasena2) {
+            redirect_with_message('Las contrasenas no coinciden');
+        }
+        // Todos los usuarios nuevos se registran como Paciente por defecto
+        $rolValido = 'Paciente';
 
         // Comprobar unicidad de usuario y correo
         $stmt = $conexion->prepare('SELECT 1 FROM usuarios WHERE Usuario = ? OR Correo_electronico = ? LIMIT 1');
@@ -50,22 +58,39 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         $stmt->close();
 
+        // Comprobar si existe columna Rol, si no agregarla automaticamente
+        try {
+            $colCheck = $conexion->query("SHOW COLUMNS FROM usuarios LIKE 'Rol'");
+            if ($colCheck && $colCheck->num_rows === 0) {
+                $conexion->query("ALTER TABLE usuarios ADD COLUMN Rol VARCHAR(20) NOT NULL DEFAULT 'Paciente'");
+            }
+        } catch (Throwable $eAlter) {
+            // Si falla, seguimos con default paciente sin interrumpir (se insertara sin rol si no existe)
+        }
+
         // Hashear contraseña
         $hash = password_hash($contrasena, PASSWORD_BCRYPT);
         if ($hash === false) {
-            redirect_with_message('Error al procesar la contraseña');
+            redirect_with_message('Error al procesar la contrasena');
         }
 
-        // Insertar usuario
-        $stmt = $conexion->prepare('INSERT INTO usuarios (Nombre_completo, Correo_electronico, Usuario, Contrasena) VALUES (?, ?, ?, ?)');
-        if (!$stmt) {
-            redirect_with_message('Error al preparar inserción: ' . $conexion->error);
+        // Insertar usuario (intentar con Rol, si falla reintentar sin Rol)
+        $sqlInsert = 'INSERT INTO usuarios (Nombre_completo, Correo_electronico, Usuario, Contrasena, Rol) VALUES (?, ?, ?, ?, ?)';
+        $stmt = $conexion->prepare($sqlInsert);
+        if ($stmt) {
+            $stmt->bind_param('sssss', $nombre, $correo, $usuario, $hash, $rolValido);
+        } else {
+            // Intentar sin Rol (por si no se pudo crear la columna)
+            $stmt = $conexion->prepare('INSERT INTO usuarios (Nombre_completo, Correo_electronico, Usuario, Contrasena) VALUES (?, ?, ?, ?)');
+            if (!$stmt) {
+                redirect_with_message('Error al preparar insercion: ' . $conexion->error);
+            }
+            $stmt->bind_param('ssss', $nombre, $correo, $usuario, $hash);
         }
-        $stmt->bind_param('ssss', $nombre, $correo, $usuario, $hash);
 
         if ($stmt->execute()) {
             $stmt->close();
-            redirect_with_message('Registro exitoso. Ahora puedes iniciar sesión.', true);
+            redirect_with_message('Registro exitoso. Ahora puedes iniciar sesion.', true);
         } else {
             $err = $stmt->error;
             $stmt->close();
@@ -80,7 +105,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             redirect_with_message('Correo y contraseña son requeridos');
         }
 
-        $stmt = $conexion->prepare('SELECT id_usuarios, Contrasena, Nombre_completo, Usuario FROM usuarios WHERE Correo_electronico = ? LIMIT 1');
+
+
+        // Intentar recuperar Rol también si existe
+        $stmt = $conexion->prepare('SELECT id_usuarios, Contrasena, Nombre_completo, Usuario, Rol FROM usuarios WHERE Correo_electronico = ? LIMIT 1');
+        if (!$stmt) {
+            // Fallback sin Rol si la columna aun no existe
+            $stmt = $conexion->prepare('SELECT id_usuarios, Contrasena, Nombre_completo, Usuario FROM usuarios WHERE Correo_electronico = ? LIMIT 1');
+        }
         if (!$stmt) {
             redirect_with_message('Error al preparar consulta: ' . $conexion->error);
         }
@@ -117,6 +149,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $_SESSION['id_usuarios'] = $user['id_usuarios'];
         $_SESSION['nombre'] = $user['Nombre_completo'];
         $_SESSION['usuario'] = $user['Usuario'];
+        if (isset($user['Rol'])) {
+            $_SESSION['rol'] = $user['Rol'];
+        }
 
         header('Location: Menuprincipal.php');
         exit;

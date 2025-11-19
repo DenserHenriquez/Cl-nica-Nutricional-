@@ -3,7 +3,22 @@ session_start();
 if (!isset($_SESSION['id_usuarios'])) { header('Location: index.php'); exit; }
 require_once __DIR__ . '/db_connection.php';
 function h($s){ return htmlspecialchars((string)$s, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); }
-$nutriId = (int)($_SESSION['id_usuarios'] ?? 0);
+$userId = (int)($_SESSION['id_usuarios'] ?? 0);
+$userRole = $_SESSION['rol'] ?? '';
+// Obtener id_pacientes del usuario si es Paciente
+$currentPatientId = 0;
+if ($userRole === 'Paciente') {
+	if ($stPid = $conexion->prepare('SELECT id_pacientes FROM pacientes WHERE id_usuarios = ? LIMIT 1')) {
+		$stPid->bind_param('i', $userId);
+		$stPid->execute();
+		$stPid->bind_result($pidDb);
+		if ($stPid->fetch()) { $currentPatientId = (int)$pidDb; }
+		$stPid->close();
+	}
+	// Si no existe paciente relacionado, bloquear acceso
+	if ($currentPatientId <= 0) { header('Location: Menuprincipal.php?error=No eres un paciente registrado.'); exit; }
+}
+$nutriId = $userId; // Se mantiene para nutricionista
 
 // Crear tabla de retroalimentación si no existe
 $conexion->query("CREATE TABLE IF NOT EXISTS retroalimentacion (
@@ -19,6 +34,8 @@ $conexion->query("CREATE TABLE IF NOT EXISTS retroalimentacion (
 if (isset($_GET['action']) && $_GET['action']==='details') {
 		header('Content-Type: application/json');
 		$pid = (int)($_GET['id'] ?? 0);
+		// Forzar id propio si es paciente
+		if ($userRole === 'Paciente') { $pid = $currentPatientId; }
 		if ($pid <= 0) { echo json_encode(['ok'=>false,'error'=>'Paciente inválido']); exit; }
 
 		$paciente = null;
@@ -66,22 +83,38 @@ if (isset($_POST['action']) && $_POST['action']==='comment') {
 		exit;
 }
 
-// Consulta para tarjetas: último registro de alimentos por paciente
+// Consulta para tarjetas:
+// - Si nutricionista/administrador: último registro de cada paciente (como antes)
+// - Si paciente: todos sus registros (más recientes primero)
 $cards = [];
-$sqlLast = "SELECT p.id_pacientes, p.nombre_completo,
-									 ar.fecha, ar.hora, ar.descripcion, ar.foto_path
-						FROM pacientes p
-						LEFT JOIN (
-							SELECT ar1.* FROM alimentos_registro ar1
-							JOIN (
-								SELECT id_pacientes, MAX(CONCAT(fecha,' ',hora)) AS maxdt
-								FROM alimentos_registro GROUP BY id_pacientes
-							) t ON t.id_pacientes = ar1.id_pacientes AND CONCAT(ar1.fecha,' ',ar1.hora)=t.maxdt
-						) ar ON ar.id_pacientes = p.id_pacientes
-						ORDER BY ar.fecha DESC, ar.hora DESC, p.nombre_completo ASC";
-if ($res = $conexion->query($sqlLast)) {
-		while ($row = $res->fetch_assoc()) $cards[] = $row;
+if ($userRole === 'Paciente') {
+	if ($st = $conexion->prepare('SELECT ar.id_pacientes, p.nombre_completo, ar.fecha, ar.hora, ar.descripcion, ar.foto_path
+								  FROM alimentos_registro ar
+								  INNER JOIN pacientes p ON p.id_pacientes = ar.id_pacientes
+								  WHERE ar.id_pacientes = ?
+								  ORDER BY ar.fecha DESC, ar.hora DESC LIMIT 50')) {
+		$st->bind_param('i', $currentPatientId);
+		$st->execute();
+		$r = $st->get_result();
+		while ($row = $r->fetch_assoc()) { $cards[] = $row; }
+		$st->close();
+	}
+} else {
+	$sqlLast = "SELECT p.id_pacientes, p.nombre_completo,
+						ar.fecha, ar.hora, ar.descripcion, ar.foto_path
+					FROM pacientes p
+					LEFT JOIN (
+						SELECT ar1.* FROM alimentos_registro ar1
+						JOIN (
+							SELECT id_pacientes, MAX(CONCAT(fecha,' ',hora)) AS maxdt
+							FROM alimentos_registro GROUP BY id_pacientes
+						) t ON t.id_pacientes = ar1.id_pacientes AND CONCAT(ar1.fecha,' ',ar1.hora)=t.maxdt
+					) ar ON ar.id_pacientes = p.id_pacientes
+					ORDER BY ar.fecha DESC, ar.hora DESC, p.nombre_completo ASC";
+	if ($res = $conexion->query($sqlLast)) {
+		while ($row = $res->fetch_assoc()) { $cards[] = $row; }
 		$res->close();
+	}
 }
 ?>
 <!doctype html>
@@ -89,14 +122,15 @@ if ($res = $conexion->query($sqlLast)) {
 <head>
 	<meta charset="utf-8" />
 	<meta name="viewport" content="width=device-width,initial-scale=1" />
-	<title>Retroalimentación | Actividad reciente</title>
+	<?php $tituloPrincipal = ($_SESSION['rol'] ?? '') === 'Paciente' ? 'Gestión de Comidas' : 'Retroalimentación'; ?>
+	<title><?= h($tituloPrincipal) ?> | Actividad reciente</title>
 	<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 	<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
 	<style>
 		body{background:#f8f9fa}
 		.content{padding:22px; max-width:1200px; margin:0 auto}
 		.header-section {
-			background: linear-gradient(135deg, #0d6efd 0%, #0b5ed7 100%);
+			background: linear-gradient(135deg, #198754 0%, #146c43 100%);
 			color: white;
 			padding: 2rem 0;
 			margin-bottom: 2rem;
@@ -121,6 +155,32 @@ if ($res = $conexion->query($sqlLast)) {
 		.cardx .name{font-weight:700}
 		.cardx .meta{color:#6c757d;font-size:.85rem}
 		.btn-circle{width:36px;height:36px;display:inline-flex;align-items:center;justify-content:center;border-radius:50%}
+
+		/* Instagram-like modal redesign */
+		.modal-content{border-radius:14px;}
+		.insta-post{font-family:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;}
+		.insta-post .post-header{display:flex;align-items:center;gap:.75rem;padding-bottom:.5rem;border-bottom:1px solid #e9eef6;}
+		.insta-post .avatar{width:44px;height:44px;border-radius:50%;background:#dee2e6;display:flex;align-items:center;justify-content:center;font-size:1.4rem;color:#495057;overflow:hidden;}
+		.insta-post .main-img{width:100%;max-height:440px;object-fit:cover;border-radius:12px;box-shadow:0 4px 14px rgba(0,0,0,.08);background:#e9ecef;}
+		.insta-post .thumbs{display:flex;flex-wrap:wrap;gap:6px;}
+		.insta-post .thumbs img{width:64px;height:64px;object-fit:cover;border-radius:10px;border:1px solid #e9eef6;}
+		.insta-post .measure-list{list-style:none;padding-left:0;margin:0;font-size:.8rem;}
+		.insta-post .measure-list li{padding:2px 0;border-bottom:1px solid #f1f3f5;}
+		.insta-post .comment{font-size:.9rem;line-height:1.3;}
+		.insta-post .comment .meta{font-size:.7rem;color:#6c757d;margin-bottom:2px;}
+		#mdNotes .comment + .comment{border-top:1px solid #e9eef6;margin-top:.6rem;padding-top:.6rem;}
+		.comment-form textarea{resize:none;border-radius:30px;padding:.65rem 1rem;background:#f8f9fa;}
+		.comment-form textarea:focus{background:#fff;}
+		.comment-form .btn{border-radius:30px;padding:.55rem 1.1rem;}
+		@media (min-width:768px){.modal-lg{max-width:760px;}}
+		.post-image{position:relative;}
+		.nav-arrow{position:absolute;top:50%;transform:translateY(-50%);width:42px;height:42px;border-radius:50%;background:rgba(0,0,0,.35);color:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:1.2rem;transition:.25s;user-select:none;}
+		.nav-arrow:hover{background:rgba(0,0,0,.55);} 
+		.nav-arrow.prev{left:10px;} .nav-arrow.next{right:10px;}
+		.nav-arrow.disabled{opacity:.25;pointer-events:none;}
+		.thumbs img{cursor:pointer;transition:.25s;}
+		.thumbs img:hover{filter:brightness(.85);} 
+		.thumbs img.active{outline:2px solid #198754;}
 	</style>
 	</head>
 <body>
@@ -128,15 +188,20 @@ if ($res = $conexion->query($sqlLast)) {
 	<div class="header-section">
 		<div class="container text-center">
 			<div class="medical-icon">
-				<i class="bi bi-activity"></i>
+				<i class="bi bi-chat-dots"></i>
 			</div>
-			<h1>Actividad reciente de los pacientes</h1>
-			<p>Nutricionista | Monitorea y retroalimenta a tus pacientes.</p>
+			<h1><?= ($_SESSION['rol'] ?? '') === 'Paciente' ? 'Gestión de Comidas' : 'Retroalimentación de Pacientes'; ?></h1>
+			<p><?= ($_SESSION['rol'] ?? '') === 'Paciente' ? 'El médico gestionará tu alimentación y te brindará retroalimentación personalizada.' : 'Nutricionista | Monitorea y retroalimenta a tus pacientes.'; ?></p>
 		</div>
 	</div>
 
 	<main class="content">
 		<div class="section-title">
+			<h4 class="mb-0"><?= ($_SESSION['rol'] ?? '') === 'Paciente' ? 'Mis Registros de Comidas' : 'Actividad reciente de los pacientes'; ?></h4>
+			<?php if(($_SESSION['rol'] ?? '') !== 'Paciente'): ?>
+			<a class="btn btn-sm btn-outline-primary" href="retroalimentacion1.php">Vista clásica</a>
+			<?php endif; ?>
+		</div>
 		<?php if (empty($cards)): ?>
 			<div class="alert alert-secondary">No hay actividad reciente.</div>
 		<?php else: ?>
@@ -169,37 +234,43 @@ if ($res = $conexion->query($sqlLast)) {
 	<div class="modal-dialog modal-lg modal-dialog-scrollable">
 		<div class="modal-content">
 			<div class="modal-header">
-				<h5 class="modal-title"><i class="bi bi-person-heart me-2"></i><span id="mdName">Paciente</span></h5>
+				<h5 class="modal-title d-flex align-items-center"><i class="bi bi-person-heart me-2"></i><span id="mdName">Paciente</span></h5>
 				<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
 			</div>
 			<div class="modal-body">
-				<div id="mdData" class="mb-3 text-muted"></div>
-				<div class="row g-3">
-					<div class="col-md-6">
-						<h6>Últimas medidas</h6>
-						<ul id="mdExp" class="list-group list-group-flush"></ul>
+				<div class="insta-post">
+					<div class="post-header">
+						<div class="avatar" id="mdAvatar"><i class="bi bi-person-fill"></i></div>
+						<div class="flex-grow-1">
+							<div id="mdNameH" class="fw-semibold"></div>
+							<div id="mdData" class="small text-muted"></div>
+						</div>
 					</div>
-					<div class="col-md-6">
-						<h6>Últimas comidas</h6>
-						<div id="mdAli" class="d-flex flex-wrap gap-2"></div>
+					<div class="post-image mt-3">
+						<div class="nav-arrow prev" id="mdPrev" title="Anterior"><i class="bi bi-chevron-left"></i></div>
+						<div class="nav-arrow next" id="mdNext" title="Siguiente"><i class="bi bi-chevron-right"></i></div>
+						<img id="mdMainImg" class="main-img" src="https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=800&q=80" alt="actividad" />
 					</div>
-				</div>
-				<hr/>
-				<form id="mdForm">
-					<input type="hidden" name="action" value="comment" />
-					<input type="hidden" name="id_pacientes" id="mdPid" />
-					<div class="mb-2"><textarea name="comentario" class="form-control" rows="3" placeholder="Escribe recomendaciones o comentarios..."></textarea></div>
-					<div class="d-flex justify-content-between align-items-center">
-						<label class="form-check">
+					<div class="post-meta mt-3">
+						<h6 class="mb-1">Últimas medidas</h6>
+						<ul id="mdExp" class="measure-list"></ul>
+						<h6 class="mt-3 mb-1">Más comidas</h6>
+						<div id="mdAli" class="thumbs"></div>
+					</div>
+					<div class="post-comments mt-4" id="mdNotes"></div>
+					<form id="mdForm" class="comment-form d-flex align-items-center mt-3 gap-2">
+						<input type="hidden" name="action" value="comment" />
+						<input type="hidden" name="id_pacientes" id="mdPid" />
+						<textarea name="comentario" class="form-control" rows="1" placeholder="Añade un comentario..."></textarea>
+						<button class="btn btn-primary" type="submit"><i class="bi bi-send"></i></button>
+					</form>
+					<div class="d-flex align-items-center mt-2">
+						<label class="form-check small mb-0">
 							<input class="form-check-input" type="checkbox" name="notificar" value="1" /> Notificar al paciente
 						</label>
-						<button class="btn btn-primary" type="submit"><i class="bi bi-send me-1"></i>Guardar</button>
+						<div id="mdMsg" class="ms-3 flex-grow-1"></div>
 					</div>
-					<div id="mdMsg" class="mt-2"></div>
-				</form>
-				<hr/>
-				<h6>Historial de comentarios</h6>
-				<div id="mdNotes"></div>
+				</div>
 			</div>
 		</div>
 	</div>
@@ -208,11 +279,15 @@ if ($res = $conexion->query($sqlLast)) {
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script>
 let bsModal;
+let mdImages = []; // array de rutas de imágenes
+let mdIndex = 0;   // índice actual mostrado
 
 function clearModalContent(){
-	document.getElementById('mdExp').innerHTML = '';
-	document.getElementById('mdAli').innerHTML = '';
-	document.getElementById('mdNotes').innerHTML = '';
+	document.getElementById('mdExp').innerHTML='';
+	document.getElementById('mdAli').innerHTML='';
+	document.getElementById('mdNotes').innerHTML='';
+	document.getElementById('mdMainImg').src='https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=800&q=80';
+	mdImages=[]; mdIndex=0; updateArrows();
 }
 
 function loadDetails(pid){
@@ -223,27 +298,37 @@ function loadDetails(pid){
 			if(!d.ok) throw new Error(d.error||'Error');
 			const p = d.paciente || {};
 			document.getElementById('mdData').textContent = `DNI: ${p.DNI||''} • Edad: ${p.edad||''} • Tel: ${p.telefono||''}`;
+			document.getElementById('mdNameH').textContent = (p.nombre_completo||'Paciente');
 			// Medidas
 			const exp = d.expediente||[]; const ul = document.getElementById('mdExp');
-			if(exp.length===0){ ul.innerHTML = '<li class="list-group-item text-muted">Sin datos</li>'; }
+			if(exp.length===0){ ul.innerHTML = '<li class="text-muted">Sin datos</li>'; }
 			exp.forEach(e=>{
-				const li = document.createElement('li'); li.className='list-group-item';
-				li.textContent = `${e.fecha_registro||''} • Peso: ${e.peso||''} kg • IMC: ${e.IMC||''}`; ul.appendChild(li);
+				const li=document.createElement('li');
+				li.textContent = `${e.fecha_registro||''} • Peso: ${e.peso||''} kg • IMC: ${e.IMC||''}`;
+				ul.appendChild(li);
 			});
-			// Alimentos
-			const ali = d.alimentos||[]; const wrap=document.getElementById('mdAli');
-			if(ali.length===0){ wrap.innerHTML = '<div class="text-muted">Sin registros</div>'; }
-			ali.forEach(a=>{
-				const img = document.createElement('img'); img.style.width='80px'; img.style.height='80px'; img.style.objectFit='cover'; img.style.borderRadius='8px'; img.style.border='1px solid #e9eef6';
-				img.alt='foto'; img.src = (a.foto_path||'').length>0 ? a.foto_path : 'https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=200&q=60';
-				wrap.appendChild(img);
-			});
+			// Alimentos (carousel)
+			const ali = d.alimentos||[]; const thumbs=document.getElementById('mdAli');
+			mdImages = ali.map(a=> (a.foto_path||'').length>0 ? a.foto_path : 'https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=400&q=70');
+			if(mdImages.length===0){ thumbs.innerHTML = '<div class="text-muted">Sin registros</div>'; }
+			else {
+				mdIndex=0; document.getElementById('mdMainImg').src = mdImages[0];
+				mdImages.forEach((src,i)=>{
+					if(i>0){
+						const img=document.createElement('img'); img.alt='comida'; img.src=src; img.dataset.index=i;
+						if(i===mdIndex) img.classList.add('active');
+						img.addEventListener('click',()=>{ showImage(i); });
+						thumbs.appendChild(img);
+					}
+				});
+			}
+			updateArrows();
 			// Comentarios
 			const notes = d.comentarios||[]; const box=document.getElementById('mdNotes');
-			if(notes.length===0){ box.innerHTML = '<div class="text-muted">Sin comentarios</div>'; }
+			if(notes.length===0){ box.innerHTML = '<div class="text-muted">Sé el primero en comentar</div>'; }
 			notes.forEach(n=>{
-				const div=document.createElement('div'); div.className='border-top pt-2 mt-2';
-				div.innerHTML = `<div style='font-size:.9rem;color:#6c757d'>${n.nutricionista||'Nutricionista'} • ${n.creado_at||''} ${n.notificar?'<span class=\'ms-2 text-primary\'>• Notificado</span>':''}</div><div>${(n.comentario||'').replaceAll('\n','<br/>')}</div>`;
+				const div=document.createElement('div'); div.className='comment';
+				div.innerHTML = `<div class='meta'>${n.nutricionista||'Nutricionista'} • ${n.creado_at||''} ${n.notificar?'<span class=\'ms-1 text-primary\'>Notificado</span>':''}</div><div>${(n.comentario||'').replaceAll('\n','<br/>')}</div>`;
 				box.appendChild(div);
 			});
 		})
@@ -252,6 +337,7 @@ function loadDetails(pid){
 
 function openModal(pid, name){
 	document.getElementById('mdName').textContent = name;
+	document.getElementById('mdNameH').textContent = name;
 	document.getElementById('mdPid').value = pid;
 	document.getElementById('mdMsg').textContent = '';
 	document.querySelector('#mdForm textarea').value = '';
@@ -259,6 +345,32 @@ function openModal(pid, name){
 	if(!bsModal){ bsModal = new bootstrap.Modal(document.getElementById('feedbackModal')); }
 	bsModal.show();
 }
+
+// Navegación de imágenes
+function showImage(i){
+	if(i<0 || i>=mdImages.length) return;
+	mdIndex=i; document.getElementById('mdMainImg').src=mdImages[mdIndex];
+	// actualizar activos thumbnails
+	const thumbs=document.querySelectorAll('#mdAli img'); thumbs.forEach(img=>{
+		img.classList.toggle('active', parseInt(img.dataset.index,10)===mdIndex);
+	});
+	updateArrows();
+}
+
+function updateArrows(){
+	const prev=document.getElementById('mdPrev');
+	const next=document.getElementById('mdNext');
+	if(!prev||!next) return;
+	if(mdImages.length<=1){ prev.style.display='none'; next.style.display='none'; return; }
+	prev.style.display=''; next.style.display='';
+	prev.classList.toggle('disabled', mdIndex===0);
+	next.classList.toggle('disabled', mdIndex===mdImages.length-1);
+}
+
+document.addEventListener('click', function(e){
+	if(e.target.closest('#mdPrev')){ showImage(mdIndex-1); }
+	if(e.target.closest('#mdNext')){ showImage(mdIndex+1); }
+});
 
 // Envío de comentario vía AJAX
 const mdForm = document.getElementById('mdForm');

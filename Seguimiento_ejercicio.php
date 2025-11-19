@@ -31,10 +31,24 @@ $stmt = $conexion->prepare("SELECT id_pacientes FROM pacientes WHERE id_usuarios
 $stmt->bind_param('i', $user_id);
 $stmt->execute();
 $res = $stmt->get_result();
-if (!$row = $res->fetch_assoc()) {
-    header('Location: Menuprincipal.php?error=No eres un paciente registrado.'); exit;
+$noRegistrado = false;
+$userRole = $_SESSION['rol'] ?? 'Paciente';
+$isStaff = in_array($userRole, ['Medico', 'Administrador'], true);
+
+if ($row = $res->fetch_assoc()) {
+  $paciente_id = (int)$row['id_pacientes'];
+} else {
+  // Si el usuario tiene rol Paciente pero aún no existe la fila en pacientes,
+  // mostramos un aviso en la interfaz en lugar de redirigir inmediatamente.
+  if ($userRole === 'Paciente') {
+    $paciente_id = 0;
+    $noRegistrado = true;
+  } else {
+    // Médico/Administrador no necesitan registro de paciente; acceso completo sin restricciones
+    $paciente_id = 0;
+    $noRegistrado = false;
+  }
 }
-$paciente_id = (int)$row['id_pacientes'];
 $stmt->close();
 
 // ---------------- Preparación de tabla y columnas ----------------
@@ -200,22 +214,25 @@ if ($vista === 'diaria') {
             box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
         }
         .btn-primary {
-            background-color: #0d6efd;
-            border-color: #0d6efd;
+            background-color: #198754;
+            border-color: #198754;
         }
         .btn-primary:hover {
-            background-color: #0b5ed7;
-            border-color: #0a58ca;
+            background-color: #146c43;
+            border-color: #13653f;
+        }
+        .bg-primary {
+            background-color: #198754 !important;
         }
         .form-label {
             font-weight: 600;
-            color: #495057;
+            color: #198754;
         }
         .alert {
             border-radius: 0.375rem;
         }
         .header-section {
-            background: linear-gradient(135deg, #0d6efd 0%, #0b5ed7 100%);
+            background: linear-gradient(135deg, #198754 0%, #146c43 100%);
             color: white;
             padding: 2rem 0;
             margin-bottom: 2rem;
@@ -266,6 +283,10 @@ if ($vista === 'diaria') {
     <?php if ($exito): ?>
       <div class="alert alert-success"><i class="bi bi-check-circle me-2"></i><?= htmlspecialchars($exito) ?></div>
     <?php endif; ?>
+
+    <?php if (!empty($noRegistrado) && isset($_SESSION['rol']) && $_SESSION['rol'] === 'Paciente'): ?>
+      <div class="alert alert-warning"><i class="bi bi-exclamation-triangle-fill me-2"></i>Paciente nuevo: primero debes actualizar tus datos con tu médico tratante. Si aún no estás registrado en la clínica, contacta al personal para completar tu registro.</div>
+    <?php else: ?>
 
     <div class="card mb-3">
       <div class="card-header bg-primary text-white"><strong><i class="bi bi-plus-circle me-2"></i>Nuevo Registro</strong></div>
@@ -401,6 +422,7 @@ if ($vista === 'diaria') {
         <?php endif; ?>
       </div>
     </div>
+  <?php endif; ?>
   </div>
 </body>
 </html>

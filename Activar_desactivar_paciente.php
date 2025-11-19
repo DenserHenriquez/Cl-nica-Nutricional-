@@ -1,9 +1,19 @@
 <?php
+session_start();
 require_once 'db_connection.php';
 
-// CONSULTA PACIENTES + USUARIOS
+// Obtener el rol del usuario actual
+$userRole = $_SESSION['rol'] ?? 'Paciente';
+
+// Verificar que la columna Rol exista en la tabla usuarios
+$checkRol = $conexion->query("SHOW COLUMNS FROM usuarios LIKE 'Rol'");
+if ($checkRol->num_rows === 0) {
+    $conexion->query("ALTER TABLE usuarios ADD COLUMN Rol VARCHAR(20) NOT NULL DEFAULT 'Paciente'");
+}
+
+// CONSULTA PACIENTES + USUARIOS (incluir Rol)
 $sql = "SELECT p.id_pacientes, p.id_usuarios, p.nombre_completo, p.DNI, p.fecha_nacimiento, p.edad, p.telefono, p.estado,
-               u.Nombre_completo as usuario_nombre, u.Correo_electronico
+               u.Nombre_completo as usuario_nombre, u.Correo_electronico, u.Rol
         FROM pacientes p
         INNER JOIN usuarios u ON p.id_usuarios = u.id_usuarios
         ORDER BY p.nombre_completo ASC";
@@ -20,7 +30,7 @@ $total_entradas = $resultado->num_rows;
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Lista de Pacientes - Nutrición</title>
+    <title>Lista de Usuarios - Nutrición</title>
     <!-- Bootstrap 5 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- Bootstrap Icons -->
@@ -36,12 +46,12 @@ $total_entradas = $resultado->num_rows;
             box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
         }
         .btn-primary {
-            background-color: #0d6efd;
-            border-color: #0d6efd;
+            background-color: #198754;
+            border-color: #198754;
         }
         .btn-primary:hover {
-            background-color: #0b5ed7;
-            border-color: #0a58ca;
+            background-color: #146c43;
+            border-color: #13653f;
         }
         .form-label {
             font-weight: 600;
@@ -51,7 +61,7 @@ $total_entradas = $resultado->num_rows;
             border-radius: 0.375rem;
         }
         .header-section {
-            background: linear-gradient(135deg, #0d6efd 0%, #0b5ed7 100%);
+            background: linear-gradient(135deg, #198754 0%, #146c43 100%);
             color: white;
             padding: 2rem 0;
             margin-bottom: 2rem;
@@ -70,16 +80,113 @@ $total_entradas = $resultado->num_rows;
             color: #ffffff;
         }
         .estado-text { font-weight: bold; }
-        .estado-Activo { color: #0d47a1; }
+        .estado-Activo { color: #0d5132; }
         .estado-Inactivo { color: #d32f2f; }
 
         .switch { position: relative; display: inline-block; width: 50px; height: 24px; }
         .switch input { opacity: 0; width: 0; height: 0; }
         .slider { position: absolute; cursor: pointer; top:0; left:0; right:0; bottom:0; background-color:#ccc; transition:0.4s; border-radius:24px; }
         .slider:before { position:absolute; content:""; height:18px; width:18px; left:3px; bottom:3px; background:white; transition:0.4s; border-radius:50%; }
-        input:checked + .slider { background-color:#1e88e5; }
+        input:checked + .slider { background-color:#198754; }
         input:not(:checked) + .slider { background-color: #d32f2f; }
         input:checked + .slider:before { transform: translateX(26px); }
+
+        /* Responsive table styling */
+        .table-responsive {
+            overflow-x: auto;
+        }
+        
+        /* Columnas prioritarias - siempre visibles */
+        .col-nombre, .col-acciones {
+            min-width: 150px;
+            position: sticky;
+        }
+        
+        .col-nombre {
+            left: 0;
+            background: white;
+            z-index: 2;
+        }
+        
+        .col-acciones {
+            right: 0;
+            background: white;
+            z-index: 2;
+            min-width: 180px;
+        }
+        
+        /* Ocultar columnas menos importantes en pantallas pequeñas */
+        @media (max-width: 1200px) {
+            .col-hide-lg {
+                display: none;
+            }
+        }
+        
+        @media (max-width: 992px) {
+            .col-hide-md {
+                display: none;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .col-hide-sm {
+                display: none;
+            }
+            
+            .col-nombre {
+                min-width: 120px;
+            }
+            
+            .col-acciones {
+                min-width: 160px;
+            }
+        }
+        
+        @media (max-width: 576px) {
+            .col-hide-xs {
+                display: none;
+            }
+            
+            .col-nombre {
+                min-width: 100px;
+            }
+            
+            .col-acciones {
+                min-width: 140px;
+            }
+            
+            .header-section h1 {
+                font-size: 1.8rem;
+            }
+            
+            .header-section p {
+                font-size: 0.9rem;
+            }
+        }
+        
+        /* Botones más compactos en móviles */
+        @media (max-width: 576px) {
+            .btn-sm {
+                padding: 0.2rem 0.4rem;
+                font-size: 0.8rem;
+            }
+            
+            .switch {
+                width: 40px;
+                height: 20px;
+            }
+            
+            .slider:before {
+                height: 14px;
+                width: 14px;
+                left: 3px;
+                bottom: 3px;
+            }
+            
+            input:checked + .slider:before {
+                transform: translateX(20px);
+            }
+        }
     </style>
 </head>
 <body>
@@ -89,32 +196,35 @@ $total_entradas = $resultado->num_rows;
             <div class="medical-icon">
                 <i class="bi bi-people-fill"></i>
             </div>
-            <h1>Lista de Pacientes</h1>
-            <p>Administra el estado de los pacientes registrados en la clínica nutricional.</p>
+            <h1>Lista de Usuarios</h1>
+            <p>Administra el estado de los usuarios registrados en la clínica nutricional.</p>
         </div>
     </div>
 
     <div class="container mb-5">
         <div class="card">
-            <div class="card-header bg-primary text-white">
-                <h5 class="card-title mb-0"><i class="bi bi-list-check me-2"></i>Pacientes Registrados</h5>
+            <div class="card-header bg-success text-white">
+                <h5 class="card-title mb-0"><i class="bi bi-list-check me-2"></i>Usuarios</h5>
             </div>
             <div class="card-body">
                 <div class="table-responsive">
                     <table class="table table-striped table-hover">
-                        <thead class="table-dark">
+                        <thead class="table-success">
                             <tr>
-                                <th>ID Paciente</th>
-                                <th>ID Usuario</th>
-                                <th>Nombre Completo</th>
-                                <th>DNI</th>
-                                <th>Fecha Nac.</th>
-                                <th>Edad</th>
-                                <th>Teléfono</th>
-                                <th>Usuario</th>
-                                <th>Correo</th>
-                                <th>Estado</th>
-                                <th>Acción</th>
+                                <th class="col-hide-sm">ID Paciente</th>
+                                <th class="col-hide-md">ID Usuario</th>
+                                <th class="col-nombre">Nombre Completo</th>
+                                <th class="col-hide-xs">DNI</th>
+                                <th class="col-hide-lg">Fecha Nac.</th>
+                                <th class="col-hide-md">Edad</th>
+                                <th class="col-hide-sm">Teléfono</th>
+                                <th class="col-hide-lg">Usuario</th>
+                                <th class="col-hide-lg">Correo</th>
+                                <?php if($userRole === 'Administrador'): ?>
+                                <th class="col-hide-md">Rol</th>
+                                <?php endif; ?>
+                                <th class="col-hide-xs">Estado</th>
+                                <th class="col-acciones">Acción</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -122,18 +232,30 @@ $total_entradas = $resultado->num_rows;
                         if ($total_entradas > 0) {
                             while($fila = $resultado->fetch_assoc()) {
                                 echo "<tr>";
-                                echo "<td>".htmlspecialchars($fila['id_pacientes'])."</td>";
-                                echo "<td>".htmlspecialchars($fila['id_usuarios'])."</td>";
-                                echo "<td>".htmlspecialchars($fila['nombre_completo'])."</td>";
-                                echo "<td>".htmlspecialchars($fila['DNI'])."</td>";
-                                echo "<td>".htmlspecialchars($fila['fecha_nacimiento'])."</td>";
-                                echo "<td>".htmlspecialchars($fila['edad'])."</td>";
-                                echo "<td>".htmlspecialchars($fila['telefono'])."</td>";
-                                echo "<td>".htmlspecialchars($fila['usuario_nombre'])."</td>";
-                                echo "<td>".htmlspecialchars($fila['Correo_electronico'])."</td>";
-                                echo "<td class='estado-text estado-".htmlspecialchars($fila['estado'])."'>".htmlspecialchars($fila['estado'])."</td>";
-                                echo "<td>
-    <div class='d-flex align-items-center gap-2'>
+                                echo "<td class='col-hide-sm'>".htmlspecialchars($fila['id_pacientes'])."</td>";
+                                echo "<td class='col-hide-md'>".htmlspecialchars($fila['id_usuarios'])."</td>";
+                                echo "<td class='col-nombre'><strong>".htmlspecialchars($fila['nombre_completo'])."</strong></td>";
+                                echo "<td class='col-hide-xs'>".htmlspecialchars($fila['DNI'])."</td>";
+                                echo "<td class='col-hide-lg'>".htmlspecialchars($fila['fecha_nacimiento'])."</td>";
+                                echo "<td class='col-hide-md'>".htmlspecialchars($fila['edad'])."</td>";
+                                echo "<td class='col-hide-sm'>".htmlspecialchars($fila['telefono'])."</td>";
+                                echo "<td class='col-hide-lg'>".htmlspecialchars($fila['usuario_nombre'])."</td>";
+                                echo "<td class='col-hide-lg'>".htmlspecialchars($fila['Correo_electronico'])."</td>";
+                                
+                                // Columna Rol (solo visible para Administrador)
+                                if($userRole === 'Administrador') {
+                                    $rolActual = htmlspecialchars($fila['Rol']);
+                                    echo "<td class='col-hide-md'>
+                                        <select class='form-select form-select-sm rol-select' data-usuario-id='".$fila['id_usuarios']."' style='min-width: 100px;'>
+                                            <option value='Paciente' ".($rolActual=='Paciente'?'selected':'').">👤 Paciente</option>
+                                            <option value='Medico' ".($rolActual=='Medico'?'selected':'').">👨‍⚕️ Medico</option>
+                                        </select>
+                                    </td>";
+                                }
+                                
+                                echo "<td class='estado-text estado-".htmlspecialchars($fila['estado'])." col-hide-xs'>".htmlspecialchars($fila['estado'])."</td>";
+                                echo "<td class='col-acciones'>
+    <div class='d-flex align-items-center gap-1'>
         <!-- Panel evolución -->
         <a href='panelevolucionpaciente.php?id=".htmlspecialchars($fila['id_pacientes'])."' class='btn btn-outline-info btn-sm' title='Panel evolución'>
             <i class='bi bi-bar-chart-line'></i>
@@ -147,7 +269,7 @@ $total_entradas = $resultado->num_rows;
             <i class='bi bi-trash'></i>
         </button>
         <!-- Activar/Desactivar -->
-        <label class='switch ms-2' title='Activar/Desactivar'>
+        <label class='switch' title='Activar/Desactivar'>
             <input type='checkbox' class='estado-switch'
                    data-id='".$fila['id_pacientes']."'
                    ".(($fila['estado']=='Activo')?'checked':'').">
@@ -158,7 +280,8 @@ $total_entradas = $resultado->num_rows;
                                 echo "</tr>";
                             }
                         } else {
-                            echo "<tr><td colspan='11' class='text-center'>No se encontraron pacientes.</td></tr>";
+                            $colspan = ($userRole === 'Administrador') ? 12 : 11;
+                            echo "<tr><td colspan='$colspan' class='text-center'>No se encontraron pacientes.</td></tr>";
                         }
                         ?>
                         </tbody>
@@ -169,6 +292,7 @@ $total_entradas = $resultado->num_rows;
     </div>
 
 <script>
+// Switch de estado (Activo/Inactivo)
 document.querySelectorAll('.estado-switch').forEach(function(switchEl) {
     switchEl.addEventListener('change', function() {
         const id = this.dataset.id;
@@ -190,6 +314,52 @@ document.querySelectorAll('.estado-switch').forEach(function(switchEl) {
             }
         };
         xhr.send("id=" + id + "&estado=" + estado);
+    });
+});
+
+// Select de rol (Paciente/Medico) - Solo para Administrador
+document.querySelectorAll('.rol-select').forEach(function(selectEl) {
+    selectEl.addEventListener('change', function() {
+        const idUsuario = this.dataset.usuarioId;
+        const nuevoRol = this.value;
+        const selectOriginal = this;
+        const valorAnterior = Array.from(selectOriginal.options).find(opt => opt.selected && opt !== selectOriginal.options[selectOriginal.selectedIndex]);
+
+        if(!confirm('¿Cambiar el rol de este usuario a ' + nuevoRol + '?')) {
+            // Revertir selección si cancela
+            if(valorAnterior) selectOriginal.value = valorAnterior.value;
+            return;
+        }
+
+        // AJAX POST a cambiar_rol_usuario.php
+        const xhr = new XMLHttpRequest();
+        xhr.open("POST", "cambiar_rol_usuario.php", true);
+        xhr.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+        xhr.onload = function() {
+            if(xhr.status === 200) {
+                try {
+                    const response = JSON.parse(xhr.responseText);
+                    if(response.success) {
+                        alert("Rol actualizado exitosamente a " + nuevoRol);
+                    } else {
+                        alert("Error: " + response.message);
+                        // Revertir selección si falla
+                        if(valorAnterior) selectOriginal.value = valorAnterior.value;
+                    }
+                } catch(e) {
+                    alert("Error al procesar respuesta del servidor");
+                    if(valorAnterior) selectOriginal.value = valorAnterior.value;
+                }
+            } else {
+                alert("Error al cambiar el rol del usuario");
+                if(valorAnterior) selectOriginal.value = valorAnterior.value;
+            }
+        };
+        xhr.onerror = function() {
+            alert("Error de conexión");
+            if(valorAnterior) selectOriginal.value = valorAnterior.value;
+        };
+        xhr.send("id_usuarios=" + idUsuario + "&rol=" + nuevoRol);
     });
 });
 </script>

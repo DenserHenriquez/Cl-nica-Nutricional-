@@ -13,6 +13,8 @@ if (!isset($_SESSION['id_usuarios'])) {
 
 $user_id = (int)$_SESSION['id_usuarios'];
 $user_name = $_SESSION['nombre'] ?? '';
+$userRole = $_SESSION['rol'] ?? 'Paciente';
+$isStaff = in_array($userRole, ['Medico','Administrador'], true);
 
 // Obtener nombre completo del usuario logueado
 if ($user_id > 0 && empty($user_name)) {
@@ -28,8 +30,41 @@ if ($user_id > 0 && empty($user_name)) {
     }
 }
 
+// Determinar usuario objetivo a registrar (staff puede elegir por uid)
+$targetUserId = $user_id;
+$targetUserName = $user_name;
+if ($isStaff && isset($_GET['uid'])) {
+    $uid = (int)$_GET['uid'];
+    if ($uid > 0) {
+        if ($st = $conexion->prepare('SELECT Nombre_completo FROM usuarios WHERE id_usuarios = ? LIMIT 1')) {
+            $st->bind_param('i', $uid);
+            $st->execute();
+            $st->bind_result($nm);
+            if ($st->fetch() && $nm) {
+                $targetUserId = $uid;
+                $targetUserName = $nm;
+            }
+            $st->close();
+        }
+    }
+}
+
 $errores = [];
 $exito = '';
+
+// Listado de usuarios sin registro en tabla pacientes (solo staff)
+$usuariosSinRegistro = [];
+if ($isStaff) {
+    $sqlList = "SELECT u.id_usuarios, u.Nombre_completo, u.Rol
+                FROM usuarios u
+                LEFT JOIN pacientes p ON p.id_usuarios = u.id_usuarios
+                WHERE p.id_pacientes IS NULL AND u.Rol = 'Paciente'
+                ORDER BY u.Nombre_completo ASC";
+    if ($res = $conexion->query($sqlList)) {
+        while ($row = $res->fetch_assoc()) { $usuariosSinRegistro[] = $row; }
+        $res->close();
+    }
+}
 
 // Manejo de POST
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -37,6 +72,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (!isset($_POST['csrf']) || !isset($_SESSION['csrf']) || $_POST['csrf'] !== $_SESSION['csrf']) {
         $errores[] = 'Token inválido. Recargue la página.';
     }
+
+    // Elegir usuario a registrar según rol
+    $post_uid = isset($_POST['uid']) ? (int)$_POST['uid'] : 0;
+    $effectiveUserId = $user_id;
+    if ($isStaff && $post_uid > 0) { $effectiveUserId = $post_uid; }
+
+    // Obtener nombre desde BD del usuario objetivo
+    $effectiveUserName = '';
+    if ($st = $conexion->prepare('SELECT Nombre_completo, Rol FROM usuarios WHERE id_usuarios = ? LIMIT 1')) {
+        $st->bind_param('i', $effectiveUserId);
+        $st->execute();
+        $st->bind_result($nmUser, $roleUser);
+        if ($st->fetch()) { $effectiveUserName = $nmUser ?: ''; }
+        $st->close();
+    }
+    if ($effectiveUserName === '') { $errores[] = 'Usuario objetivo inválido.'; }
 
     $dni = isset($_POST['dni']) ? trim($_POST['dni']) : '';
     $fecha_nacimiento = isset($_POST['fecha_nacimiento']) ? trim($_POST['fecha_nacimiento']) : '';
@@ -89,6 +140,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $errores[] = 'Masa muscular debe ser un número válido.';
     }
 
+    // Verificar si ya existe paciente para ese usuario
+    if (empty($errores)) {
+        if ($st = $conexion->prepare('SELECT id_pacientes FROM pacientes WHERE id_usuarios = ? LIMIT 1')) {
+            $st->bind_param('i', $effectiveUserId);
+            $st->execute();
+            $st->store_result();
+            if ($st->num_rows > 0) { $errores[] = 'Este usuario ya tiene registro de paciente.'; }
+            $st->close();
+        }
+    }
+
     if (empty($errores)) {
         // Calcular edad
         $fecha_obj = DateTime::createFromFormat('Y-m-d', $fecha_nacimiento);
@@ -105,7 +167,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $sql = "INSERT INTO pacientes (id_usuarios, nombre_completo, DNI, fecha_nacimiento, edad, telefono) VALUES (?,?,?,?,?,?)";
         $stmt = $conexion->prepare($sql);
         if ($stmt) {
-            $stmt->bind_param('isssis', $user_id, $user_name, $dni, $fecha_nacimiento, $edad, $telefono);
+            $stmt->bind_param('isssis', $effectiveUserId, $effectiveUserName, $dni, $fecha_nacimiento, $edad, $telefono);
             if ($stmt->execute()) {
                 $nuevoPacienteId = $stmt->insert_id;
                 $exito = 'Paciente registrado correctamente.';
@@ -131,6 +193,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         $stmtExp->close();
                     }
                 }
+                // PRG: almacenar mensaje y redirigir para refrescar lista y evitar reenvío
+                $_SESSION['flash_success'] = $exito;
+                header('Location: Registropacientes.php');
+                exit;
             } else {
                 $errores[] = 'Error al guardar paciente: ' . $stmt->error;
             }
@@ -146,6 +212,12 @@ if (empty($_SESSION['csrf'])) {
     $_SESSION['csrf'] = bin2hex(random_bytes(16));
 }
 $csrf = $_SESSION['csrf'];
+
+// Recuperar mensaje de éxito tras redirección (PRG)
+if (isset($_SESSION['flash_success'])) {
+    $exito = $_SESSION['flash_success'];
+    unset($_SESSION['flash_success']);
+}
 
 ?>
 <!DOCTYPE html>
@@ -169,22 +241,25 @@ $csrf = $_SESSION['csrf'];
             box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
         }
         .btn-primary {
-            background-color: #0d6efd;
-            border-color: #0d6efd;
+            background-color: #198754;
+            border-color: #198754;
         }
         .btn-primary:hover {
-            background-color: #0b5ed7;
-            border-color: #0a58ca;
+            background-color: #146c43;
+            border-color: #13653f;
+        }
+        .bg-primary {
+            background-color: #198754 !important;
         }
         .form-label {
             font-weight: 600;
-            color: #495057;
+            color: #198754;
         }
         .alert {
             border-radius: 0.375rem;
         }
         .header-section {
-            background: linear-gradient(135deg, #0d6efd 0%, #0b5ed7 100%);
+            background: linear-gradient(135deg, #198754 0%, #146c43 100%);
             color: white;
             padding: 2rem 0;
             margin-bottom: 2rem;
@@ -217,6 +292,45 @@ $csrf = $_SESSION['csrf'];
     </div>
 
     <div class="container mb-5">
+        <?php if ($isStaff): ?>
+            <div class="card mb-4">
+                <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0"><i class="bi bi-people me-2"></i>Usuarios sin registro de paciente</h5>
+                </div>
+                <div class="card-body p-0">
+                    <?php if (empty($usuariosSinRegistro)): ?>
+                        <div class="p-3 text-muted">Todos los usuarios Paciente ya tienen registro.</div>
+                    <?php else: ?>
+                        <div class="table-responsive">
+                            <table class="table table-striped table-hover mb-0">
+                                <thead>
+                                    <tr>
+                                        <th style="width:60px;">ID</th>
+                                        <th>Nombre</th>
+                                        <th style="width:140px;">Rol</th>
+                                        <th style="width:180px;" class="text-end">Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <?php foreach ($usuariosSinRegistro as $u): ?>
+                                        <tr>
+                                            <td><?= (int)$u['id_usuarios'] ?></td>
+                                            <td><?= htmlspecialchars($u['Nombre_completo'] ?? 'Usuario', ENT_QUOTES, 'UTF-8') ?></td>
+                                            <td><?= htmlspecialchars($u['Rol'] ?? '', ENT_QUOTES, 'UTF-8') ?></td>
+                                            <td class="text-end">
+                                                <a class="btn btn-sm btn-outline-primary" href="Registropacientes.php?uid=<?= (int)$u['id_usuarios'] ?>">
+                                                    <i class="bi bi-person-plus me-1"></i> Registrar paciente
+                                                </a>
+                                            </td>
+                                        </tr>
+                                    <?php endforeach; ?>
+                                </tbody>
+                            </table>
+                        </div>
+                    <?php endif; ?>
+                </div>
+            </div>
+        <?php endif; ?>
         <?php if (!empty($errores)): ?>
             <div class="alert alert-danger" role="alert">
                 <ul class="mb-0">
@@ -239,12 +353,15 @@ $csrf = $_SESSION['csrf'];
             <div class="card-body">
                 <form method="post">
                     <input type="hidden" name="csrf" value="<?= htmlspecialchars($csrf, ENT_QUOTES, 'UTF-8') ?>">
+                    <?php if ($isStaff): ?>
+                        <input type="hidden" name="uid" value="<?= (int)$targetUserId ?>">
+                    <?php endif; ?>
 
                     <div class="mb-3">
                         <label for="nombre_completo" class="form-label">
                             <i class="bi bi-person me-1"></i>Nombre completo
                         </label>
-                        <input type="text" class="form-control" id="nombre_completo" value="<?= htmlspecialchars($user_name, ENT_QUOTES, 'UTF-8') ?>" readonly>
+                        <input type="text" class="form-control" id="nombre_completo" value="<?= htmlspecialchars($targetUserName, ENT_QUOTES, 'UTF-8') ?>" readonly>
                     </div>
 
                     <div class="row mb-3">

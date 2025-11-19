@@ -149,22 +149,25 @@ function qs(array $data): string {
             box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
         }
         .btn-primary {
-            background-color: #0d6efd;
-            border-color: #0d6efd;
+            background-color: #198754;
+            border-color: #198754;
         }
         .btn-primary:hover {
-            background-color: #0b5ed7;
-            border-color: #0a58ca;
+            background-color: #146c43;
+            border-color: #13653f;
+        }
+        .bg-primary {
+            background-color: #198754 !important;
         }
         .form-label {
             font-weight: 600;
-            color: #495057;
+            color: #198754;
         }
         .alert {
             border-radius: 0.375rem;
         }
         .header-section {
-            background: linear-gradient(135deg, #0d6efd 0%, #0b5ed7 100%);
+            background: linear-gradient(135deg, #198754 0%, #146c43 100%);
             color: white;
             padding: 2rem 0;
             margin-bottom: 2rem;
@@ -383,7 +386,7 @@ function qs(array $data): string {
                 <?php if (!empty($resultados)): ?>
                     <div class="table-responsive">
                         <table class="table table-striped tabla-resultados">
-                            <thead class="table-dark">
+                            <thead class="table-light" style="color: #000000;">
                                 <tr>
                                     <th>ID</th>
                                     <th>Nombre completo</th>

@@ -12,23 +12,56 @@ if (!isset($_SESSION['id_usuarios'])) {
 }
 
 $user_id = (int)$_SESSION['id_usuarios'];
+// Detectar rol y privilegios (Médico/Admin pueden usar esta página sin estar en pacientes)
+$role = $_SESSION['rol'] ?? null;
+if ($role === null) {
+    if ($stmtRole = $conexion->prepare("SELECT Rol FROM usuarios WHERE id_usuarios = ? LIMIT 1")) {
+        $stmtRole->bind_param('i', $user_id);
+        $stmtRole->execute();
+        $stmtRole->bind_result($dbRole);
+        if ($stmtRole->fetch() && $dbRole) {
+            $role = $dbRole;
+            $_SESSION['rol'] = $dbRole;
+        }
+        $stmtRole->close();
+    }
+}
+$isPrivileged = ($role === 'Medico' || $role === 'Administrador');
 
-// Obtener id del paciente desde la BD usando id_usuarios
-$stmt = $conexion->prepare("SELECT id_pacientes FROM pacientes WHERE id_usuarios = ? LIMIT 1");
-if (!$stmt) {
-    die("Error preparing statement: " . $conexion->error);
+// Obtener id del paciente desde la BD usando id_usuarios (solo si NO es privilegiado)
+$paciente_id = 0;
+if (!$isPrivileged) {
+    $stmt = $conexion->prepare("SELECT id_pacientes FROM pacientes WHERE id_usuarios = ? LIMIT 1");
+    if (!$stmt) {
+        die("Error preparing statement: " . $conexion->error);
+    }
+    $stmt->bind_param('i', $user_id);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    if ($row = $result->fetch_assoc()) {
+        $paciente_id = (int)$row['id_pacientes'];
+    } else {
+        // Usuario no es paciente registrado
+        header('Location: Menuprincipal.php?error=No eres un paciente registrado.');
+        exit;
+    }
+    $stmt->close();
 }
-$stmt->bind_param('i', $user_id);
-$stmt->execute();
-$result = $stmt->get_result();
-if ($row = $result->fetch_assoc()) {
-    $paciente_id = (int)$row['id_pacientes'];
-} else {
-    // Usuario no es paciente registrado
-    header('Location: Menuprincipal.php?error=No eres un paciente registrado.');
-    exit;
+
+// Si es privilegiado, cargar lista de pacientes para seleccionar
+$pacientesList = [];
+if ($isPrivileged) {
+    $resPac = $conexion->query("SELECT id_pacientes, nombre_completo FROM pacientes ORDER BY nombre_completo ASC");
+    if ($resPac) {
+        while ($r = $resPac->fetch_assoc()) {
+            $pacientesList[] = [
+                'id' => (int)$r['id_pacientes'],
+                'nombre' => (string)$r['nombre_completo']
+            ];
+        }
+        $resPac->close();
+    }
 }
-$stmt->close();
 
 // Configuración de subida
 $uploadDir = __DIR__ . '/assets/images/recetas';
@@ -86,16 +119,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
             $finfo = new finfo(FILEINFO_MIME_TYPE);
             $mime = $finfo->file($file['tmp_name']);
-            $allowed = [
-                'image/jpeg' => 'jpg',
-                'image/png' => 'png',
-                'image/gif' => 'gif'
-            ];
-            if (!isset($allowed[$mime])) {
-                $errores[] = 'Formato de imagen inválido. Solo JPG, PNG o GIF.';
+            if (strpos($mime, 'image/') !== 0) {
+                $errores[] = 'El archivo debe ser una imagen.';
             } else {
-                $ext = $allowed[$mime];
-                $basename = 'receta_' . $paciente_id . '' . date('Ymd_His') . '' . bin2hex(random_bytes(4)) . '.' . $ext;
+                $ext = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
+                if ($ext === '') {
+                    $type = substr($mime, 6);
+                    $ext = preg_replace('/[^a-z0-9]+/i', '', $type);
+                    if ($ext === '') { $ext = 'img'; }
+                }
+                $basename = 'receta_' . $paciente_id . '_' . date('Ymd_His') . '_' . bin2hex(random_bytes(4)) . '.' . $ext;
                 $dest = $uploadDir . '/' . $basename;
                 if (!move_uploaded_file($file['tmp_name'], $dest)) {
                     $errores[] = 'No se pudo guardar la imagen en el servidor.';
@@ -106,12 +139,32 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     }
 
+    // Determinar paciente destino
+    $targetPacienteId = $paciente_id;
+    if ($isPrivileged) {
+        $targetPacienteId = isset($_POST['id_pacientes']) ? (int)$_POST['id_pacientes'] : 0;
+        if ($targetPacienteId <= 0) {
+            $errores[] = 'Debe seleccionar un paciente.';
+        } else {
+            // Verificar que el paciente existe
+            if ($stmtChk = $conexion->prepare("SELECT 1 FROM pacientes WHERE id_pacientes = ? LIMIT 1")) {
+                $stmtChk->bind_param('i', $targetPacienteId);
+                $stmtChk->execute();
+                $stmtChk->store_result();
+                if ($stmtChk->num_rows === 0) {
+                    $errores[] = 'El paciente seleccionado no existe.';
+                }
+                $stmtChk->close();
+            }
+        }
+    }
+
     if (empty($errores)) {
         $sql = "INSERT INTO recetas (id_pacientes, nombre, ingredientes, porciones, instrucciones, nota_nutricional, foto_path)
                 VALUES (?, ?, ?, ?, ?, ?, ?)";
         $stmt = $conexion->prepare($sql);
         if ($stmt) {
-            $stmt->bind_param('ississs', $paciente_id, $nombre, $ingredientes, $porciones, $instrucciones, $nota_nutricional, $fotoPath);
+            $stmt->bind_param('ississs', $targetPacienteId, $nombre, $ingredientes, $porciones, $instrucciones, $nota_nutricional, $fotoPath);
             if ($stmt->execute()) {
                 $exito = 'Receta guardada correctamente.';
             } else {
@@ -152,22 +205,28 @@ $csrf = $_SESSION['csrf'];
             box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
         }
         .btn-primary {
-            background-color: #0d6efd;
-            border-color: #0d6efd;
+            background-color: #198754;
+            border-color: #198754;
         }
         .btn-primary:hover {
-            background-color: #0b5ed7;
-            border-color: #0a58ca;
+            background-color: #146c43;
+            border-color: #13653f;
+        }
+        .bg-primary-custom {
+            background-color: #198754 !important;
+        }
+        .bg-primary {
+            background-color: #198754 !important;
         }
         .form-label {
             font-weight: 600;
-            color: #495057;
+            color: #198754;
         }
         .alert {
             border-radius: 0.375rem;
         }
         .header-section {
-            background: linear-gradient(135deg, #0d6efd 0%, #0b5ed7 100%);
+            background: linear-gradient(135deg, #198754 0%, #146c43 100%);
             color: white;
             padding: 2rem 0;
             margin-bottom: 2rem;
@@ -204,7 +263,13 @@ $csrf = $_SESSION['csrf'];
                 <i class="bi bi-journal-plus"></i>
             </div>
             <h1>Crear Receta</h1>
-            <p>Paciente #<?= (int)$paciente_id ?> | Crea una nueva receta nutricional.</p>
+            <p>
+                <?php if ($isPrivileged): ?>
+                    Seleccione un paciente para crear la receta.
+                <?php else: ?>
+                    Paciente #<?= (int)$paciente_id ?> | Crea una nueva receta nutricional.
+                <?php endif; ?>
+            </p>
         </div>
     </div>
 
@@ -231,6 +296,22 @@ $csrf = $_SESSION['csrf'];
             <div class="card-body">
                 <form method="post" enctype="multipart/form-data">
                     <input type="hidden" name="csrf" value="<?= htmlspecialchars($csrf, ENT_QUOTES, 'UTF-8') ?>">
+
+                    <?php if ($isPrivileged): ?>
+                    <div class="mb-3">
+                        <label for="id_pacientes" class="form-label">
+                            <i class="bi bi-person me-1"></i>Paciente
+                        </label>
+                        <select class="form-select" id="id_pacientes" name="id_pacientes" required>
+                            <option value="">-- Seleccione un paciente --</option>
+                            <?php foreach ($pacientesList as $p): ?>
+                                <option value="<?= (int)$p['id'] ?>" <?= isset($_POST['id_pacientes']) && (int)$_POST['id_pacientes'] === (int)$p['id'] ? 'selected' : '' ?>>
+                                    <?= htmlspecialchars($p['nombre'], ENT_QUOTES, 'UTF-8') ?> (ID: <?= (int)$p['id'] ?>)
+                                </option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+                    <?php endif; ?>
 
                     <div class="row mb-3">
                         <div class="col-md-6">
@@ -272,8 +353,8 @@ $csrf = $_SESSION['csrf'];
                         <label for="foto" class="form-label">
                             <i class="bi bi-camera me-1"></i>Foto de la receta (opcional)
                         </label>
-                        <input type="file" class="form-control" id="foto" name="foto" accept="image/jpeg,image/png,image/gif" onchange="previewImage(event)">
-                        <div class="form-text">Formatos: JPG, PNG, GIF. Máx 3MB.</div>
+                        <input type="file" class="form-control" id="foto" name="foto" accept="image/*" onchange="previewImage(event)">
+                        <div class="form-text">Formatos: cualquier imagen. Máx 3MB.</div>
                         <div id="imagePreview" class="mt-3" style="display: none;">
                             <img id="previewImg" class="preview" alt="Vista previa" />
                         </div>

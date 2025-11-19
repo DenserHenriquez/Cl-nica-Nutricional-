@@ -13,21 +13,34 @@ if (!isset($_SESSION['id_usuarios'])) {
 
 $user_id = (int)$_SESSION['id_usuarios'];
 
-// Obtener id del paciente desde la BD usando id_usuarios
-$stmt = $conexion->prepare("SELECT id_pacientes FROM pacientes WHERE id_usuarios = ? LIMIT 1");
-if (!$stmt) {
-    die("Error preparing statement: " . $conexion->error);
+// Detectar rol y privilegios (Médico/Administrador)
+$role = $_SESSION['rol'] ?? null;
+if ($role === null) {
+    if ($stmtRole = $conexion->prepare("SELECT Rol FROM usuarios WHERE id_usuarios = ? LIMIT 1")) {
+        $stmtRole->bind_param('i', $user_id);
+        $stmtRole->execute();
+        $stmtRole->bind_result($dbRole);
+        if ($stmtRole->fetch()) { $role = $dbRole; $_SESSION['rol'] = $dbRole; }
+        $stmtRole->close();
+    }
 }
-$stmt->bind_param('i', $user_id);
-$stmt->execute();
-$result = $stmt->get_result();
-if ($row = $result->fetch_assoc()) {
-    $paciente_id = (int)$row['id_pacientes'];
-} else {
-    header('Location: Menuprincipal.php?error=No eres un paciente registrado.');
-    exit;
+$isPrivileged = ($role === 'Medico' || $role === 'Administrador');
+
+// Si NO es privilegiado, debe ser paciente registrado
+if (!$isPrivileged) {
+    $stmt = $conexion->prepare("SELECT id_pacientes FROM pacientes WHERE id_usuarios = ? LIMIT 1");
+    if (!$stmt) { die("Error preparing statement: " . $conexion->error); }
+    $stmt->bind_param('i', $user_id);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    if ($row = $result->fetch_assoc()) {
+        $paciente_id = (int)$row['id_pacientes'];
+    } else {
+        header('Location: Menuprincipal.php?error=No eres un paciente registrado.');
+        exit;
+    }
+    $stmt->close();
 }
-$stmt->close();
 
 // Crear tabla si no existe
 $conexion->query("CREATE TABLE IF NOT EXISTS recetas (
@@ -47,9 +60,9 @@ $conexion->query("CREATE TABLE IF NOT EXISTS recetas (
 // Búsqueda
 $search = isset($_GET['search']) ? trim($_GET['search']) : '';
 $recetas = [];
-$sql = "SELECT id, nombre, ingredientes, porciones, instrucciones, nota_nutricional, foto_path, created_at FROM recetas WHERE id_pacientes = ?";
-$params = [$paciente_id];
-$types = 'i';
+$sql = "SELECT id, nombre, ingredientes, porciones, instrucciones, nota_nutricional, foto_path, created_at FROM recetas WHERE 1=1";
+$params = [];
+$types = '';
 if (!empty($search)) {
     $sql .= " AND (nombre LIKE ? OR ingredientes LIKE ?)";
     $params[] = '%' . $search . '%';
@@ -59,7 +72,7 @@ if (!empty($search)) {
 $sql .= " ORDER BY created_at DESC";
 $stmt = $conexion->prepare($sql);
 if ($stmt) {
-    $stmt->bind_param($types, ...$params);
+    if ($types !== '') { $stmt->bind_param($types, ...$params); }
     $stmt->execute();
     $result = $stmt->get_result();
     while ($row = $result->fetch_assoc()) {
@@ -88,56 +101,18 @@ $csrf = $_SESSION['csrf'];
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <style>
-        body {
-            background-color: #f8f9fa;
-        }
-        .card {
-            border: none;
-            box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
-        }
-        .btn-primary {
-            background-color: #0d6efd;
-            border-color: #0d6efd;
-        }
-        .btn-primary:hover {
-            background-color: #0b5ed7;
-            border-color: #0a58ca;
-        }
-        .form-label {
-            font-weight: 600;
-            color: #495057;
-        }
-        .alert {
-            border-radius: 0.375rem;
-        }
-        .header-section {
-            background: linear-gradient(135deg, #0d6efd 0%, #0b5ed7 100%);
-            color: white;
-            padding: 2rem 0;
-            margin-bottom: 2rem;
-        }
-        .header-section h1 {
-            font-size: 2.5rem;
-            font-weight: 700;
-        }
-        .header-section p {
-            font-size: 1.1rem;
-            opacity: 0.9;
-        }
-        .medical-icon {
-            font-size: 3rem;
-            margin-bottom: 1rem;
-            color: #ffffff;
-        }
-        .muted {
-            color: #6c757d;
-            font-size: 0.875rem;
-        }
-        .preview {
-            max-height: 150px;
-            border-radius: 6px;
-            border: 1px solid #dee2e6;
-        }
+        body { background-color: #f8f9fa; }
+        .card { border: none; box-shadow: 0 0.125rem 0.25rem rgba(0,0,0,0.075); }
+        .btn-primary { background-color: #198754; border-color: #198754; }
+        .btn-primary:hover { background-color: #146c43; border-color: #13653f; }
+        .form-label { font-weight: 600; color: #198754; }
+        .alert { border-radius: 0.375rem; }
+        .header-section { background: linear-gradient(135deg, #198754 0%, #146c43 100%); color: #fff; padding: 2rem 0; margin-bottom: 2rem; }
+        .header-section h1 { font-size: 2.5rem; font-weight: 700; }
+        .header-section p { font-size: 1.1rem; opacity: 0.9; }
+        .medical-icon { font-size: 3rem; margin-bottom: 1rem; color: #ffffff; }
+        .muted { color: #6c757d; font-size: 0.875rem; }
+        .preview { max-height: 150px; border-radius: 6px; border: 1px solid #dee2e6; }
     </style>
 </head>
 <body>
@@ -148,7 +123,13 @@ $csrf = $_SESSION['csrf'];
                 <i class="bi bi-journal-text"></i>
             </div>
             <h1>Gestionar Recetas</h1>
-            <p>Paciente #<?= (int)$paciente_id ?> | Busca y visualiza tus recetas.</p>
+            <p>
+                <?php if ($isPrivileged): ?>
+                    Busca y visualiza todas las recetas.
+                <?php else: ?>
+                    Paciente #<?= (int)$paciente_id ?> | Busca y visualiza todas las recetas.
+                <?php endif; ?>
+            </p>
         </div>
     </div>
 

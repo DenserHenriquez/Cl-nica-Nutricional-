@@ -358,22 +358,28 @@ $historial = cargarHistorial($conexion, $TABLE_HISTORY, $userId);
             box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
         }
         .btn-primary {
-            background-color: #0d6efd;
-            border-color: #0d6efd;
+            background-color: #198754;
+            border-color: #198754;
         }
         .btn-primary:hover {
-            background-color: #0b5ed7;
-            border-color: #0a58ca;
+            background-color: #146c43;
+            border-color: #13653f;
+        }
+        .bg-primary-custom {
+            background-color: #198754 !important;
+        }
+        .bg-primary {
+            background-color: #198754 !important;
         }
         .form-label {
             font-weight: 600;
-            color: #495057;
+            color: #198754;
         }
         .alert {
             border-radius: 0.375rem;
         }
         .header-section {
-            background: linear-gradient(135deg, #0d6efd 0%, #0b5ed7 100%);
+            background: linear-gradient(135deg, #198754 0%, #146c43 100%);
             color: white;
             padding: 2rem 0;
             margin-bottom: 2rem;
@@ -396,15 +402,15 @@ $historial = cargarHistorial($conexion, $TABLE_HISTORY, $userId);
         .modal-content { background-color: #ffffff; margin: 15% auto; padding: 20px; border: 1px solid #888; width: 80%; max-width: 800px; border-radius: 8px; }
         .close { color: #aaa; float: right; font-size: 28px; font-weight: bold; }
         .close:hover, .close:focus { color: #000; text-decoration: none; cursor: pointer; }
-        .modal-header { background-color: #007bff; color: white; padding: 10px; border-radius: 8px 8px 0 0; }
+        .modal-header { background-color: #198754; color: white; padding: 10px; border-radius: 8px 8px 0 0; }
         .modal-body { padding: 20px; }
         .historial-table { width: 100%; border-collapse: collapse; margin-top: 20px; }
         .historial-table th, .historial-table td { border: 1px solid #ddd; padding: 12px; text-align: left; }
-        .historial-table th { background-color: #007bff; color: white; font-weight: bold; }
+        .historial-table th { background-color: #198754; color: white; font-weight: bold; }
         .historial-table tr:nth-child(even) { background-color: #f9f9f9; }
-        .historial-table tr:hover { background-color: #e3f2fd; }
-        .btn-historial { background: #007bff; color: #fff; padding: 10px 16px; border: none; border-radius: 6px; cursor: pointer; margin-left: 10px; }
-        .btn-historial:hover { background: #0056b3; }
+        .historial-table tr:hover { background-color: #d1e7dd; }
+        .btn-historial { background: #198754; color: #fff; padding: 10px 16px; border: none; border-radius: 6px; cursor: pointer; margin-left: 10px; }
+        .btn-historial:hover { background: #146c43; }
     </style>
 </head>
 <body>
@@ -504,6 +510,7 @@ $historial = cargarHistorial($conexion, $TABLE_HISTORY, $userId);
                 </form>
             </div>
         </div>
+        <?php if ($_SESSION['rol'] !== 'Paciente'): ?>
         <!-- Sección Expediente Médico -->
         <div class="card mt-4">
             <div class="card-header bg-primary text-white">
@@ -550,6 +557,7 @@ $historial = cargarHistorial($conexion, $TABLE_HISTORY, $userId);
                 </form>
             </div>
         </div>
+        <?php endif; ?>
     </div>
 
     <!-- Modal para el historial -->

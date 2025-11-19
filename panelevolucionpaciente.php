@@ -4,77 +4,106 @@ if (!isset($_SESSION['id_usuarios'])) { header('Location: index.php'); exit; }
 require_once __DIR__ . '/db_connection.php';
 function e($s){ return htmlspecialchars((string)$s, ENT_QUOTES, 'UTF-8'); }
 
+// Identificar paciente según parámetro o sesión
 $idPaciente = isset($_GET['id']) ? (int)$_GET['id'] : 0;
+$userRole = $_SESSION['rol'] ?? 'Paciente';
+$noRegistrado = false;
 if ($idPaciente <= 0) {
-    if ($stmtPid = $conexion->prepare('SELECT id_pacientes FROM pacientes WHERE id_usuarios = ? LIMIT 1')) {
-        $stmtPid->bind_param('i', $_SESSION['id_usuarios']);
-        $stmtPid->execute();
-        $resPid = $stmtPid->get_result();
-        if ($rowPid = $resPid->fetch_assoc()) { $idPaciente = (int)$rowPid['id_pacientes']; }
-        $stmtPid->close();
+  if ($stmtPid = $conexion->prepare('SELECT id_pacientes FROM pacientes WHERE id_usuarios = ? LIMIT 1')) {
+    $stmtPid->bind_param('i', $_SESSION['id_usuarios']);
+    $stmtPid->execute();
+    $resPid = $stmtPid->get_result();
+    if ($rowPid = $resPid->fetch_assoc()) { $idPaciente = (int)$rowPid['id_pacientes']; }
+    $stmtPid->close();
+  }
+  if ($idPaciente <= 0) {
+    if ($userRole === 'Paciente') {
+      $noRegistrado = true; // Paciente logueado pero aún sin registro en tabla pacientes
+    } else {
+      die('Paciente no encontrado.');
     }
-    if ($idPaciente <= 0) { die('Paciente no encontrado.'); }
+  }
 }
 
 // Datos del paciente
+// Datos del paciente (solo si registrado)
 $paciente = null;
-if ($stmt = $conexion->prepare('SELECT nombre_completo, edad, telefono, DNI FROM pacientes WHERE id_pacientes = ? LIMIT 1')) {
+if (!$noRegistrado) {
+  if ($stmt = $conexion->prepare('SELECT nombre_completo, edad, telefono, DNI FROM pacientes WHERE id_pacientes = ? LIMIT 1')) {
     $stmt->bind_param('i', $idPaciente);
     $stmt->execute();
     $res = $stmt->get_result();
     $paciente = $res->fetch_assoc();
     $stmt->close();
+  }
+  if (!$paciente) { die('Paciente no encontrado.'); }
+} else {
+  // Construir datos básicos para mostrar nombre desde sesión sin provocar errores
+  $paciente = [
+    'nombre_completo' => $_SESSION['nombre'] ?? 'Paciente',
+    'edad' => '--',
+    'telefono' => '--',
+    'DNI' => '--'
+  ];
 }
-if (!$paciente) { die('Paciente no encontrado.'); }
 
 // Expediente
+// Expediente (cuando registrado)
 $expediente = [];
-if ($stmt = $conexion->prepare('SELECT fecha_registro, peso, IMC FROM expediente WHERE id_pacientes = ? ORDER BY fecha_registro ASC')) {
+if (!$noRegistrado) {
+  if ($stmt = $conexion->prepare('SELECT fecha_registro, peso, IMC FROM expediente WHERE id_pacientes = ? ORDER BY fecha_registro ASC')) {
     $stmt->bind_param('i', $idPaciente);
     $stmt->execute();
     $res = $stmt->get_result();
     while ($row = $res->fetch_assoc()) {
-        $expediente[] = [
-            'fecha_registro' => $row['fecha_registro'] ?? '',
-            'peso' => floatval($row['peso'] ?? 0),
-            'IMC' => floatval($row['IMC'] ?? 0)
-        ];
+      $expediente[] = [
+        'fecha_registro' => $row['fecha_registro'] ?? '',
+        'peso' => floatval($row['peso'] ?? 0),
+        'IMC' => floatval($row['IMC'] ?? 0)
+      ];
     }
     $stmt->close();
+  }
 }
 
 // Ejercicios
+// Ejercicios (cuando registrado)
 $ejercicios = [];
-$sqlEje = 'SELECT fecha, tiempo FROM ejercicios WHERE paciente_id = ? ORDER BY fecha ASC';
-if (!($stmt = @$conexion->prepare($sqlEje))) {
+if (!$noRegistrado) {
+  $sqlEje = 'SELECT fecha, tiempo FROM ejercicios WHERE paciente_id = ? ORDER BY fecha ASC';
+  if (!($stmt = @$conexion->prepare($sqlEje))) {
     $sqlEje = 'SELECT fecha, tiempo FROM ejercicios WHERE id_pacientes = ? ORDER BY fecha ASC';
     $stmt = $conexion->prepare($sqlEje);
-}
-if ($stmt) {
+  }
+  if ($stmt) {
     $stmt->bind_param('i', $idPaciente);
     $stmt->execute();
     $res = $stmt->get_result();
     while ($row = $res->fetch_assoc()) { 
-        $ejercicios[] = [
-            'fecha' => $row['fecha'] ?? '',
-            'tiempo' => intval($row['tiempo'] ?? 0)
-        ];
+      $ejercicios[] = [
+        'fecha' => $row['fecha'] ?? '',
+        'tiempo' => intval($row['tiempo'] ?? 0)
+      ];
     }
     $stmt->close();
+  }
 }
 
 // Alimentos registrados (últimos 15 registros)
+// Alimentos (cuando registrado)
 $alimentos = [];
-$sqlAli = 'SELECT fecha, tipo_comida, descripcion, hora, foto_path FROM alimentos_registro WHERE id_pacientes = ? ORDER BY fecha DESC, hora DESC LIMIT 15';
-$stmtAli = $conexion->prepare($sqlAli);
-if ($stmtAli) {
+if (!$noRegistrado) {
+  $sqlAli = 'SELECT fecha, tipo_comida, descripcion, hora, foto_path FROM alimentos_registro WHERE id_pacientes = ? ORDER BY fecha DESC, hora DESC LIMIT 15';
+  $stmtAli = $conexion->prepare($sqlAli);
+  if ($stmtAli) {
     $stmtAli->bind_param('i', $idPaciente);
     $stmtAli->execute();
     $resAli = $stmtAli->get_result();
     while ($rowAli = $resAli->fetch_assoc()) {
-        $alimentos[] = $rowAli;
+      $alimentos[] = $rowAli;
     }
     $stmtAli->close();
+  }
 }
 
 // Estadísticas
@@ -98,7 +127,7 @@ $cambio = $pesoActual - $pesoInicial;
 
   <style>
     :root{
-      --brand-primary:#0d6efd;
+      --brand-primary:#198754;
       --brand-primary-dark:#0b5ed7;
       --brand-bg:#f5f7fb;
       --brand-surface:#ffffff;
@@ -109,7 +138,7 @@ $cambio = $pesoActual - $pesoInicial;
     }
     body{ background:var(--brand-bg); font-family:'Segoe UI',sans-serif; }
     .header-section {
-      background: linear-gradient(135deg, #0d6efd 0%, #0b5ed7 100%);
+      background: linear-gradient(135deg, #198754 0%, #146c43 100%);
       color: white;
       padding: 2rem 0;
       margin-bottom: 2rem;
@@ -128,15 +157,15 @@ $cambio = $pesoActual - $pesoInicial;
       color: #ffffff;
     }
     .header-card{
-      background: linear-gradient(135deg,var(--brand-primary-dark) 0%,var(--brand-primary) 100%);
+      background: linear-gradient(135deg, #198754 0%, #146c43 100%);
       color:#fff; border-radius:15px; padding:2rem; margin-bottom:2rem;
     }
     .btn-back{ 
-      background:#fff; color:var(--brand-primary); border:2px solid #fff;
+      background:#fff; color:#0d6efd; border:2px solid #fff;
       border-radius:10px; padding:.5rem 1.25rem; font-weight:600; transition:.2s;
       text-decoration:none; display:inline-block;
     }
-    .btn-back:hover{ background:transparent; color:#fff; border-color:#fff; transform:translateX(-4px); }
+    .btn-back:hover{ background:#0d6efd; color:#fff; border-color:#0d6efd; transform:translateX(-4px); box-shadow: 0 0 15px rgba(13, 110, 253, 0.6); }
     
     .stat-card{
       background:var(--brand-surface); border-radius:15px; padding:1.5rem;
@@ -210,12 +239,21 @@ $cambio = $pesoActual - $pesoInicial;
       <h3 class="mb-1"><?= e($paciente['nombre_completo']) ?></h3>
       <small>Edad: <?= e($paciente['edad']) ?> años • DNI: <?= e($paciente['DNI']) ?> • Tel: <?= e($paciente['telefono']) ?></small>
     </div>
-    <a class="btn-back" href="Activar_desactivar_paciente.php">
-      <i class="bi bi-arrow-left me-2"></i>Volver a Pacientes
-    </a>
+    <?php if ($userRole !== 'Paciente'): ?>
+      <a class="btn-back" href="Activar_desactivar_paciente.php">
+        <i class="bi bi-arrow-left me-2"></i>Volver a Pacientes
+      </a>
+    <?php endif; ?>
   </div>
 
-  <!-- Estadísticas principales -->
+  <?php if ($noRegistrado): ?>
+    <div class="alert alert-warning border-2" role="alert">
+      <strong>Paciente nuevo:</strong> todav&iacute;a no tienes un registro completo en la cl&iacute;nica. Para comenzar a ver tu evoluci&oacute;n debes completar tu registro con un profesional. Una vez registrado aparecer&aacute;n tus datos, gr&aacute;ficas y registros de alimentos y ejercicios.
+    </div>
+  <?php endif; ?>
+
+  <?php if (!$noRegistrado): ?>
+  <!-- Estadísticas principales (solo cuando registrado) -->
   <div class="row g-4 mb-4">
     <div class="col-md-3">
       <div class="stat-card">
@@ -299,7 +337,7 @@ $cambio = $pesoActual - $pesoInicial;
     </div>
   </div>
 
-  <!-- Gráficas -->
+  <!-- Gráficas (solo cuando registrado) -->
   <div class="row g-4">
     <!-- Gráfica Peso/IMC -->
     <div class="col-lg-6">
@@ -334,7 +372,7 @@ $cambio = $pesoActual - $pesoInicial;
     </div>
   </div>
 
-  <!-- Registro de Alimentos -->
+  <!-- Registro de Alimentos (solo cuando registrado) -->
   <div class="alimentos-section">
     <div class="d-flex justify-content-between align-items-center mb-3">
       <h5 class="mb-0"><i class="bi bi-egg-fried text-warning me-2"></i>Registro de Alimentos (Últimos 15)</h5>
@@ -378,6 +416,7 @@ $cambio = $pesoActual - $pesoInicial;
       <?php endforeach; ?>
     <?php endif; ?>
   </div>
+  <?php endif; ?>
 
 </div>
 
@@ -387,8 +426,8 @@ const exp = <?= json_encode($expediente, JSON_NUMERIC_CHECK | JSON_UNESCAPED_UNI
 const eje = <?= json_encode($ejercicios, JSON_NUMERIC_CHECK | JSON_UNESCAPED_UNICODE) ?>;
 
 // Paleta
-const cPrimary = '#0d6efd';
-const cPrimaryFill = 'rgba(13,110,253,.12)';
+const cPrimary = '#198754';
+const cPrimaryFill = 'rgba(25,135,84,.12)';
 const cPurple = '#6f42c1';
 const cPurpleFill = 'rgba(111,66,193,.12)';
 const cSuccess = '#20c997';

@@ -23,12 +23,23 @@ $stmt = $conexion->prepare("SELECT id_pacientes FROM pacientes WHERE id_usuarios
 $stmt->bind_param('i', $user_id);
 $stmt->execute();
 $result = $stmt->get_result();
+$noRegistrado = false;
+$userRole = $_SESSION['rol'] ?? 'Paciente';
+$isStaff = in_array($userRole, ['Medico', 'Administrador'], true);
+
 if ($row = $result->fetch_assoc()) {
     $paciente_id = (int)$row['id_pacientes'];
 } else {
-    // Usuario no es paciente registrado
-    header('Location: Menuprincipal.php?error=No eres un paciente registrado.');
-    exit;
+    // Si el usuario es un Paciente que aún no está registrado como paciente en la tabla,
+    // mostramos un aviso en la interfaz en lugar de redirigir inmediatamente.
+    if ($userRole === 'Paciente') {
+        $paciente_id = 0;
+        $noRegistrado = true;
+    } else {
+        // Médico/Administrador no necesitan registro de paciente; acceso completo sin restricciones
+        $paciente_id = 0;
+        $noRegistrado = false;
+    }
 }
 $stmt->close();
 
@@ -268,22 +279,25 @@ if ($vista === 'diaria') {
             box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
         }
         .btn-primary {
-            background-color: #0d6efd;
-            border-color: #0d6efd;
+            background-color: #198754;
+            border-color: #198754;
         }
         .btn-primary:hover {
-            background-color: #0b5ed7;
-            border-color: #0a58ca;
+            background-color: #146c43;
+            border-color: #13653f;
+        }
+        .bg-primary {
+            background-color: #198754 !important;
         }
         .form-label {
             font-weight: 600;
-            color: #495057;
+            color: #198754;
         }
         .alert {
             border-radius: 0.375rem;
         }
         .header-section {
-            background: linear-gradient(135deg, #0d6efd 0%, #0b5ed7 100%);
+            background: linear-gradient(135deg, #198754 0%, #146c43 100%);
             color: white;
             padding: 2rem 0;
             margin-bottom: 2rem;
@@ -364,6 +378,16 @@ if ($vista === 'diaria') {
             </div>
         <?php endif; ?>
 
+        <?php if (!empty($noRegistrado) && isset($_SESSION['rol']) && $_SESSION['rol'] === 'Paciente'): ?>
+            <div class="alert alert-warning">
+                <i class="bi bi-exclamation-triangle-fill"></i>
+                Paciente nuevo: primero necesitas actualizar tus datos con tu médico tratante. Si aún no estás registrado como paciente en la clínica, ponte en contacto con el personal o tu médico para completar tu registro.
+            </div>
+        <?php endif; ?>
+
+        <?php if (!empty($noRegistrado) && isset($_SESSION['rol']) && $_SESSION['rol'] === 'Paciente'): ?>
+            <!-- No mostrar formulario ni historial para usuario Paciente no registrado -->
+        <?php else: ?>
         <div class="card">
             <div class="card-header bg-primary text-white">
                 <h5 class="card-title mb-0"><i class="bi bi-plus-circle me-2"></i>Nuevo Registro</h5>
@@ -530,7 +554,7 @@ if ($vista === 'diaria') {
                             <div class="gallery-item">
                                 <img src="<?= htmlspecialchars($item['foto_path'], ENT_QUOTES, 'UTF-8') ?>" alt="Foto de comida" />
                                 <div style="margin-top: 8px;">
-                                    <div style="font-weight: 600; color: #0d6efd; text-transform: capitalize;">
+                                    <div style="font-weight: 600; color: #198754; text-transform: capitalize;">
                                         <?= htmlspecialchars($item['tipo_comida'], ENT_QUOTES, 'UTF-8') ?>
                                     </div>
                                     <div style="font-size: 0.875rem; color: #6c757d;">
@@ -541,9 +565,11 @@ if ($vista === 'diaria') {
                                     </div>
                                 </div>
                             </div>
+
                         <?php endforeach; ?>
                     </div>
                 <?php endif; ?>
+        <?php endif; ?>
             </div>
         </div>
     </div>
