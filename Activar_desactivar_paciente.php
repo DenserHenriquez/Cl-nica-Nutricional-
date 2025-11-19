@@ -30,7 +30,7 @@ $total_entradas = $resultado->num_rows;
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Lista de Pacientes - Nutrición</title>
+    <title>Lista de Usuarios - Nutrición</title>
     <!-- Bootstrap 5 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- Bootstrap Icons -->
@@ -196,15 +196,15 @@ $total_entradas = $resultado->num_rows;
             <div class="medical-icon">
                 <i class="bi bi-people-fill"></i>
             </div>
-            <h1>Lista de Pacientes</h1>
-            <p>Administra el estado de los pacientes registrados en la clínica nutricional.</p>
+            <h1>Lista de Usuarios</h1>
+            <p>Administra el estado de los usuarios registrados en la clínica nutricional.</p>
         </div>
     </div>
 
     <div class="container mb-5">
         <div class="card">
             <div class="card-header bg-success text-white">
-                <h5 class="card-title mb-0"><i class="bi bi-list-check me-2"></i>Pacientes Registrados</h5>
+                <h5 class="card-title mb-0"><i class="bi bi-list-check me-2"></i>Usuarios</h5>
             </div>
             <div class="card-body">
                 <div class="table-responsive">

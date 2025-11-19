@@ -3,7 +3,22 @@ session_start();
 if (!isset($_SESSION['id_usuarios'])) { header('Location: index.php'); exit; }
 require_once __DIR__ . '/db_connection.php';
 function h($s){ return htmlspecialchars((string)$s, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); }
-$nutriId = (int)($_SESSION['id_usuarios'] ?? 0);
+$userId = (int)($_SESSION['id_usuarios'] ?? 0);
+$userRole = $_SESSION['rol'] ?? '';
+// Obtener id_pacientes del usuario si es Paciente
+$currentPatientId = 0;
+if ($userRole === 'Paciente') {
+	if ($stPid = $conexion->prepare('SELECT id_pacientes FROM pacientes WHERE id_usuarios = ? LIMIT 1')) {
+		$stPid->bind_param('i', $userId);
+		$stPid->execute();
+		$stPid->bind_result($pidDb);
+		if ($stPid->fetch()) { $currentPatientId = (int)$pidDb; }
+		$stPid->close();
+	}
+	// Si no existe paciente relacionado, bloquear acceso
+	if ($currentPatientId <= 0) { header('Location: Menuprincipal.php?error=No eres un paciente registrado.'); exit; }
+}
+$nutriId = $userId; // Se mantiene para nutricionista
 
 // Crear tabla de retroalimentación si no existe
 $conexion->query("CREATE TABLE IF NOT EXISTS retroalimentacion (
@@ -19,6 +34,8 @@ $conexion->query("CREATE TABLE IF NOT EXISTS retroalimentacion (
 if (isset($_GET['action']) && $_GET['action']==='details') {
 		header('Content-Type: application/json');
 		$pid = (int)($_GET['id'] ?? 0);
+		// Forzar id propio si es paciente
+		if ($userRole === 'Paciente') { $pid = $currentPatientId; }
 		if ($pid <= 0) { echo json_encode(['ok'=>false,'error'=>'Paciente inválido']); exit; }
 
 		$paciente = null;
@@ -66,22 +83,38 @@ if (isset($_POST['action']) && $_POST['action']==='comment') {
 		exit;
 }
 
-// Consulta para tarjetas: último registro de alimentos por paciente
+// Consulta para tarjetas:
+// - Si nutricionista/administrador: último registro de cada paciente (como antes)
+// - Si paciente: todos sus registros (más recientes primero)
 $cards = [];
-$sqlLast = "SELECT p.id_pacientes, p.nombre_completo,
-									 ar.fecha, ar.hora, ar.descripcion, ar.foto_path
-						FROM pacientes p
-						LEFT JOIN (
-							SELECT ar1.* FROM alimentos_registro ar1
-							JOIN (
-								SELECT id_pacientes, MAX(CONCAT(fecha,' ',hora)) AS maxdt
-								FROM alimentos_registro GROUP BY id_pacientes
-							) t ON t.id_pacientes = ar1.id_pacientes AND CONCAT(ar1.fecha,' ',ar1.hora)=t.maxdt
-						) ar ON ar.id_pacientes = p.id_pacientes
-						ORDER BY ar.fecha DESC, ar.hora DESC, p.nombre_completo ASC";
-if ($res = $conexion->query($sqlLast)) {
-		while ($row = $res->fetch_assoc()) $cards[] = $row;
+if ($userRole === 'Paciente') {
+	if ($st = $conexion->prepare('SELECT ar.id_pacientes, p.nombre_completo, ar.fecha, ar.hora, ar.descripcion, ar.foto_path
+								  FROM alimentos_registro ar
+								  INNER JOIN pacientes p ON p.id_pacientes = ar.id_pacientes
+								  WHERE ar.id_pacientes = ?
+								  ORDER BY ar.fecha DESC, ar.hora DESC LIMIT 50')) {
+		$st->bind_param('i', $currentPatientId);
+		$st->execute();
+		$r = $st->get_result();
+		while ($row = $r->fetch_assoc()) { $cards[] = $row; }
+		$st->close();
+	}
+} else {
+	$sqlLast = "SELECT p.id_pacientes, p.nombre_completo,
+						ar.fecha, ar.hora, ar.descripcion, ar.foto_path
+					FROM pacientes p
+					LEFT JOIN (
+						SELECT ar1.* FROM alimentos_registro ar1
+						JOIN (
+							SELECT id_pacientes, MAX(CONCAT(fecha,' ',hora)) AS maxdt
+							FROM alimentos_registro GROUP BY id_pacientes
+						) t ON t.id_pacientes = ar1.id_pacientes AND CONCAT(ar1.fecha,' ',ar1.hora)=t.maxdt
+					) ar ON ar.id_pacientes = p.id_pacientes
+					ORDER BY ar.fecha DESC, ar.hora DESC, p.nombre_completo ASC";
+	if ($res = $conexion->query($sqlLast)) {
+		while ($row = $res->fetch_assoc()) { $cards[] = $row; }
 		$res->close();
+	}
 }
 ?>
 <!doctype html>
@@ -89,7 +122,7 @@ if ($res = $conexion->query($sqlLast)) {
 <head>
 	<meta charset="utf-8" />
 	<meta name="viewport" content="width=device-width,initial-scale=1" />
-	<?php $tituloPrincipal = ($_SESSION['rol'] ?? '') === 'Paciente' ? 'Hacks de Menus' : 'Retroalimentación'; ?>
+	<?php $tituloPrincipal = ($_SESSION['rol'] ?? '') === 'Paciente' ? 'Gestión de Comidas' : 'Retroalimentación'; ?>
 	<title><?= h($tituloPrincipal) ?> | Actividad reciente</title>
 	<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 	<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
@@ -155,16 +188,16 @@ if ($res = $conexion->query($sqlLast)) {
 	<div class="header-section">
 		<div class="container text-center">
 			<div class="medical-icon">
-				<i class="bi bi-activity"></i>
+				<i class="bi bi-chat-dots"></i>
 			</div>
-			<h1><?= ($_SESSION['rol'] ?? '') === 'Paciente' ? 'Hacks de Menus' : 'Actividad reciente de los pacientes'; ?></h1>
-			<p><?= ($_SESSION['rol'] ?? '') === 'Paciente' ? 'Ideas y sugerencias de menus saludables.' : 'Nutricionista | Monitorea y retroalimenta a tus pacientes.'; ?></p>
+			<h1><?= ($_SESSION['rol'] ?? '') === 'Paciente' ? 'Gestión de Comidas' : 'Retroalimentación de Pacientes'; ?></h1>
+			<p><?= ($_SESSION['rol'] ?? '') === 'Paciente' ? 'El médico gestionará tu alimentación y te brindará retroalimentación personalizada.' : 'Nutricionista | Monitorea y retroalimenta a tus pacientes.'; ?></p>
 		</div>
 	</div>
 
 	<main class="content">
 		<div class="section-title">
-			<h4 class="mb-0"><?= ($_SESSION['rol'] ?? '') === 'Paciente' ? 'Hacks de Menus' : 'Actividad reciente de los pacientes'; ?></h4>
+			<h4 class="mb-0"><?= ($_SESSION['rol'] ?? '') === 'Paciente' ? 'Mis Registros de Comidas' : 'Actividad reciente de los pacientes'; ?></h4>
 			<?php if(($_SESSION['rol'] ?? '') !== 'Paciente'): ?>
 			<a class="btn btn-sm btn-outline-primary" href="retroalimentacion1.php">Vista clásica</a>
 			<?php endif; ?>

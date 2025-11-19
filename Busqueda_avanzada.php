@@ -386,8 +386,8 @@ function qs(array $data): string {
                 <?php if (!empty($resultados)): ?>
                     <div class="table-responsive">
                         <table class="table table-striped tabla-resultados">
-                            <thead class="table-dark">
-                                <tr>
+                            <thead class="table-light">
+                                <tr style="color: #000000;">
                                     <th>ID</th>
                                     <th>Nombre completo</th>
                                     <th>DNI</th>

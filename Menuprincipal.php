@@ -48,15 +48,17 @@ if ($userRole === 'Medico') {
 // Definir qué opciones puede ver cada rol
 $menuItems = [
     // Actualizar perfil disponible solo para Medico y Administrador (no para Paciente)
-    'actualizar_perfil' => ['Medico', 'Administrador'],
+    'actualizar_perfil' => ['Medico', 'Administrador', 'Paciente'],
     'estado_paciente' => ['Medico', 'Administrador'],
     'panel_evolucion' => ['Medico', 'Paciente', 'Administrador'],
     'busqueda_avanzada' => ['Medico', 'Administrador'],
     'citas_medicas' => ['Medico', 'Administrador'],
-    'disponibilidad_citas' => ['Medico', 'Administrador'],
+    'disponibilidad_citas' => ['Medico', 'Administrador', 'Paciente'],
     'registro_pacientes' => ['Medico', 'Administrador'],
     'registro_alimentos' => ['Medico', 'Paciente', 'Administrador'],
     'clasificacion_alimentos' => ['Medico', 'Administrador'],
+    'crear_receta' => ['Medico', 'Administrador'],
+    'gestion_receta' => ['Medico', 'Paciente', 'Administrador'],
     'seguimiento_ejercicio' => ['Medico', 'Paciente', 'Administrador'],
     'retroalimentacion' => ['Medico', 'Paciente', 'Administrador']
 ];
@@ -655,24 +657,15 @@ function e($str) { return htmlspecialchars((string)$str, ENT_QUOTES, 'UTF-8'); }
                         <span class="user-avatar" aria-hidden="true"><?php echo e(mb_strtoupper(mb_substr($userName, 0, 1, 'UTF-8'), 'UTF-8')); ?></span>
                         <span><?php echo e($userName ?: 'Usuario'); ?> (<?php echo e($userRole); ?>)</span>
                     </span>
-                    <div class="user-dropdown" id="userDropdown">
-                        <div class="user-dropdown-header">
-                            <div class="avatar-large"><?php echo e(mb_strtoupper(mb_substr($userName, 0, 1, 'UTF-8'), 'UTF-8')); ?></div>
-                            <div class="name"><?php echo e($userName ?: 'Usuario'); ?></div>
-                            <div class="role"><?php echo e($userRole); ?></div>
-                        </div>
-                        <?php if (hasAccess('actualizar_perfil', $userRole, $menuItems)): ?>
-                        <a href="Actualizar_perfil.php" target="main-content" class="user-dropdown-item">
-                            <i class="bi bi-person-circle"></i>
-                            <span>Actualizar Perfil</span>
-                        </a>
-                        <?php endif; ?>
-                        <a href="Login.php" class="user-dropdown-item">
-                            <i class="bi bi-box-arrow-right"></i>
-                            <span>Cerrar Sesion</span>
-                        </a>
-                    </div>
                 </div>
+                <?php if (hasAccess('actualizar_perfil', $userRole, $menuItems)): ?>
+                <a href="Actualizar_perfil.php" target="main-content">
+                    <i class="bi bi-person-gear me-1"></i> Actualizar Perfil
+                </a>
+                <?php endif; ?>
+                <a href="Login.php">
+                    <i class="bi bi-box-arrow-right me-1"></i> Cerrar Sesion
+                </a>
             </div>
         </div>
     </header>
@@ -697,6 +690,13 @@ function e($str) { return htmlspecialchars((string)$str, ENT_QUOTES, 'UTF-8'); }
                                 <i class="bi bi-house-door"></i> Inicio
                             </a>
                         </li>
+                        <?php if ($userRole === 'Paciente'): ?>
+                        <li class="nav-item">
+                            <a class="nav-link" href="Disponibilidad_citas.php" target="main-content">
+                                <i class="bi bi-clock"></i> Disponibilidad de Citas
+                            </a>
+                        </li>
+                        <?php endif; ?>
                         <?php if (hasAccess('actualizar_perfil', $userRole, $menuItems)): ?>
                         <li class="nav-item">
                             <a class="nav-link" href="Actualizar_perfil.php" target="main-content">
@@ -708,7 +708,7 @@ function e($str) { return htmlspecialchars((string)$str, ENT_QUOTES, 'UTF-8'); }
                         <?php if (hasAccess('estado_paciente', $userRole, $menuItems)): ?>
                         <li class="nav-item">
                             <a class="nav-link" href="Activar_desactivar_paciente.php" target="main-content">
-                                <i class="bi bi-toggle-on"></i> Estado del Paciente
+                                <i class="bi bi-toggle-on"></i> Estado de Usuarios
                             </a>
                         </li>
                         <?php endif; ?>
@@ -769,6 +769,22 @@ function e($str) { return htmlspecialchars((string)$str, ENT_QUOTES, 'UTF-8'); }
                         </li>
                         <?php endif; ?>
                         
+                        <?php if (hasAccess('crear_receta', $userRole, $menuItems)): ?>
+                        <li class="nav-item">
+                            <a class="nav-link" href="Crear_Receta.php" target="main-content">
+                                <i class="bi bi-receipt"></i> Crear Receta
+                            </a>
+                        </li>
+                        <?php endif; ?>
+
+                        <?php if (hasAccess('gestion_receta', $userRole, $menuItems)): ?>
+                        <li class="nav-item">
+                            <a class="nav-link" href="Gestion_Receta.php" target="main-content">
+                                <i class="bi bi-journal-text"></i> Gestión de Recetas
+                            </a>
+                        </li>
+                        <?php endif; ?>
+
                         <?php if (hasAccess('seguimiento_ejercicio', $userRole, $menuItems)): ?>
                         <li class="nav-item">
                             <a class="nav-link" href="Seguimiento_ejercicio.php" target="main-content">
@@ -780,7 +796,7 @@ function e($str) { return htmlspecialchars((string)$str, ENT_QUOTES, 'UTF-8'); }
                         <?php if (hasAccess('retroalimentacion', $userRole, $menuItems)): ?>
                         <li class="nav-item">
                             <a class="nav-link" href="retroalimentacion1.php" target="main-content">
-                                <i class="bi bi-chat-dots"></i> <?php echo $userRole === 'Paciente' ? 'Hacks de Menus' : 'Retroalimentacion'; ?>
+                                <i class="bi bi-chat-dots"></i> Retroalimentacion
                             </a>
                         </li>
                         <?php endif; ?>
@@ -790,7 +806,7 @@ function e($str) { return htmlspecialchars((string)$str, ENT_QUOTES, 'UTF-8'); }
 
             <!-- Main content -->
             <main>
-                <iframe name="main-content" src="inicio.php"></iframe>
+                <iframe name="main-content" src="<?php echo ($userRole === 'Paciente') ? 'Disponibilidad_citas.php' : 'inicio.php'; ?>"></iframe>
             </main>
         </div>
     </div>

@@ -510,6 +510,7 @@ $historial = cargarHistorial($conexion, $TABLE_HISTORY, $userId);
                 </form>
             </div>
         </div>
+        <?php if ($_SESSION['rol'] !== 'Paciente'): ?>
         <!-- Sección Expediente Médico -->
         <div class="card mt-4">
             <div class="card-header bg-primary text-white">
@@ -556,6 +557,7 @@ $historial = cargarHistorial($conexion, $TABLE_HISTORY, $userId);
                 </form>
             </div>
         </div>
+        <?php endif; ?>
     </div>
 
     <!-- Modal para el historial -->
