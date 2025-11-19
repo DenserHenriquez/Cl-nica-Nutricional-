@@ -47,306 +47,72 @@ if ($medico_id === 0) {
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>Seleccionar Médico - Gestión de Citas</title>
-        <link rel="stylesheet" href="assets/css/estilos.css">
+        <!-- Bootstrap 5 CSS -->
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+        <!-- Bootstrap Icons -->
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
     <style>
-        :root {
-            --primary-900: #0d47a1;
-            --primary-700: #1565c0;
-            --primary-500: #1976d2;
-            --primary-300: #42a5f5;
-            --primary-100: #e3f2fd;
-            --white: #ffffff;
-            --text-900: #0b1b34;
-            --text-700: #22426e;
-            --text-500: #64748b;
-            --shadow: 0 10px 25px rgba(13, 71, 161, 0.18);
-            --shadow-light: 0 4px 6px rgba(0, 0, 0, 0.1);
-            --radius-lg: 16px;
-            --radius-md: 12px;
-            --radius-sm: 10px;
-            --bg-sky-blue: #87CEEB;
-            --gradient-card: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+        body { background-color: #f8f9fa; }
+        .card-medico {
+            border: none;
+            box-shadow: 0 0.125rem 0.25rem rgba(0,0,0,0.075);
+            border-radius: 1rem;
+            transition: box-shadow 0.3s;
         }
-
-        * { box-sizing: border-box; }
-        body {
-            margin: 0;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", sans-serif;
-            color: var(--text-900);
-            background: var(--bg-sky-blue);
-            min-height: 100vh;
+        .card-medico:hover {
+            box-shadow: 0 0.5rem 1rem rgba(25,135,84,0.15);
         }
-
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 30px 20px;
+        .medico-img {
+            width: 80px; height: 80px; object-fit: cover; border-radius: 50%; margin-bottom: 10px;
         }
-
-        .header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 30px;
-            background: var(--white);
-            padding: 20px;
-            border-radius: var(--radius-lg);
-            box-shadow: var(--shadow);
+        .header-section {
+            background: linear-gradient(135deg, #198754 0%, #146c43 100%);
+            color: white;
+            padding: 2rem 0;
+            margin-bottom: 2rem;
         }
-
-        h1 {
-            margin: 0;
+        .header-section h1 {
             font-size: 2.5rem;
             font-weight: 700;
-            background: linear-gradient(45deg, var(--primary-700), var(--primary-500));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
         }
-
-        .btn-menu {
-            display: inline-block;
-            padding: 10px 20px;
-            background: var(--primary-500);
-            color: var(--white);
-            text-decoration: none;
-            border-radius: var(--radius-md);
-            font-weight: 600;
-            font-size: 1rem;
-            transition: all 0.3s ease;
-            box-shadow: var(--shadow-light);
+        .header-section p {
+            font-size: 1.1rem;
+            opacity: 0.9;
         }
-
-        .btn-menu:hover {
-            background: var(--primary-700);
-            transform: translateY(-2px);
-            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
-        }
-
-        .message {
-            padding: 15px;
-            margin-bottom: 25px;
-            border-radius: var(--radius-md);
-            color: #155724;
-            background: linear-gradient(135deg, #d4edda, #c3e6cb);
-            border: 1px solid #c3e6cb;
-            box-shadow: var(--shadow-light);
-            animation: fadeIn 0.5s ease-in;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(-10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        .form-section, .report-section {
-            background: var(--gradient-card);
-            border-radius: var(--radius-lg);
-            padding: 30px;
-            margin-bottom: 30px;
-            box-shadow: var(--shadow);
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-        }
-
-        .form-section:hover, .report-section:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 15px 35px rgba(13, 71, 161, 0.25);
-        }
-
-        .form-section h2, .report-section h2 {
-            margin-top: 0;
-            margin-bottom: 20px;
-            font-size: 1.8rem;
-            font-weight: 600;
-            color: var(--primary-900);
-            border-bottom: 2px solid var(--primary-300);
-            padding-bottom: 10px;
-        }
-
-        .form-group {
-            margin-bottom: 20px;
-        }
-
-        label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: 600;
-            color: var(--text-700);
-        }
-
-        input, textarea, select {
-            width: 100%;
-            padding: 12px;
-            border: 2px solid #e2e8f0;
-            border-radius: var(--radius-sm);
-            font-size: 1rem;
-            transition: border-color 0.3s ease, box-shadow 0.3s ease;
-        }
-
-        input:focus, textarea:focus, select:focus {
-            outline: none;
-            border-color: var(--primary-500);
-            box-shadow: 0 0 0 3px rgba(25, 118, 210, 0.1);
-        }
-
-        button {
-            background: linear-gradient(135deg, var(--primary-500), var(--primary-700));
-            color: var(--white);
-            padding: 12px 25px;
-            border: none;
-            border-radius: var(--radius-md);
-            cursor: pointer;
-            font-size: 1rem;
-            font-weight: 600;
-            transition: all 0.3s ease;
-            box-shadow: var(--shadow-light);
-        }
-
-        button:hover {
-            background: linear-gradient(135deg, var(--primary-700), var(--primary-900));
-            transform: translateY(-2px);
-            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
-        }
-
-        .report-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 20px;
-            border-radius: var(--radius-md);
-            overflow: hidden;
-            box-shadow: var(--shadow-light);
-        }
-
-        .report-table th, .report-table td {
-            padding: 15px;
-            text-align: left;
-            border-bottom: 1px solid #e2e8f0;
-        }
-
-        .report-table th {
-            background: linear-gradient(135deg, var(--primary-100), var(--primary-300));
-            font-weight: 600;
-            color: var(--text-900);
-        }
-
-        .report-table tbody tr {
-            transition: background-color 0.3s ease;
-        }
-
-        .report-table tbody tr:hover {
-            background-color: rgba(25, 118, 210, 0.05);
-        }
-
-        .report-table img {
-            border-radius: var(--radius-sm);
-            transition: transform 0.3s ease;
-        }
-
-        .report-table img:hover {
-            transform: scale(1.1);
-        }
-
-        @media (max-width: 768px) {
-            .container {
-                padding: 20px 10px;
-            }
-            .header {
-                flex-direction: column;
-                text-align: center;
-                gap: 15px;
-            }
-            h1 {
-                font-size: 2rem;
-            }
-            .form-section, .report-section {
-                padding: 20px;
-            }
-            .report-table th, .report-table td {
-                padding: 10px;
-                font-size: 0.9rem;
-            }
-        }
-
-        /* Estilos específicos para citas_medico */
-        .medicos-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; margin-top: 20px; }
-        .medico-card {
-            background: var(--gradient-card);
-            border-radius: var(--radius-lg);
-            padding: 20px;
-            box-shadow: var(--shadow);
-            text-align: center;
-            cursor: pointer;
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-            border: 2px solid #ddd;
-        }
-        .medico-card:hover { transform: translateY(-5px); box-shadow: 0 15px 35px rgba(13, 71, 161, 0.25); border-color: var(--primary-500); }
-        .medico-icon { width: 80px; height: 80px; margin: 0 auto 10px; border-radius: 50%; overflow: hidden; border: 2px solid #ddd; }
-        .medico-icon img { width: 100%; height: 100%; object-fit: cover; }
-        .medico-nombre { font-size: 18px; font-weight: bold; margin-bottom: 5px; }
-        .medico-especialidad { color: #666; margin-bottom: 5px; }
-        .medico-email { font-size: 14px; color: #555; margin-bottom: 2px; }
-        .medico-telefono { font-size: 14px; color: #555; }
-        .back-btn { position: absolute; top: 10px; right: 10px; padding: 8px 16px; background: var(--primary-500); color: var(--white); border: none; border-radius: var(--radius-md); cursor: pointer; text-decoration: none; transition: all 0.3s ease; }
-        .back-btn:hover { background: var(--primary-700); transform: translateY(-2px); box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15); }
-
-        #calendar { max-width: 400px; margin: 0 auto; height: 300px; font-size: 12px; }
-        .fc { font-size: 12px; }
-        .fc-daygrid-day { min-height: 60px; }
-        .fc-daygrid-day-number { font-size: 10px; }
-        .fc-event { font-size: 10px; padding: 2px; }
-        .badge { display:inline-block; padding:2px 6px; border-radius:4px; font-size:11px; margin-right:4px; }
-        .b-libre { background:#d1e7dd; color:#0d5132; border:1px solid #a3cfbb; }
-        .b-bloq { background:#ffebee; color:#c62828; border:1px solid #ef9a9a; }
-        .b-cita { background:#e3f2fd; color:#1565c0; border:1px solid #90caf9; display:block; margin:2px 0; }
-        .controls { margin: 10px 0; display:flex; gap:10px; flex-wrap:wrap; }
-        .controls form { display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
-        .status { font-size: 12px; color:#555; }
-        .legend { margin:10px 0; }
-        .legend span { margin-right:10px; }
-        .weekdays { display:grid; grid-template-columns:repeat(7,1fr); font-weight:bold; text-align:center; margin-bottom:6px; }
-        .alerta { background: linear-gradient(135deg, #ffecb3, #ffe082); border: 2px solid #ffb300; color: #bf360c; padding: 15px; border-radius: var(--radius-md); margin-bottom: 15px; box-shadow: var(--shadow-light); font-weight: bold; text-align: center; }
-        .sticky-top { position: sticky; top: 0; background: #f9f9f9; padding: 8px 0; z-index: 10; }
-        .small { font-size: 12px; }
-        .btn { padding:6px 10px; border:1px solid #999; background:#f0f0f0; border-radius:4px; cursor:pointer; }
-        .btn.primary { background:var(--primary-500); color:var(--white); border-color:var(--primary-700); }
-        .btn.warn { background:#e53935; color:#fff; border-color:#b71c1c; }
-        .btn.success { background:#146c43; color:#fff; border-color:#0d5132; }
-        .slot { display:flex; justify-content:space-between; align-items:center; gap:6px; }
-        .slot-actions form { display:inline; }
-        .table { width:100%; border-collapse: collapse; }
-        .table th, .table td { border:1px solid #ddd; padding:6px; }
-        .table th { background:#f3f3f3; }
-        /* Modal styles */
-        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.4); }
-        .modal-content { background-color: #fefefe; margin: 15% auto; padding: 20px; border: 1px solid #888; width: 80%; max-width: 600px; border-radius: var(--radius-lg); }
-        .close { color: #aaa; float: right; font-size: 28px; font-weight: bold; cursor: pointer; }
-        .close:hover { color: black; }
-        #slots-list { margin-top: 20px; }
-        #slots-list .slot-item { display: flex; justify-content: space-between; align-items: center; padding: 8px; border-bottom: 1px solid #ddd; }
-        #slots-list .slot-item:last-child { border-bottom: none; }
-        /* Toast styles */
-        .toast { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: #333; color: #fff; padding: 15px; border-radius: var(--radius-md); box-shadow: 0 4px 8px rgba(0,0,0,0.3); z-index: 1001; opacity: 0; transition: opacity 0.5s; }
-        .toast.show { opacity: 1; }
     </style>
     </head>
     <body>
-        <div class="container">
+        <div class="header-section text-center">
+            <div class="medical-icon">
+                <i class="bi bi-calendar-check" style="font-size:3rem;"></i>
+            </div>
             <h1>Seleccionar Médico para Gestión de Citas</h1>
             <p>Haga clic en el médico para ver su calendario de citas.</p>
-            <div class="medicos-grid">
+        </div>
+        <div class="container">
+            <div class="row justify-content-center">
                 <?php foreach ($medicos as $id => $medico): ?>
-                    <a href="?medico_id=<?php echo $id; ?>" class="medico-card">
-                        <div class="medico-icon">
-                            <img src="<?php echo htmlspecialchars($medico['imagen']); ?>" alt="Foto de <?php echo htmlspecialchars($medico['nombre']); ?>">
+                    <div class="col-md-3 mb-4">
+                        <div class="card card-medico text-center h-100" onclick="selectMedico(<?php echo $id; ?>)" style="cursor:pointer;">
+                            <div class="card-body">
+                                <img src="<?php echo htmlspecialchars($medico['imagen']); ?>" alt="<?php echo htmlspecialchars($medico['nombre']); ?>" class="medico-img">
+                                <h5 class="card-title text-success fw-bold"><?php echo htmlspecialchars($medico['nombre']); ?></h5>
+                                <p class="card-text text-muted"><?php echo htmlspecialchars($medico['especialidad']); ?></p>
+                                <p class="card-text small"><i class="bi bi-envelope"></i> <?php echo htmlspecialchars($medico['email']); ?></p>
+                                <p class="card-text small"><i class="bi bi-telephone"></i> <?php echo htmlspecialchars($medico['telefono']); ?></p>
+                            </div>
                         </div>
-                        <div class="medico-nombre"><?php echo htmlspecialchars($medico['nombre']); ?></div>
-                        <div class="medico-especialidad"><?php echo htmlspecialchars($medico['especialidad']); ?></div>
-                        <div class="medico-email"><?php echo htmlspecialchars($medico['email']); ?></div>
-                        <div class="medico-telefono"><?php echo htmlspecialchars($medico['telefono']); ?></div>
-                    </a>
+                    </div>
                 <?php endforeach; ?>
             </div>
         </div>
+        <script>
+            function selectMedico(id) {
+                window.location.href = '?medico_id=' + id;
+            }
+        </script>
+        <!-- Bootstrap JS -->
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     </body>
     </html>
     <?php
@@ -496,15 +262,29 @@ function monthNameEs($m) {
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <style>
-        #calendar { max-width: 400px; margin: 0 auto; height: 300px; font-size: 12px; }
-        .fc { font-size: 12px; }
-        .fc-daygrid-day { min-height: 60px; }
-        .fc-daygrid-day-number { font-size: 10px; }
-        .fc-event { font-size: 10px; padding: 2px; }
+        #calendar { 
+            max-width: 1100px; 
+            width: 100%;
+            margin: 0 auto; 
+            height: 700px;
+            min-height: 600px;
+            font-size: 18px;
+            border: 3px solid #1976d2;
+            border-radius: 12px;
+            padding: 20px;
+            background: white;
+            box-shadow: 0 4px 12px rgba(25, 118, 210, 0.15);
+        }
+        .fc { font-size: 16px; }
+        .fc-daygrid-day { min-height: 100px; }
+        .fc-daygrid-day-number { font-size: 16px; font-weight: 600; color: #000 !important; }
+        .fc-event { font-size: 14px; padding: 4px; }
+        .fc-col-header-cell-cushion { font-size: 16px; font-weight: 700; color: #000 !important; }
+        .fc-daygrid-day-top { padding: 8px; }
         .badge { display:inline-block; padding:2px 6px; border-radius:4px; font-size:11px; margin-right:4px; }
         .b-libre { background:#e8f5e9; color:#2e7d32; border:1px solid #a5d6a7; }
         .b-bloq { background:#ffebee; color:#c62828; border:1px solid #ef9a9a; }
-        .b-cita { background:#e3f2fd; color:#1565c0; border:1px solid #90caf9; display:block; margin:2px 0; }
+        .b-cita { background:#e3f2fd; color:#ffffff; border:1px solid #90caf9; display:block; margin:2px 0; }
         .controls { margin: 10px 0; display:flex; gap:10px; flex-wrap:wrap; }
         .controls form { display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
         .status { font-size: 12px; color:#555; }
@@ -523,7 +303,7 @@ function monthNameEs($m) {
         .table { width:100%; border-collapse: collapse; }
         .table th, .table td { border:1px solid #ddd; padding:6px; }
         .table th { background:#f3f3f3; }
-        body { background-color: #87CEEB; background-image: none; }
+        body { background-color: #ffffff; background-image: none; }
         /* Modal styles */
         .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.4); }
         .modal-content { background-color: #fefefe; margin: 15% auto; padding: 20px; border: 1px solid #888; width: 80%; max-width: 600px; border-radius: 8px; }
@@ -533,8 +313,51 @@ function monthNameEs($m) {
         #slots-list .slot-item { display: flex; justify-content: space-between; align-items: center; padding: 8px; border-bottom: 1px solid #ddd; }
         #slots-list .slot-item:last-child { border-bottom: none; }
         /* Toast styles */
-        .toast { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: #333; color: #fff; padding: 15px; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.3); z-index: 1001; opacity: 0; transition: opacity 0.5s; }
-        .toast.show { opacity: 1; }
+        .toast { 
+            position: fixed; 
+            bottom: 20px; 
+            right: 20px; 
+            background: linear-gradient(135deg, #198754 0%, #146c43 100%); 
+            color: #fff; 
+            padding: 20px 25px; 
+            border-radius: 12px; 
+            box-shadow: 0 6px 20px rgba(25,135,84,0.3); 
+            z-index: 1001; 
+            opacity: 0; 
+            transition: opacity 0.5s, transform 0.5s;
+            transform: translateY(100px);
+            max-width: 350px;
+            border: 2px solid #fff;
+        }
+        .toast.show { 
+            opacity: 1; 
+            transform: translateY(0);
+        }
+        .toast i {
+            font-size: 1.5rem;
+            margin-right: 10px;
+            vertical-align: middle;
+        }
+        .toast-content {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .toast-close {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            background: none;
+            border: none;
+            color: #fff;
+            font-size: 1.2rem;
+            cursor: pointer;
+            opacity: 0.8;
+            transition: opacity 0.3s;
+        }
+        .toast-close:hover {
+            opacity: 1;
+        }
         .bg-gradient-primary {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         }
@@ -578,131 +401,140 @@ function monthNameEs($m) {
     </style>
 </head>
 <body>
-    <div style="position: absolute; top: 10px; right: 10px; display: flex; gap: 10px;">
-        <button class="btn" onclick="backToSelection()">Seleccionar Otro Médico</button>
-    </div>
-    <!-- Div lateral para detalles de cita -->
-    <div id="cita-details" style="position: fixed; right: 10px; top: 50%; transform: translateY(-50%); width: 250px; background: #fff; border: 1px solid #ddd; border-radius: 8px; padding: 15px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); display: none;">
-        <h3>Detalles de la Cita</h3>
-        <p><strong>Nombre:</strong> <span id="cita-nombre"></span></p>
-        <p><strong>Estado:</strong> <span id="cita-estado"></span></p>
-        <p><strong>Motivo:</strong> <span id="cita-motivo"></span></p>
-        <button onclick="closeCitaDetails()" class="btn">Cerrar</button>
-    </div>
-    <div class="container">
-        <h1>Gestión de citas del médico</h1>
-        <div class="status">
-            Mes: <?php echo monthNameEs($month) . ' ' . $year; ?> | Médico ID: <?php echo htmlspecialchars((string)$medico_id); ?> | <a href="citas_medico.php" class="btn">Seleccionar Otro Médico</a>
-        </div>
-
-        <?php if ($response_msg): ?>
-            <div class="alerta" style="background:#d1e7dd;border-color:#a3cfbb;color:#0d5132;"><?php echo htmlspecialchars($response_msg); ?></div>
-        <?php endif; ?>
-        <?php if ($response_err): ?>
-            <div class="alerta" style="background:#ffebee;border-color:#ef9a9a;color:#b71c1c;">Error: <?php echo htmlspecialchars($response_err); ?></div>
-        <?php endif; ?>
-
-        <?php if (!empty($alertas)): ?>
-            <div class="alerta">
-                Alerta: Tiene paciente(s) en espera próximo(s) a su hora confirmada:
-                <strong><?php echo htmlspecialchars(implode(', ', $alertas)); ?></strong>
+        <div class="container py-4">
+            <div class="card shadow-lg mb-4" style="border-radius: 24px;">
+                <div class="card-header d-flex justify-content-between align-items-center bg-white position-relative" style="border-radius: 18px 18px 0 0;">
+                    <div class="d-flex align-items-center gap-3">
+                        <img src="<?php echo htmlspecialchars($medicos[$medico_id]['imagen'] ?? ''); ?>" alt="Foto Médico" class="rounded-circle" style="width: 60px; height: 60px; object-fit: cover; border: 2px solid #198754;">
+                        <div>
+                            <h3 class="mb-0" style="font-weight:700; color:#198754; font-size:1.8rem;"> <?php echo htmlspecialchars($medicos[$medico_id]['nombre'] ?? ''); ?> </h3>
+                            <span class="badge" style="font-size:1.1rem; background-color:#198754; color:#ffffff;"> <?php echo htmlspecialchars($medicos[$medico_id]['especialidad'] ?? ''); ?> </span>
+                        </div>
+                    </div>
+                    <button class="btn" style="position: absolute; top: 18px; right: 18px; background-color:#198754; color:#ffffff; border-color:#198754;" onclick="backToSelection()">
+                        <i class="bi bi-person-lines-fill"></i> Seleccionar Otro Médico
+                    </button>
+                </div>
+                <div class="card-body" style="border-radius: 0 0 18px 18px; background-color:#ffffff;">
+                    <div class="mb-3" style="font-size:1.1rem;">
+                        <span class="me-3"><i class="bi bi-envelope"></i> <?php echo htmlspecialchars($medicos[$medico_id]['email'] ?? ''); ?></span>
+                        <span><i class="bi bi-telephone"></i> <?php echo htmlspecialchars($medicos[$medico_id]['telefono'] ?? ''); ?></span>
+                    </div>
+                    <h2 class="mb-3" style="font-weight:600; color:#198754; background-color:#ffffff; padding:15px; border-radius:10px; font-size:2rem;">Gestión de citas del médico</h2>
+                    <div class="status mb-2" style="font-size:1.1rem;">
+                        Mes: <?php echo monthNameEs($month) . ' ' . $year; ?> | Médico ID: <?php echo htmlspecialchars((string)$medico_id); ?>
+                    </div>
+                    <?php if ($response_msg): ?>
+                        <div class="alerta" style="background:#d1e7dd;border-color:#a3cfbb;color:#0d5132;"> <?php echo htmlspecialchars($response_msg); ?> </div>
+                    <?php endif; ?>
+                    <?php if ($response_err): ?>
+                        <div class="alerta" style="background:#ffebee;border-color:#ef9a9a;color:#b71c1c;">Error: <?php echo htmlspecialchars($response_err); ?></div>
+                    <?php endif; ?>
+                    <?php if (!empty($alertas)): ?>
+                        <script>
+                                showToast('Tiene paciente(s) en espera próxim@ a la hora confirmada: <?php echo addslashes(implode(', ', $alertas)); ?>');
+                        </script>
+                    <?php endif; ?>
+                    <div class="controls sticky-top mb-3" style="font-size:1.05rem;">
+                        <form method="get" class="mb-2">
+                                <input type="hidden" name="medico_id" value="<?php echo (int)$medico_id; ?>" />
+                                <label class="me-2">Mes:
+                                        <select name="month" onchange="this.form.submit()" class="form-select d-inline-block w-auto">
+                                                <?php for($m=1; $m<=12; $m++): ?>
+                                                        <option value="<?php echo $m; ?>" <?php echo $m==$month?'selected':''; ?>><?php echo monthNameEs($m); ?></option>
+                                                <?php endfor; ?>
+                                        </select>
+                                </label>
+                                <label class="me-2">Año:
+                                        <input type="number" name="year" value="<?php echo (int)$year; ?>" min="1970" max="2100" onchange="this.form.submit()" class="form-control d-inline-block w-auto" />
+                                </label>
+                                <noscript><button type="submit" class="btn btn-primary">Ir</button></noscript>
+                        </form>
+                        <form method="post" class="mb-2">
+                                <input type="hidden" name="action" value="add_availability">
+                                <input type="hidden" name="medico_id" value="<?php echo (int)$medico_id; ?>">
+                                <label class="me-2">Fecha: <input type="date" name="fecha" required class="form-control d-inline-block w-auto"></label>
+                                <label class="me-2">Desde: <input type="time" name="desde" required class="form-control d-inline-block w-auto"></label>
+                                <label class="me-2">Hasta: <input type="time" name="hasta" required class="form-control d-inline-block w-auto"></label>
+                                <label class="me-2">Intervalo (min): <input type="number" min="5" step="5" name="intervalo" value="30" class="form-control d-inline-block w-auto"></label>
+                                <button class="btn" style="background-color:#198754; color:#ffffff; border-color:#198754;" type="submit">Agregar disponibilidad</button>
+                        </form>
+                    </div>
+                    <div class="legend mb-3">
+                        <span class="badge b-libre">Libre</span>
+                        <span class="badge b-bloq">Bloqueado</span>
+                        <span class="badge b-cita">Cita programada</span>
+                    </div>
+                    <div class="d-flex justify-content-center mb-4">
+                        <div id="calendar"></div>
+                    </div>
+                    <h4 class="mb-3" style="font-weight:600; color:#198754; font-size:1.6rem;">Listado de citas del mes</h4>
+                    <div class="table-responsive">
+                        <table class="table table-bordered table-hover">
+                            <thead>
+                                <tr>
+                                        <th>Fecha</th>
+                                        <th>Hora</th>
+                                        <th>Nombre completo</th>
+                                        <th>Motivo</th>
+                                        <th>Estado</th>
+                                        <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                            <?php
+                            foreach ($citas as $fecha => $list) {
+                                    foreach ($list as $c) {
+                                            echo '<tr>';
+                                            echo '<td>'.htmlspecialchars($fecha).'</td>';
+                                            echo '<td>'.htmlspecialchars(substr($c['hora'],0,5)).'</td>';
+                                            echo '<td>'.htmlspecialchars($c['nombre_completo'] ?? '').'</td>';
+                                            echo '<td>'.htmlspecialchars($c['motivo'] ?? '').'</td>';
+                                            echo '<td>'.htmlspecialchars($c['estado']).'</td>';
+                                            echo '<td>';
+                                            echo '<form method="post" style="display:inline-block">';
+                                            echo '<input type="hidden" name="action" value="update_estado_cita">';
+                                            echo '<input type="hidden" name="cita_id" value="' . (int)$c['id'] . '">';
+                                            echo '<input type="hidden" name="medico_id" value="' . (int)$medico_id . '">';
+                                            echo '<select name="nuevo_estado" class="form-select form-select-sm d-inline-block w-auto">';
+                                            $estados = ['pendiente'=>'Pendiente','confirmada'=>'Confirmada','cancelada'=>'Cancelada','completada'=>'Completada'];
+                                            foreach ($estados as $k=>$v) {
+                                                    $sel = $c['estado']===$k ? 'selected' : '';
+                                                    echo '<option value="'.$k.'" '.$sel.'>'.$v.'</option>';
+                                            }
+                                            echo '</select> ';
+                                            echo '<button class="btn btn-sm ms-1" style="background-color:#198754; color:#ffffff; border-color:#198754;" type="submit">Guardar</button>';
+                                            echo '</form>';
+                                            echo '</td>';
+                                            echo '</tr>';
+                                    }
+                            }
+                            if (empty($citas)) {
+                                    echo '<tr><td colspan="6" style="text-align:center;">No hay citas registradas este mes.</td></tr>';
+                            }
+                            ?>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
             </div>
-            <script>
-                showToast('Tiene paciente(s) en espera próxim@ a la hora confirmada: <?php echo addslashes(implode(', ', $alertas)); ?>');
-            </script>
-        <?php endif; ?>
-
-        <div class="controls sticky-top">
-            <form method="get">
-                <input type="hidden" name="medico_id" value="<?php echo (int)$medico_id; ?>" />
-                <label>Mes:
-                    <select name="month" onchange="this.form.submit()">
-                        <?php for($m=1; $m<=12; $m++): ?>
-                            <option value="<?php echo $m; ?>" <?php echo $m==$month?'selected':''; ?>><?php echo monthNameEs($m); ?></option>
-                        <?php endfor; ?>
-                    </select>
-                </label>
-                <label>Año:
-                    <input type="number" name="year" value="<?php echo (int)$year; ?>" min="1970" max="2100" onchange="this.form.submit()" />
-                </label>
-                <noscript><button type="submit" class="btn">Ir</button></noscript>
-            </form>
-
-            <form method="post">
-                <input type="hidden" name="action" value="add_availability">
-                <input type="hidden" name="medico_id" value="<?php echo (int)$medico_id; ?>">
-                <label>Fecha: <input type="date" name="fecha" required></label>
-                <label>Desde: <input type="time" name="desde" required></label>
-                <label>Hasta: <input type="time" name="hasta" required></label>
-                <label>Intervalo (min): <input type="number" min="5" step="5" name="intervalo" value="30"></label>
-                <button class="btn primary" type="submit">Agregar disponibilidad</button>
-            </form>
+            <!-- Modal Detalles de Cita -->
+            <div id="cita-details" class="card shadow" style="position: fixed; right: 10px; top: 50%; transform: translateY(-50%); width: 300px; background: #fff; border-radius: 18px; padding: 18px; box-shadow: 0 4px 16px rgba(25,118,210,0.12); display: none; z-index: 1050;">
+                <h5 class="mb-3" style="color:#1976d2; font-weight:700;">Detalles de la Cita</h5>
+                <p><strong>Nombre:</strong> <span id="cita-nombre"></span></p>
+                <p><strong>Estado:</strong> <span id="cita-estado"></span></p>
+                <p><strong>Motivo:</strong> <span id="cita-motivo"></span></p>
+                <button onclick="closeCitaDetails()" class="btn btn-outline-primary w-100 mt-2">Cerrar</button>
+            </div>
+            <!-- Modal -->
+            <div id="modal" class="modal">
+                <div class="modal-content">
+                    <span class="close" onclick="closeModal()">&times;</span>
+                    <h2>Slots para <span id="modal-date"></span></h2>
+                    <div id="slots-list"></div>
+                </div>
+            </div>
         </div>
-
-        <div class="legend">
-            <span class="badge b-libre">Libre</span>
-            <span class="badge b-bloq">Bloqueado</span>
-            <span class="badge b-cita">Cita programada</span>
-        </div>
-
-        <div id="calendar"></div>
-
-        <h2>Listado de citas del mes</h2>
-        <table class="table">
-            <thead>
-                <tr>
-                    <th>Fecha</th>
-                    <th>Hora</th>
-                    <th>Nombre completo</th>
-                    <th>Motivo</th>
-                    <th>Estado</th>
-                    <th>Acciones</th>
-                </tr>
-            </thead>
-            <tbody>
-            <?php
-            foreach ($citas as $fecha => $list) {
-                foreach ($list as $c) {
-                    echo '<tr>';
-                    echo '<td>'.htmlspecialchars($fecha).'</td>';
-                    echo '<td>'.htmlspecialchars(substr($c['hora'],0,5)).'</td>';
-                    echo '<td>'.htmlspecialchars($c['nombre_completo'] ?? '').'</td>';
-                    echo '<td>'.htmlspecialchars($c['motivo'] ?? '').'</td>';
-                    echo '<td>'.htmlspecialchars($c['estado']).'</td>';
-                    echo '<td>';
-                    echo '<form method="post" style="display:inline-block">';
-                    echo '<input type="hidden" name="action" value="update_estado_cita">';
-                    echo '<input type="hidden" name="cita_id" value="' . (int)$c['id'] . '">';
-                    echo '<input type="hidden" name="medico_id" value="' . (int)$medico_id . '">';
-                    echo '<select name="nuevo_estado">';
-                    $estados = ['pendiente'=>'Pendiente','confirmada'=>'Confirmada','cancelada'=>'Cancelada','completada'=>'Completada'];
-                    foreach ($estados as $k=>$v) {
-                        $sel = $c['estado']===$k ? 'selected' : '';
-                        echo '<option value="'.$k.'" '.$sel.'>'.$v.'</option>';
-                    }
-                    echo '</select> ';
-                    echo '<button class="btn success" type="submit">Guardar</button>';
-                    echo '</form>';
-                    echo '</td>';
-                    echo '</tr>';
-                }
-            }
-            if (empty($citas)) {
-                echo '<tr><td colspan="6" style="text-align:center;">No hay citas registradas este mes.</td></tr>';
-            }
-            ?>
-            </tbody>
-        </table>
-    </div>
-
-    <!-- Modal -->
-    <div id="modal" class="modal">
-        <div class="modal-content">
-            <span class="close" onclick="closeModal()">&times;</span>
-            <h2>Slots para <span id="modal-date"></span></h2>
-            <div id="slots-list"></div>
-        </div>
-    </div>
 
     <script>
         // PHP data to JS
@@ -753,9 +585,14 @@ function monthNameEs($m) {
                 dayCellDidMount: function(info) {
                     var dateStr = info.date.toISOString().split('T')[0];
                     if (hasAvailable[dateStr]) {
-                        info.el.style.backgroundColor = 'green';
+                        info.el.style.backgroundColor = '#e9ecef'; // gris claro disponible
                     } else {
-                        info.el.style.backgroundColor = 'blue';
+                        info.el.style.backgroundColor = '#ffffff'; // blanco sin disponibilidad
+                    }
+                    // Forzar color negro para números
+                    var dayNumber = info.el.querySelector('.fc-daygrid-day-number');
+                    if (dayNumber) {
+                        dayNumber.style.color = '#000';
                     }
                 }
             });
@@ -810,13 +647,35 @@ function monthNameEs($m) {
         function showToast(message) {
             var toast = document.createElement('div');
             toast.className = 'toast';
-            toast.innerText = message;
+            
+            var closeBtn = document.createElement('button');
+            closeBtn.className = 'toast-close';
+            closeBtn.innerHTML = '&times;';
+            closeBtn.onclick = function() {
+                closeToast(toast);
+            };
+            
+            var content = document.createElement('div');
+            content.className = 'toast-content';
+            content.innerHTML = '<i class="bi bi-bell-fill"></i><span>' + message + '</span>';
+            
+            toast.appendChild(closeBtn);
+            toast.appendChild(content);
             document.body.appendChild(toast);
+            
             setTimeout(function() { toast.classList.add('show'); }, 100);
             setTimeout(function() {
-                toast.classList.remove('show');
-                setTimeout(function() { document.body.removeChild(toast); }, 500);
-            }, 3000);
+                closeToast(toast);
+            }, 8000);
+        }
+        
+        function closeToast(toast) {
+            toast.classList.remove('show');
+            setTimeout(function() { 
+                if(toast.parentNode) {
+                    document.body.removeChild(toast); 
+                }
+            }, 500);
         }
 
         function closeCitaDetails() {

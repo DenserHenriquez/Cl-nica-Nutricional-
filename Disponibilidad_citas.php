@@ -62,302 +62,61 @@ if ($medico_id === 0) {
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>Agendar Cita - Disponibilidad de Médicos</title>
-        <link rel="stylesheet" href="assets/css/estilos.css">
-    <style>
-        :root {
-            --primary-900: #0d47a1;
-            --primary-700: #1565c0;
-            --primary-500: #1976d2;
-            --primary-300: #42a5f5;
-            --primary-100: #e3f2fd;
-            --white: #ffffff;
-            --text-900: #0b1b34;
-            --text-700: #22426e;
-            --text-500: #64748b;
-            --shadow: 0 10px 25px rgba(13, 71, 161, 0.18);
-            --shadow-light: 0 4px 6px rgba(0, 0, 0, 0.1);
-            --radius-lg: 16px;
-            --radius-md: 12px;
-            --radius-sm: 10px;
-            --bg-sky-blue: #87CEEB;
-            --gradient-card: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-        }
-
-        * { box-sizing: border-box; }
-        body {
-            margin: 0;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", sans-serif;
-            color: var(--text-900);
-            background: var(--bg-sky-blue);
-            min-height: 100vh;
-        }
-
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 30px 20px;
-        }
-
-        .header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 30px;
-            background: var(--white);
-            padding: 20px;
-            border-radius: var(--radius-lg);
-            box-shadow: var(--shadow);
-        }
-
-        h1 {
-            margin: 0;
-            font-size: 2.5rem;
-            font-weight: 700;
-            background: linear-gradient(45deg, var(--primary-700), var(--primary-500));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-
-        .btn-menu {
-            display: inline-block;
-            padding: 10px 20px;
-            background: var(--primary-500);
-            color: var(--white);
-            text-decoration: none;
-            border-radius: var(--radius-md);
-            font-weight: 600;
-            font-size: 1rem;
-            transition: all 0.3s ease;
-            box-shadow: var(--shadow-light);
-        }
-
-        .btn-menu:hover {
-            background: var(--primary-700);
-            transform: translateY(-2px);
-            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
-        }
-
-        .message {
-            padding: 15px;
-            margin-bottom: 25px;
-            border-radius: var(--radius-md);
-            color: #155724;
-            background: linear-gradient(135deg, #d4edda, #c3e6cb);
-            border: 1px solid #c3e6cb;
-            box-shadow: var(--shadow-light);
-            animation: fadeIn 0.5s ease-in;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(-10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        .form-section, .report-section {
-            background: var(--gradient-card);
-            border-radius: var(--radius-lg);
-            padding: 30px;
-            margin-bottom: 30px;
-            box-shadow: var(--shadow);
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-        }
-
-        .form-section:hover, .report-section:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 15px 35px rgba(13, 71, 161, 0.25);
-        }
-
-        .form-section h2, .report-section h2 {
-            margin-top: 0;
-            margin-bottom: 20px;
-            font-size: 1.8rem;
-            font-weight: 600;
-            color: var(--primary-900);
-            border-bottom: 2px solid var(--primary-300);
-            padding-bottom: 10px;
-        }
-
-        .form-group {
-            margin-bottom: 20px;
-        }
-
-        label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: 600;
-            color: var(--text-700);
-        }
-
-        input, textarea, select {
-            width: 100%;
-            padding: 12px;
-            border: 2px solid #e2e8f0;
-            border-radius: var(--radius-sm);
-            font-size: 1rem;
-            transition: border-color 0.3s ease, box-shadow 0.3s ease;
-        }
-
-        input:focus, textarea:focus, select:focus {
-            outline: none;
-            border-color: var(--primary-500);
-            box-shadow: 0 0 0 3px rgba(25, 118, 210, 0.1);
-        }
-
-        button {
-            background: linear-gradient(135deg, var(--primary-500), var(--primary-700));
-            color: var(--white);
-            padding: 12px 25px;
-            border: none;
-            border-radius: var(--radius-md);
-            cursor: pointer;
-            font-size: 1rem;
-            font-weight: 600;
-            transition: all 0.3s ease;
-            box-shadow: var(--shadow-light);
-        }
-
-        button:hover {
-            background: linear-gradient(135deg, var(--primary-700), var(--primary-900));
-            transform: translateY(-2px);
-            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
-        }
-
-        .report-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 20px;
-            border-radius: var(--radius-md);
-            overflow: hidden;
-            box-shadow: var(--shadow-light);
-        }
-
-        .report-table th, .report-table td {
-            padding: 15px;
-            text-align: left;
-            border-bottom: 1px solid #e2e8f0;
-        }
-
-        .report-table th {
-            background: linear-gradient(135deg, var(--primary-100), var(--primary-300));
-            font-weight: 600;
-            color: var(--text-900);
-        }
-
-        .report-table tbody tr {
-            transition: background-color 0.3s ease;
-        }
-
-        .report-table tbody tr:hover {
-            background-color: rgba(25, 118, 210, 0.05);
-        }
-
-        .report-table img {
-            border-radius: var(--radius-sm);
-            transition: transform 0.3s ease;
-        }
-
-        .report-table img:hover {
-            transform: scale(1.1);
-        }
-
-        @media (max-width: 768px) {
-            .container {
-                padding: 20px 10px;
+        <!-- Bootstrap 5 CSS -->
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+        <!-- Bootstrap Icons -->
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+        <style>
+            body { background-color: #f8f9fa; }
+            .card-medico {
+                border: none;
+                box-shadow: 0 0.125rem 0.25rem rgba(0,0,0,0.075);
+                border-radius: 1rem;
+                transition: box-shadow 0.3s;
             }
-            .header {
-                flex-direction: column;
-                text-align: center;
-                gap: 15px;
+            .card-medico:hover {
+                box-shadow: 0 0.5rem 1rem rgba(25,135,84,0.15);
             }
-            h1 {
-                font-size: 2rem;
+            .medico-img {
+                width: 80px; height: 80px; object-fit: cover; border-radius: 50%; margin-bottom: 10px;
             }
-            .form-section, .report-section {
-                padding: 20px;
+            .header-section {
+                background: linear-gradient(135deg, #198754 0%, #146c43 100%);
+                color: white;
+                padding: 2rem 0;
+                margin-bottom: 2rem;
             }
-            .report-table th, .report-table td {
-                padding: 10px;
-                font-size: 0.9rem;
+            .header-section h1 {
+                font-size: 2.5rem;
+                font-weight: 700;
             }
-        }
-
-        /* Estilos específicos para citas_medico */
-        .medicos-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; margin-top: 20px; }
-        .medico-card {
-            background: var(--gradient-card);
-            border-radius: var(--radius-lg);
-            padding: 20px;
-            box-shadow: var(--shadow);
-            text-align: center;
-            cursor: pointer;
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-            border: 2px solid #ddd;
-        }
-        .medico-card:hover { transform: translateY(-5px); box-shadow: 0 15px 35px rgba(13, 71, 161, 0.25); border-color: var(--primary-500); }
-        .medico-icon { width: 80px; height: 80px; margin: 0 auto 10px; border-radius: 50%; overflow: hidden; border: 2px solid #ddd; }
-        .medico-icon img { width: 100%; height: 100%; object-fit: cover; }
-        .medico-nombre { font-size: 18px; font-weight: bold; margin-bottom: 5px; }
-        .medico-especialidad { color: #666; margin-bottom: 5px; }
-        .medico-email { font-size: 14px; color: #555; margin-bottom: 2px; }
-        .medico-telefono { font-size: 14px; color: #555; }
-        .back-btn { position: absolute; top: 10px; right: 10px; padding: 8px 16px; background: var(--primary-500); color: var(--white); border: none; border-radius: var(--radius-md); cursor: pointer; text-decoration: none; transition: all 0.3s ease; }
-        .back-btn:hover { background: var(--primary-700); transform: translateY(-2px); box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15); }
-
-        #calendar { max-width: 400px; margin: 0 auto; height: 300px; font-size: 12px; }
-        .fc { font-size: 12px; }
-        .fc-daygrid-day { min-height: 60px; }
-        .fc-daygrid-day-number { font-size: 10px; }
-        .fc-event { font-size: 10px; padding: 2px; }
-        .badge { display:inline-block; padding:2px 6px; border-radius:4px; font-size:11px; margin-right:4px; }
-        .b-libre { background:#d1e7dd; color:#0d5132; border:1px solid #a3cfbb; }
-        .b-bloq { background:#ffebee; color:#c62828; border:1px solid #ef9a9a; }
-        .b-cita { background:#e3f2fd; color:#1565c0; border:1px solid #90caf9; display:block; margin:2px 0; }
-        .controls { margin: 10px 0; display:flex; gap:10px; flex-wrap:wrap; }
-        .controls form { display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
-        .status { font-size: 12px; color:#555; }
-        .legend { margin:10px 0; }
-        .legend span { margin-right:10px; }
-        .weekdays { display:grid; grid-template-columns:repeat(7,1fr); font-weight:bold; text-align:center; margin-bottom:6px; }
-        .alerta { background: linear-gradient(135deg, #ffecb3, #ffe082); border: 2px solid #ffb300; color: #bf360c; padding: 15px; border-radius: 12px; margin-bottom: 15px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); font-weight: bold; text-align: center; }
-        .sticky-top { position: sticky; top: 0; background: #f9f9f9; padding: 8px 0; z-index: 10; }
-        .small { font-size: 12px; }
-        .btn { padding:6px 10px; border:1px solid #999; background:#f0f0f0; border-radius:4px; cursor:pointer; }
-        .btn.primary { background:var(--primary-500); color:var(--white); border-color:var(--primary-700); }
-        .btn.warn { background:#e53935; color:#fff; border-color:#b71c1c; }
-        .btn.success { background:#146c43; color:#fff; border-color:#0d5132; }
-        .slot { display:flex; justify-content:space-between; align-items:center; gap:6px; }
-        .slot-actions form { display:inline; }
-        .table { width:100%; border-collapse: collapse; }
-        .table th, .table td { border:1px solid #ddd; padding:6px; }
-        .table th { background:#f3f3f3; }
-        /* Modal styles */
-        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.4); }
-        .modal-content { background-color: #fefefe; margin: 15% auto; padding: 20px; border: 1px solid #888; width: 80%; max-width: 600px; border-radius: var(--radius-lg); }
-        .close { color: #aaa; float: right; font-size: 28px; font-weight: bold; cursor: pointer; }
-        .close:hover { color: black; }
-        #slots-list { margin-top: 20px; }
-        #slots-list .slot-item { display: flex; justify-content: space-between; align-items: center; padding: 8px; border-bottom: 1px solid #ddd; }
-        #slots-list .slot-item:last-child { border-bottom: none; }
-        /* Toast styles */
-        .toast { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: #333; color: #fff; padding: 15px; border-radius: var(--radius-md); box-shadow: 0 4px 8px rgba(0,0,0,0.3); z-index: 1001; opacity: 0; transition: opacity 0.5s; }
-        .toast.show { opacity: 1; }
-    </style>
+            .header-section p {
+                font-size: 1.1rem;
+                opacity: 0.9;
+            }
+        </style>
     </head>
     <body>
-        <div class="container">
+        <div class="header-section text-center">
+            <div class="medical-icon">
+                <i class="bi bi-calendar-check" style="font-size:3rem;"></i>
+            </div>
             <h1>Agendar Cita - Seleccionar Médico</h1>
             <p>Haga clic en el médico para ver su calendario de disponibilidad.</p>
-            <div class="medicos-grid">
+        </div>
+        <div class="container">
+            <div class="row justify-content-center">
                 <?php foreach ($medicos as $id => $medico): ?>
-                    <div class="medico-card" onclick="selectMedico(<?php echo $id; ?>)">
-                        <div class="medico-icon">
-                            <img src="<?php echo htmlspecialchars($medico['imagen']); ?>" alt="Foto de <?php echo htmlspecialchars($medico['nombre']); ?>">
+                    <div class="col-md-3 mb-4">
+                        <div class="card card-medico text-center h-100" onclick="selectMedico(<?php echo $id; ?>)" style="cursor:pointer;">
+                            <div class="card-body">
+                                <img src="<?php echo htmlspecialchars($medico['imagen']); ?>" alt="Foto de <?php echo htmlspecialchars($medico['nombre']); ?>" class="medico-img">
+                                <h5 class="card-title mb-1"><?php echo htmlspecialchars($medico['nombre']); ?></h5>
+                                <div class="text-success mb-1"><?php echo htmlspecialchars($medico['especialidad']); ?></div>
+                                <div class="small text-muted mb-1"><i class="bi bi-envelope"></i> <?php echo htmlspecialchars($medico['email']); ?></div>
+                                <div class="small text-muted"><i class="bi bi-telephone"></i> <?php echo htmlspecialchars($medico['telefono']); ?></div>
+                            </div>
                         </div>
-                        <div class="medico-nombre"><?php echo htmlspecialchars($medico['nombre']); ?></div>
-                        <div class="medico-especialidad"><?php echo htmlspecialchars($medico['especialidad']); ?></div>
-                        <div class="medico-email"><?php echo htmlspecialchars($medico['email']); ?></div>
-                        <div class="medico-telefono"><?php echo htmlspecialchars($medico['telefono']); ?></div>
                     </div>
                 <?php endforeach; ?>
             </div>
@@ -367,6 +126,8 @@ if ($medico_id === 0) {
                 window.location.href = '?medico_id=' + id;
             }
         </script>
+        <!-- Bootstrap JS -->
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     </body>
     </html>
     <?php
@@ -470,7 +231,10 @@ function monthNameEs($m) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Disponibilidad de Citas</title>
-    <link rel="stylesheet" href="assets/css/estilos.css">
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
     <!-- FullCalendar CSS -->
     <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.min.css" rel="stylesheet">
     <!-- jQuery -->
@@ -478,108 +242,294 @@ function monthNameEs($m) {
     <!-- FullCalendar JS -->
     <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js"></script>
     <style>
-        #calendar { max-width: 400px; margin: 0 auto; height: 300px; font-size: 12px; }
-        .fc { font-size: 12px; }
-        .fc-daygrid-day { min-height: 60px; }
-        .fc-daygrid-day-number { font-size: 10px; }
-        .fc-event { font-size: 10px; padding: 2px; }
-        .badge { display:inline-block; padding:2px 6px; border-radius:4px; font-size:11px; margin-right:4px; }
-        .b-libre { background:#e8f5e9; color:#2e7d32; border:1px solid #a5d6a7; }
-        .b-bloq { background:#ffebee; color:#c62828; border:1px solid #ef9a9a; }
-        .b-cita { background:#e3f2fd; color:#1565c0; border:1px solid #90caf9; display:block; margin:2px 0; }
+        body { background-color: #ffffff; background-image: none; }
+        #calendar {
+            max-width: 1100px;
+            width: 100%;
+            margin: 0 auto;
+            height: 700px;
+            min-height: 600px;
+            font-size: 18px;
+            border: 3px solid #1976d2;
+            border-radius: 12px;
+            padding: 20px;
+            background: white;
+            box-shadow: 0 4px 12px rgba(25, 118, 210, 0.15);
+        }
+        .fc {
+            font-size: 16px;
+        }
+        .fc-daygrid-day {
+            min-height: 100px;
+        }
+        .fc-daygrid-day-number {
+            font-size: 16px;
+            font-weight: 600;
+            color: #000 !important;
+        }
+        .fc-col-header-cell-cushion {
+            font-size: 16px;
+            font-weight: 700;
+            color: #000 !important;
+        }
+        .fc-daygrid-day-top {
+            padding: 8px;
+        }
+        .fc-event {
+            font-size: 14px;
+            padding: 4px;
+        }
+        .badge-libre {
+            background:#198754;
+            color:#fff;
+            font-size: 1rem;
+        }
+        .badge-bloq {
+            background:#6c757d;
+            color:#fff;
+            font-size: 1rem;
+        }
         .controls { margin: 10px 0; display:flex; gap:10px; flex-wrap:wrap; }
         .controls form { display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
-        .status { font-size: 12px; color:#555; }
+        .status { font-size: 1rem; color:#555; margin-bottom: 10px; }
         .legend { margin:10px 0; }
-        .legend span { margin-right:10px; }
-        .weekdays { display:grid; grid-template-columns:repeat(7,1fr); font-weight:bold; text-align:center; margin-bottom:6px; }
-        .alerta { background: linear-gradient(135deg, #ffecb3, #ffe082); border: 2px solid #ffb300; color: #bf360c; padding: 15px; border-radius: var(--radius-md); margin-bottom: 15px; box-shadow: var(--shadow-light); font-weight: bold; text-align: center; }
-        .sticky-top { position: sticky; top: 0; background: #f9f9f9; padding: 8px 0; z-index: 10; }
-        .small { font-size: 12px; }
-        .slot { display:flex; justify-content:space-between; align-items:center; gap:6px; }
-        .slot-actions form { display:inline; }
-        .table { width:100%; border-collapse: collapse; }
-        .table th, .table td { border:1px solid #ddd; padding:6px; }
-        .table th { background:#f3f3f3; }
-        /* Modal styles */
-        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.4); }
-        .modal-content { background-color: #fefefe; margin: 15% auto; padding: 20px; border: 1px solid #888; width: 80%; max-width: 600px; border-radius: var(--radius-lg); }
-        .close { color: #aaa; float: right; font-size: 28px; font-weight: bold; cursor: pointer; }
-        .close:hover { color: black; }
-        #slots-list { margin-top: 20px; }
-        #slots-list .slot-item { display: flex; justify-content: space-between; align-items: center; padding: 8px; border-bottom: 1px solid #ddd; }
-        #slots-list .slot-item:last-child { border-bottom: none; }
-        /* Toast styles */
-        .toast { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: #333; color: #fff; padding: 15px; border-radius: var(--radius-md); box-shadow: 0 4px 8px rgba(0,0,0,0.3); z-index: 1001; opacity: 0; transition: opacity 0.5s; }
+        .legend span { margin-right:10px; font-size: 1rem; }
+        .card {
+            border: none;
+            box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+        }
+        .btn-success {
+            background-color: #198754;
+            border-color: #198754;
+        }
+        .btn-success:hover {
+            background-color: #146c43;
+            border-color: #13653f;
+        }
+        .bg-primary {
+            background-color: #198754 !important;
+        }
+        .btn-select-medico {
+            position: absolute;
+            top: 20px;
+            right: 30px;
+            z-index: 10;
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1050;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(5px);
+            animation: fadeIn 0.3s ease-in-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        @keyframes slideIn {
+            from { 
+                transform: translate(-50%, -60%);
+                opacity: 0;
+            }
+            to { 
+                transform: translate(-50%, -50%);
+                opacity: 1;
+            }
+        }
+        .modal-content {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+            border-radius: 1.5rem;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 600px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+            animation: slideIn 0.3s ease-out;
+            border: 3px solid #198754;
+        }
+        .modal-content h2 {
+            color: #198754;
+            font-weight: 700;
+            border-bottom: 2px solid #e9ecef;
+            padding-bottom: 15px;
+            margin-bottom: 20px;
+        }
+        .close {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            color: #198754;
+            font-size: 32px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            background-color: transparent;
+        }
+        .close:hover { 
+            color: #fff;
+            background-color: #198754;
+            transform: rotate(90deg);
+        }
+        #slots-list { 
+            margin-top: 20px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        #slots-list .slot-item { 
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px;
+            margin-bottom: 10px;
+            background: white;
+            border-radius: 12px;
+            border: 2px solid #e9ecef;
+            transition: all 0.3s;
+        }
+        #slots-list .slot-item:hover {
+            border-color: #198754;
+            box-shadow: 0 4px 12px rgba(25, 135, 84, 0.15);
+            transform: translateX(5px);
+        }
+        #slots-list .slot-item span {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #333;
+        }
+        #slots-list .slot-item button {
+            background-color: #198754;
+            color: white;
+            border: none;
+            padding: 8px 20px;
+            border-radius: 8px;
+            font-weight: 600;
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+        #slots-list .slot-item button:hover {
+            background-color: #146c43;
+            transform: scale(1.05);
+            box-shadow: 0 4px 8px rgba(25, 135, 84, 0.3);
+        }
+        .toast { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: #333; color: #fff; padding: 15px; border-radius: 1rem; box-shadow: 0 4px 8px rgba(0,0,0,0.3); z-index: 1001; opacity: 0; transition: opacity 0.5s; }
         .toast.show { opacity: 1; }
     </style>
 </head>
 <body>
-    <div style="position: absolute; top: 10px; right: 10px;">
-        <button class="btn" onclick="backToSelection()">Seleccionar Otro Médico</button>
+    <!-- Botón se moverá dentro del card de controles -->
+    <div class="header-section text-center mb-4" style="background: linear-gradient(135deg, #198754 0%, #146c43 100%); color: white; padding: 2rem 0;">
+        <div class="medical-icon mb-2">
+            <i class="bi bi-calendar-week" style="font-size:3rem;"></i>
+        </div>
+        <h1 class="fw-bold">Disponibilidad de Citas</h1>
+        <p class="lead">Consulta y agenda tus citas con nuestros médicos especialistas.</p>
     </div>
     <div class="container">
-        <h1>Disponibilidad de Citas</h1>
-        <?php if (isset($_SESSION['message'])): ?>
-            <div class="alerta" style="background:#d1e7dd;border-color:#a3cfbb;color:#0d5132;"><?php echo htmlspecialchars($_SESSION['message']); unset($_SESSION['message']); ?></div>
-        <?php endif; ?>
-        <?php if (isset($_SESSION['error'])): ?>
-            <div class="alerta" style="background:#ffebee;border-color:#ef9a9a;color:#b71c1c;">Error: <?php echo htmlspecialchars($_SESSION['error']); unset($_SESSION['error']); ?></div>
-        <?php endif; ?>
-        <div class="status">
-            Médico: <?php echo htmlspecialchars($medicos[$medico_id]['nombre'] ?? 'Desconocido'); ?> | Mes: <?php echo monthNameEs($month) . ' ' . $year; ?>
+        <div class="row justify-content-center">
+            <div class="col-lg-10">
+                <?php if (isset($_SESSION['message'])): ?>
+                    <div class="alert alert-success alert-dismissible fade show" role="alert">
+                        <i class="bi bi-check-circle-fill me-2"></i><?php echo htmlspecialchars($_SESSION['message']); unset($_SESSION['message']); ?>
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                <?php endif; ?>
+                <?php if (isset($_SESSION['error'])): ?>
+                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                        <i class="bi bi-exclamation-triangle-fill me-2"></i>Error: <?php echo htmlspecialchars($_SESSION['error']); unset($_SESSION['error']); ?>
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                <?php endif; ?>
+                <div class="card shadow-lg mb-4" style="border-radius: 24px;">
+                    <div class="card-header d-flex justify-content-between align-items-center bg-white position-relative" style="border-radius: 18px 18px 0 0;">
+                        <div class="d-flex align-items-center gap-3">
+                            <?php if (isset($medicos[$medico_id])): ?>
+                                <img src="<?php echo htmlspecialchars($medicos[$medico_id]['imagen']); ?>" alt="<?php echo htmlspecialchars($medicos[$medico_id]['nombre']); ?>" class="rounded-circle" style="width: 60px; height: 60px; object-fit: cover; border: 3px solid #198754;">
+                                <div>
+                                    <h4 class="mb-1" style="color: #198754; font-size: 1.8rem; font-weight: 700;"><?php echo htmlspecialchars($medicos[$medico_id]['nombre']); ?></h4>
+                                    <span class="badge" style="background-color: #198754; color: white; font-size: 1.1rem; padding: 6px 12px;"><?php echo htmlspecialchars($medicos[$medico_id]['especialidad']); ?></span>
+                                </div>
+                            <?php endif; ?>
+                        </div>
+                        <button class="btn" style="position: absolute; top: 18px; right: 18px; background-color:#198754; color:#ffffff; border-color:#198754;" onclick="backToSelection()">
+                            <i class="bi bi-arrow-left-circle"></i> Seleccionar Otro Médico
+                        </button>
+                    </div>
+                    <div class="card-body" style="border-radius: 0 0 18px 18px; background-color:#ffffff;">
+                        <div class="text-center mb-4" style="background-color: white; padding: 15px; border-radius: 10px;">
+                            <h3 style="color: #198754; font-size: 2rem; font-weight: 700; margin: 0;">Disponibilidad de Citas</h3>
+                        </div>
+                        <div class="controls mb-3">
+                            <form method="get" class="d-flex align-items-center">
+                                <input type="hidden" name="medico_id" value="<?php echo (int)$medico_id; ?>" />
+                                <label class="form-label mb-0 me-2" style="font-size: 1.05rem;">Mes:</label>
+                                <select name="month" class="form-select me-2" style="width:auto;display:inline-block; font-size: 1.05rem;" onchange="this.form.submit()">
+                                    <?php for($m=1; $m<=12; $m++): ?>
+                                        <option value="<?php echo $m; ?>" <?php echo $m==$month?'selected':''; ?>><?php echo monthNameEs($m); ?></option>
+                                    <?php endfor; ?>
+                                </select>
+                                <label class="form-label mb-0 me-2" style="font-size: 1.05rem;">Año:</label>
+                                <input type="number" name="year" class="form-control me-2" style="width:100px;display:inline-block; font-size: 1.05rem;" value="<?php echo (int)$year; ?>" min="1970" max="2100" onchange="this.form.submit()" />
+                                <noscript><button type="submit" class="btn btn-success">Ir</button></noscript>
+                            </form>
+                        </div>
+                        <div class="legend mb-3">
+                            <span class="badge badge-libre"><i class="bi bi-check-circle"></i> Disponible</span>
+                            <span class="badge badge-bloq"><i class="bi bi-x-circle"></i> Sin disponibilidad</span>
+                        </div>
+                        <div id="calendar"></div>
+                    </div>
+                </div>
+            </div>
         </div>
-
-        <div class="controls">
-            <form method="get">
-                <input type="hidden" name="medico_id" value="<?php echo (int)$medico_id; ?>" />
-                <label>Mes:
-                    <select name="month" onchange="this.form.submit()">
-                        <?php for($m=1; $m<=12; $m++): ?>
-                            <option value="<?php echo $m; ?>" <?php echo $m==$month?'selected':''; ?>><?php echo monthNameEs($m); ?></option>
-                        <?php endfor; ?>
-                    </select>
-                </label>
-                <label>Año:
-                    <input type="number" name="year" value="<?php echo (int)$year; ?>" min="1970" max="2100" onchange="this.form.submit()" />
-                </label>
-                <noscript><button type="submit" class="btn">Ir</button></noscript>
-            </form>
-        </div>
-
-        <div class="legend">
-            <span style="color:green;">Verde: Días con disponibilidad</span>
-            <span style="color:blue;">Azul: Sin disponibilidad</span>
-        </div>
-
-        <div id="calendar"></div>
     </div>
 
     <!-- Modal -->
     <div id="modal" class="modal">
-        <div class="modal-content">
+        <div class="modal-content p-4">
             <span class="close" onclick="closeModal()">&times;</span>
-            <h2>Horarios Disponibles para <span id="modal-date"></span></h2>
+            <h2 class="mb-3">
+                <i class="bi bi-clock-fill"></i> Horarios Disponibles
+            </h2>
+            <p class="text-muted mb-3"><i class="bi bi-calendar3"></i> Fecha: <strong id="modal-date" style="color: #198754;"></strong></p>
             <div id="slots-list"></div>
         </div>
     </div>
 
     <!-- Appointment Modal -->
     <div id="appointment-modal" class="modal">
-        <div class="modal-content">
+        <div class="modal-content p-4">
             <span class="close" onclick="closeAppointmentModal()">&times;</span>
-            <h2>Agendar Cita</h2>
-            <p>Hola, <?php echo htmlspecialchars($userName); ?>!</p>
+            <h2 class="mb-3"><i class="bi bi-calendar-plus"></i> Agendar Cita</h2>
+            <p class="mb-3">Hola, <span class="fw-bold text-success"><?php echo htmlspecialchars($userName); ?></span>!</p>
             <form id="appointment-form">
                 <input type="hidden" id="appointment-fecha" name="fecha">
                 <input type="hidden" id="appointment-hora" name="hora">
                 <input type="hidden" name="action" value="schedule_appointment">
                 <input type="hidden" name="medico_id" value="<?php echo (int)$medico_id; ?>">
-                <label for="nombre_completo">Nombre Completo:</label><br>
-                <input type="text" id="nombre_completo" name="nombre_completo" value="<?php echo htmlspecialchars($userName); ?>" required><br><br>
-                <label for="motivo">Motivo de la Consulta:</label><br>
-                <textarea id="motivo" name="motivo" rows="4" cols="50" required></textarea><br><br>
-                <button type="submit" class="btn primary">Agendar Cita</button>
+                <div class="mb-3">
+                    <label for="nombre_completo" class="form-label">Nombre Completo:</label>
+                    <input type="text" id="nombre_completo" name="nombre_completo" class="form-control" value="<?php echo htmlspecialchars($userName); ?>" required>
+                </div>
+                <div class="mb-3">
+                    <label for="motivo" class="form-label">Motivo de la Consulta:</label>
+                    <textarea id="motivo" name="motivo" class="form-control" rows="3" required></textarea>
+                </div>
+                <button type="submit" class="btn btn-success w-100"><i class="bi bi-calendar-plus"></i> Agendar Cita</button>
             </form>
         </div>
     </div>
@@ -609,9 +559,14 @@ function monthNameEs($m) {
                 dayCellDidMount: function(info) {
                     var dateStr = info.date.toISOString().split('T')[0];
                     if (hasAvailable[dateStr]) {
-                        info.el.style.backgroundColor = 'green';
+                        info.el.style.backgroundColor = '#ffffff'; // blanco disponible
                     } else {
-                        info.el.style.backgroundColor = 'blue';
+                        info.el.style.backgroundColor = '#e9ecef'; // gris claro sin disponibilidad
+                    }
+                    // Forzar color negro para números
+                    var dayNumber = info.el.querySelector('.fc-daygrid-day-number');
+                    if (dayNumber) {
+                        dayNumber.style.color = '#000';
                     }
                 }
             });
@@ -626,12 +581,12 @@ function monthNameEs($m) {
                 for (var hora in disp[date]) {
                     var slotDiv = document.createElement('div');
                     slotDiv.className = 'slot-item';
-                    slotDiv.innerHTML = '<span>' + hora.substring(0,5) + '</span>' +
-                        '<button class="btn primary" onclick="scheduleAppointment(\'' + date + '\', \'' + hora + '\')">Agendar</button>';
+                    slotDiv.innerHTML = '<span><i class="bi bi-clock"></i> ' + hora.substring(0,5) + '</span>' +
+                        '<button onclick="scheduleAppointment(\'' + date + '\', \'' + hora + '\')"><i class="bi bi-calendar-plus"></i> Agendar</button>';
                     slotsList.appendChild(slotDiv);
                 }
             } else {
-                slotsList.innerHTML = '<p>No hay horarios disponibles para esta fecha.</p>';
+                slotsList.innerHTML = '<div style="text-align:center; padding:40px; color:#6c757d;"><i class="bi bi-info-circle" style="font-size:3rem; margin-bottom:15px;"></i><p style="font-size:1.1rem;">No hay horarios disponibles para esta fecha.</p></div>';
             }
             document.getElementById('modal').style.display = 'block';
         }
@@ -698,5 +653,7 @@ function monthNameEs($m) {
     </script>
 
     <script src="assets/js/script.js"></script>
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

@@ -1,0 +1,16 @@
+{
+  "todos": [
+    {
+      "id": "1",
+      "title": "Agregar recetas al menú con estilo previo",
+      "description": "Actualizar Menuprincipal.php para incluir Crear Receta y Gestión de Recetas en el array de permisos y el sidebar, usando íconos bi bi-receipt y bi bi-journal-text en las posiciones originales.",
+      "status": "done"
+    },
+    {
+      "id": "2",
+      "title": "Unificar plantilla de Crear Receta",
+      "description": "Actualizar Crear_Receta.php para que use los estilos y gradientes verdes de Actualizar_perfil.php (botones, encabezado, etiquetas).",
+      "status": "in-progress"
+    }
+  ]
+}

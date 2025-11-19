@@ -55,39 +55,45 @@ try {
 $actions = [];
 if ($userRole === 'Administrador') {
     $actions = [
-        ['href'=>'Registropacientes.php','icon'=>'bi-person-plus','text'=>'Registrar Paciente'],
-        ['href'=>'Activar_desactivar_paciente.php','icon'=>'bi-toggle-on','text'=>'Estado Pacientes'],
-        ['href'=>'panelevolucionpaciente.php','icon'=>'bi-graph-up','text'=>'Panel Evolución'],
-        ['href'=>'Busqueda_avanzada.php','icon'=>'bi-search','text'=>'Búsqueda Avanzada'],
-        ['href'=>'citas_medico.php','icon'=>'bi-calendar-event','text'=>'Citas Médicas'],
-        ['href'=>'Disponibilidad_citas.php','icon'=>'bi-clock','text'=>'Disponibilidad'],
-        ['href'=>'Resgistro_Alimentos.php','icon'=>'bi-apple','text'=>'Registro Alimentos'],
-        ['href'=>'Clasificacion_alimentos.php','icon'=>'bi-apple','text'=>'Clasificación Alimentos'],
-        ['href'=>'Seguimiento_ejercicio.php','icon'=>'bi-activity','text'=>'Seguimiento Ejercicio'],
-        ['href'=>'retroalimentacion1.php','icon'=>'bi-chat-dots','text'=>'Retroalimentación'],
-        ['href'=>'Actualizar_perfil.php','icon'=>'bi-person-circle','text'=>'Actualizar Perfil']
+        ['href'=>'Actualizar_perfil.php','icon'=>'bi-person-circle','text'=>'Actualizar Perfil','desc'=>'Modifica tu información personal y credenciales de acceso'],
+        ['href'=>'Activar_desactivar_paciente.php','icon'=>'bi-toggle-on','text'=>'Estado del Paciente','desc'=>'Activa o desactiva el acceso de pacientes al sistema'],
+        ['href'=>'panelevolucionpaciente.php','icon'=>'bi-graph-up','text'=>'Panel de Evolución','desc'=>'Visualiza el progreso y evolución de los pacientes'],
+        ['href'=>'Busqueda_avanzada.php','icon'=>'bi-search','text'=>'Búsqueda Avanzada','desc'=>'Busca pacientes por múltiples criterios y filtros'],
+        ['href'=>'citas_medico.php','icon'=>'bi-calendar-event','text'=>'Citas Médicas','desc'=>'Gestiona y programa citas con los pacientes'],
+        ['href'=>'Disponibilidad_citas.php','icon'=>'bi-clock','text'=>'Disponibilidad de Citas','desc'=>'Configura horarios disponibles para consultas'],
+        ['href'=>'Registropacientes.php','icon'=>'bi-person-plus','text'=>'Registro de Pacientes','desc'=>'Añade nuevos pacientes al sistema de la clínica'],
+        ['href'=>'Resgistro_Alimentos.php','icon'=>'bi-apple','text'=>'Registro de Alimentos','desc'=>'Registra el consumo diario de alimentos'],
+        ['href'=>'Clasificacion_alimentos.php','icon'=>'bi-list-check','text'=>'Clasificación de Alimentos','desc'=>'Organiza y categoriza los alimentos por grupos'],
+        ['href'=>'Crear_Receta.php','icon'=>'bi-receipt','text'=>'Crear Receta','desc'=>'Genera nuevas recetas nutricionales personalizadas'],
+        ['href'=>'Gestion_Receta.php','icon'=>'bi-journal-text','text'=>'Gestión de Recetas','desc'=>'Administra y edita las recetas existentes'],
+        ['href'=>'Seguimiento_ejercicio.php','icon'=>'bi-activity','text'=>'Seguimiento de Ejercicios','desc'=>'Monitorea la actividad física y rutinas de ejercicio'],
+        ['href'=>'retroalimentacion1.php','icon'=>'bi-chat-dots','text'=>'Retroalimentación','desc'=>'Envía y recibe comentarios sobre el tratamiento']
     ];
 } elseif ($userRole === 'Medico') {
     $actions = [
-        ['href'=>'Registropacientes.php','icon'=>'bi-person-plus','text'=>'Registrar Paciente'],
-        ['href'=>'Activar_desactivar_paciente.php','icon'=>'bi-toggle-on','text'=>'Estado Pacientes'],
-        ['href'=>'panelevolucionpaciente.php','icon'=>'bi-graph-up','text'=>'Panel Evolución'],
-        ['href'=>'Busqueda_avanzada.php','icon'=>'bi-search','text'=>'Búsqueda Avanzada'],
-        ['href'=>'citas_medico.php','icon'=>'bi-calendar-event','text'=>'Citas Médicas'],
-        ['href'=>'Disponibilidad_citas.php','icon'=>'bi-clock','text'=>'Disponibilidad'],
-        ['href'=>'Resgistro_Alimentos.php','icon'=>'bi-apple','text'=>'Registro Alimentos'],
-        ['href'=>'Clasificacion_alimentos.php','icon'=>'bi-apple','text'=>'Clasificación Alimentos'],
-        ['href'=>'Seguimiento_ejercicio.php','icon'=>'bi-activity','text'=>'Seguimiento Ejercicio'],
-        ['href'=>'retroalimentacion1.php','icon'=>'bi-chat-dots','text'=>'Retroalimentación'],
-        ['href'=>'Actualizar_perfil.php','icon'=>'bi-person-circle','text'=>'Actualizar Perfil']
+        ['href'=>'Actualizar_perfil.php','icon'=>'bi-person-circle','text'=>'Actualizar Perfil','desc'=>'Modifica tu información personal y credenciales de acceso'],
+        ['href'=>'Activar_desactivar_paciente.php','icon'=>'bi-toggle-on','text'=>'Estado del Paciente','desc'=>'Activa o desactiva el acceso de pacientes al sistema'],
+        ['href'=>'panelevolucionpaciente.php','icon'=>'bi-graph-up','text'=>'Panel de Evolución','desc'=>'Visualiza el progreso y evolución de los pacientes'],
+        ['href'=>'Busqueda_avanzada.php','icon'=>'bi-search','text'=>'Búsqueda Avanzada','desc'=>'Busca pacientes por múltiples criterios y filtros'],
+        ['href'=>'citas_medico.php','icon'=>'bi-calendar-event','text'=>'Citas Médicas','desc'=>'Gestiona y programa citas con los pacientes'],
+        ['href'=>'Disponibilidad_citas.php','icon'=>'bi-clock','text'=>'Disponibilidad de Citas','desc'=>'Configura horarios disponibles para consultas'],
+        ['href'=>'Registropacientes.php','icon'=>'bi-person-plus','text'=>'Registro de Pacientes','desc'=>'Añade nuevos pacientes al sistema de la clínica'],
+        ['href'=>'Resgistro_Alimentos.php','icon'=>'bi-apple','text'=>'Registro de Alimentos','desc'=>'Registra el consumo diario de alimentos'],
+        ['href'=>'Clasificacion_alimentos.php','icon'=>'bi-list-check','text'=>'Clasificación de Alimentos','desc'=>'Organiza y categoriza los alimentos por grupos'],
+        ['href'=>'Crear_Receta.php','icon'=>'bi-receipt','text'=>'Crear Receta','desc'=>'Genera nuevas recetas nutricionales personalizadas'],
+        ['href'=>'Gestion_Receta.php','icon'=>'bi-journal-text','text'=>'Gestión de Recetas','desc'=>'Administra y edita las recetas existentes'],
+        ['href'=>'Seguimiento_ejercicio.php','icon'=>'bi-activity','text'=>'Seguimiento de Ejercicios','desc'=>'Monitorea la actividad física y rutinas de ejercicio'],
+        ['href'=>'retroalimentacion1.php','icon'=>'bi-chat-dots','text'=>'Retroalimentación','desc'=>'Envía y recibe comentarios sobre el tratamiento']
     ];
 } else { // Paciente
     $actions = [
-        ['href'=>'panelevolucionpaciente.php','icon'=>'bi-graph-up','text'=>'Mi Evolución'],
-        ['href'=>'Resgistro_Alimentos.php','icon'=>'bi-apple','text'=>'Mis Alimentos'],
-        ['href'=>'Seguimiento_ejercicio.php','icon'=>'bi-activity','text'=>'Mis Ejercicios'],
-        ['href'=>'retroalimentacion1.php','icon'=>'bi-chat-dots','text'=>'Retroalimentación'],
-        ['href'=>'Actualizar_perfil.php','icon'=>'bi-person-circle','text'=>'Perfil']
+        ['href'=>'Disponibilidad_citas.php','icon'=>'bi-clock','text'=>'Disponibilidad de Citas','desc'=>'Consulta horarios disponibles y agenda tu cita'],
+        ['href'=>'Actualizar_perfil.php','icon'=>'bi-person-circle','text'=>'Actualizar Perfil','desc'=>'Actualiza tu información personal y de contacto'],
+        ['href'=>'panelevolucionpaciente.php','icon'=>'bi-graph-up','text'=>'Panel de Evolución','desc'=>'Revisa tu progreso y evolución nutricional'],
+        ['href'=>'Resgistro_Alimentos.php','icon'=>'bi-apple','text'=>'Registro de Alimentos','desc'=>'Registra los alimentos que consumes diariamente'],
+        ['href'=>'Gestion_Receta.php','icon'=>'bi-journal-text','text'=>'Gestión de Recetas','desc'=>'Consulta tus recetas nutricionales personalizadas'],
+        ['href'=>'Seguimiento_ejercicio.php','icon'=>'bi-activity','text'=>'Seguimiento de Ejercicios','desc'=>'Registra y sigue tus rutinas de ejercicio'],
+        ['href'=>'retroalimentacion1.php','icon'=>'bi-chat-dots','text'=>'Retroalimentación','desc'=>'Comunícate con tu nutricionista sobre el tratamiento']
     ];
 }
 
@@ -131,11 +137,57 @@ $tipNutricional = $tips[array_rand($tips)];
     .metric-label { font-size:0.95rem; font-weight:600; color:#495057; text-transform:uppercase; letter-spacing:.5px; }
     .tip-box { background:linear-gradient(135deg,#e8f5e9,#e3f2fd); border:1px solid #d8e2dc; border-radius:18px; padding:28px 24px; box-shadow:0 4px 14px rgba(25,135,84,0.10); }
     .tip-box h3 { font-size:1.4rem; font-weight:700; color:#198754; }
-    .actions-grid { display:grid; gap:16px; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); margin-top:8px; }
-    .action-btn { position:relative; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:10px; padding:16px 14px; background:#ffffff; border:1px solid #e9ecef; border-radius:16px; text-decoration:none; color:#0d5132; font-weight:600; font-size:.9rem; box-shadow:0 4px 10px rgba(0,0,0,.05); transition:.25s; }
-    .action-btn i { font-size:26px; color:#198754; transition:.25s; }
-    .action-btn:hover { background:#198754; color:#fff; transform:translateY(-5px); box-shadow:0 12px 28px rgba(25,135,84,.25); }
-    .action-btn:hover i { color:#fff; transform:scale(1.15); }
+    .actions-grid { display:grid; gap:20px; grid-template-columns:repeat(auto-fill,minmax(280px,1fr)); margin-top:8px; }
+    .action-btn { 
+        position:relative; 
+        display:flex; 
+        flex-direction:column; 
+        align-items:flex-start; 
+        justify-content:flex-start; 
+        gap:12px; 
+        padding:24px 20px; 
+        background:#ffffff; 
+        border:1px solid #e9ecef; 
+        border-radius:16px; 
+        text-decoration:none; 
+        color:#0d5132; 
+        font-weight:600; 
+        font-size:1rem; 
+        box-shadow:0 4px 10px rgba(0,0,0,.05); 
+        transition:.25s;
+        min-height:140px;
+    }
+    .action-btn-header {
+        display:flex;
+        align-items:center;
+        gap:12px;
+        width:100%;
+    }
+    .action-btn i { font-size:32px; color:#198754; transition:.25s; }
+    .action-btn-title {
+        font-size:1.1rem;
+        font-weight:700;
+        color:#0d5132;
+        margin:0;
+    }
+    .action-btn-desc {
+        font-size:0.9rem;
+        font-weight:400;
+        color:#6c757d;
+        line-height:1.4;
+        margin:0;
+        text-align:left;
+    }
+    .action-btn:hover { 
+        background:#198754; 
+        color:#fff; 
+        transform:translateY(-5px); 
+        box-shadow:0 12px 28px rgba(25,135,84,.25); 
+        border-color:#198754;
+    }
+    .action-btn:hover i { color:#fff; transform:scale(1.1); }
+    .action-btn:hover .action-btn-title { color:#fff; }
+    .action-btn:hover .action-btn-desc { color:#e8f5e9; }
     .section-heading { font-size:1.3rem; font-weight:700; margin:28px 0 12px; color:#146c43; }
     @media (max-width:600px){ .metric-value { font-size:1.9rem; } }
 </style>
@@ -202,13 +254,16 @@ $tipNutricional = $tips[array_rand($tips)];
             <p class="mb-0">“<?= e($tipNutricional); ?>”</p>
         </div>
 
-        <!-- ACCIONES RÁPIDAS -->
-        <h2 class="section-heading">Acciones Rápidas</h2>
+        <!-- ACCIONES POR REALIZAR -->
+        <h2 class="section-heading">Acciones por Realizar</h2>
         <div class="actions-grid mb-5">
             <?php foreach ($actions as $a): ?>
                 <a class="action-btn" href="<?= e($a['href']); ?>" target="main-content">
-                    <i class="bi <?= e($a['icon']); ?>"></i>
-                    <span><?= e($a['text']); ?></span>
+                    <div class="action-btn-header">
+                        <i class="bi <?= e($a['icon']); ?>"></i>
+                        <h3 class="action-btn-title"><?= e($a['text']); ?></h3>
+                    </div>
+                    <p class="action-btn-desc"><?= e($a['desc']); ?></p>
                 </a>
             <?php endforeach; ?>
         </div>
