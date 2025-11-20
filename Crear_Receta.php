@@ -30,6 +30,7 @@ $isPrivileged = ($role === 'Medico' || $role === 'Administrador');
 
 // Obtener id del paciente desde la BD usando id_usuarios (solo si NO es privilegiado)
 $paciente_id = 0;
+$noRegistrado = false;
 if (!$isPrivileged) {
     $stmt = $conexion->prepare("SELECT id_pacientes FROM pacientes WHERE id_usuarios = ? LIMIT 1");
     if (!$stmt) {
@@ -41,9 +42,9 @@ if (!$isPrivileged) {
     if ($row = $result->fetch_assoc()) {
         $paciente_id = (int)$row['id_pacientes'];
     } else {
-        // Usuario no es paciente registrado
-        header('Location: Menuprincipal.php?error=No eres un paciente registrado.');
-        exit;
+        // Paciente no registrado: mostrar aviso y ocultar formulario (no redirigir)
+        $paciente_id = 0;
+        $noRegistrado = true;
     }
     $stmt->close();
 }
@@ -63,6 +64,10 @@ if ($isPrivileged) {
     }
 }
 
+// Inicializar mensajes
+$errores = [];
+$exito = '';
+
 // Configuración de subida
 $uploadDir = __DIR__ . '/assets/images/recetas';
 if (!is_dir($uploadDir)) {
@@ -70,8 +75,6 @@ if (!is_dir($uploadDir)) {
         $errores[] = 'No se pudo crear el directorio para subir imágenes.';
     }
 }
-$errores = [];
-$exito = '';
 
 // Crear tabla si no existe
 $conexion->query("CREATE TABLE IF NOT EXISTS recetas (
@@ -88,8 +91,8 @@ $conexion->query("CREATE TABLE IF NOT EXISTS recetas (
     CONSTRAINT fk_recetas_paciente FOREIGN KEY (id_pacientes) REFERENCES pacientes(id_pacientes) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;");
 
-// Manejo de POST
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+// Manejo de POST (solo permitir si no está en estado no-registrado o si es privilegiado)
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && !($noRegistrado && !$isPrivileged)) {
     // Validar token CSRF simple
     if (!isset($_POST['csrf']) || !isset($_SESSION['csrf']) || $_POST['csrf'] !== $_SESSION['csrf']) {
         $errores[] = 'Token inválido. Recargue la página.';
@@ -141,20 +144,29 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     // Determinar paciente destino
     $targetPacienteId = $paciente_id;
+    $targetPacienteIds = [$targetPacienteId];
     if ($isPrivileged) {
-        $targetPacienteId = isset($_POST['id_pacientes']) ? (int)$_POST['id_pacientes'] : 0;
-        if ($targetPacienteId <= 0) {
-            $errores[] = 'Debe seleccionar un paciente.';
+        $targetPacienteIds = isset($_POST['id_pacientes']) && is_array($_POST['id_pacientes']) ? array_map('intval', $_POST['id_pacientes']) : [];
+        // Limpiar duplicados y ceros
+        $targetPacienteIds = array_values(array_filter(array_unique($targetPacienteIds), function($v){ return $v > 0; }));
+        if (count($targetPacienteIds) === 0) {
+            $errores[] = 'Debe seleccionar al menos un paciente.';
         } else {
-            // Verificar que el paciente existe
-            if ($stmtChk = $conexion->prepare("SELECT 1 FROM pacientes WHERE id_pacientes = ? LIMIT 1")) {
-                $stmtChk->bind_param('i', $targetPacienteId);
+            // Verificar existencia de pacientes seleccionados
+            $placeholders = implode(',', array_fill(0, count($targetPacienteIds), '?'));
+            $typesChk = str_repeat('i', count($targetPacienteIds));
+            $sqlChk = "SELECT id_pacientes FROM pacientes WHERE id_pacientes IN ($placeholders)";
+            if ($stmtChk = $conexion->prepare($sqlChk)) {
+                $stmtChk->bind_param($typesChk, ...$targetPacienteIds);
                 $stmtChk->execute();
-                $stmtChk->store_result();
-                if ($stmtChk->num_rows === 0) {
-                    $errores[] = 'El paciente seleccionado no existe.';
-                }
+                $resultChk = $stmtChk->get_result();
+                $found = [];
+                while ($rw = $resultChk->fetch_assoc()) { $found[] = (int)$rw['id_pacientes']; }
                 $stmtChk->close();
+                $missing = array_diff($targetPacienteIds, $found);
+                if (!empty($missing)) {
+                    $errores[] = 'Algunos pacientes seleccionados no existen: ' . implode(', ', $missing);
+                }
             }
         }
     }
@@ -162,15 +174,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (empty($errores)) {
         $sql = "INSERT INTO recetas (id_pacientes, nombre, ingredientes, porciones, instrucciones, nota_nutricional, foto_path)
                 VALUES (?, ?, ?, ?, ?, ?, ?)";
-        $stmt = $conexion->prepare($sql);
-        if ($stmt) {
-            $stmt->bind_param('ississs', $targetPacienteId, $nombre, $ingredientes, $porciones, $instrucciones, $nota_nutricional, $fotoPath);
-            if ($stmt->execute()) {
-                $exito = 'Receta guardada correctamente.';
-            } else {
-                $errores[] = 'Error al guardar en BD: ' . $stmt->error;
+        if ($stmt = $conexion->prepare($sql)) {
+            $okCount = 0; $failCount = 0;
+            foreach ($targetPacienteIds as $pidInsert) {
+                $stmt->bind_param('ississs', $pidInsert, $nombre, $ingredientes, $porciones, $instrucciones, $nota_nutricional, $fotoPath);
+                if ($stmt->execute()) { $okCount++; } else { $failCount++; }
             }
             $stmt->close();
+            if ($failCount === 0) {
+                $exito = 'Receta guardada correctamente para ' . $okCount . ' paciente' . ($okCount !== 1 ? 's' : '') . '.';
+            } else {
+                $errores[] = 'Guardadas ' . $okCount . ', errores en ' . $failCount . ' inserción(es).';
+            }
         } else {
             $errores[] = 'Error preparando consulta: ' . $conexion->error;
         }
@@ -274,6 +289,13 @@ $csrf = $_SESSION['csrf'];
     </div>
 
     <div class="container mb-5">
+        <?php if (!empty($noRegistrado) && isset($_SESSION['rol']) && $_SESSION['rol'] === 'Paciente'): ?>
+            <div class="alert alert-warning" role="alert">
+                <i class="bi bi-exclamation-triangle-fill"></i>
+                Paciente nuevo: primero necesitas actualizar tus datos con tu médico tratante. Si aún no estás registrado como paciente en la clínica, ponte en contacto con el personal o tu médico para completar tu registro.
+            </div>
+        <?php endif; ?>
+
         <?php if (!empty($errores)): ?>
             <div class="alert alert-danger" role="alert">
                 <ul class="mb-0">
@@ -289,6 +311,7 @@ $csrf = $_SESSION['csrf'];
             </div>
         <?php endif; ?>
 
+        <?php if (!(!empty($noRegistrado) && isset($_SESSION['rol']) && $_SESSION['rol'] === 'Paciente')): ?>
         <div class="card">
             <div class="card-header bg-primary text-white">
                 <h5 class="card-title mb-0"><i class="bi bi-plus-circle me-2"></i>Nueva Receta</h5>
@@ -299,17 +322,17 @@ $csrf = $_SESSION['csrf'];
 
                     <?php if ($isPrivileged): ?>
                     <div class="mb-3">
-                        <label for="id_pacientes" class="form-label">
-                            <i class="bi bi-person me-1"></i>Paciente
+                        <label class="form-label d-flex align-items-center gap-1">
+                            <i class="bi bi-people"></i>
+                            Seleccione pacientes para enviar la receta
                         </label>
-                        <select class="form-select" id="id_pacientes" name="id_pacientes" required>
-                            <option value="">-- Seleccione un paciente --</option>
-                            <?php foreach ($pacientesList as $p): ?>
-                                <option value="<?= (int)$p['id'] ?>" <?= isset($_POST['id_pacientes']) && (int)$_POST['id_pacientes'] === (int)$p['id'] ? 'selected' : '' ?>>
-                                    <?= htmlspecialchars($p['nombre'], ENT_QUOTES, 'UTF-8') ?> (ID: <?= (int)$p['id'] ?>)
-                                </option>
-                            <?php endforeach; ?>
-                        </select>
+                        <div class="d-flex flex-wrap gap-2 mb-2" id="selectedPatientsSummary"></div>
+                        <button type="button" class="btn btn-outline-success btn-sm" id="openPatientsModal">
+                            <i class="bi bi-list-check me-1"></i> Elegir Pacientes
+                        </button>
+                        <div class="form-text">Puede elegir uno o varios pacientes. Se creará una copia de la receta por cada paciente seleccionado.</div>
+                        <!-- Contenedor donde se inyectarán inputs ocultos id_pacientes[] -->
+                        <div id="hiddenPatientsInputs"></div>
                     </div>
                     <?php endif; ?>
 
@@ -368,9 +391,47 @@ $csrf = $_SESSION['csrf'];
                 </form>
             </div>
         </div>
-
-
+        <?php endif; ?>
     </div>
+
+        <?php if ($isPrivileged): ?>
+        <!-- Modal Selección de Pacientes -->
+        <div class="modal fade" id="patientsModal" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog modal-lg modal-dialog-scrollable">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title"><i class="bi bi-people me-2"></i>Seleccionar Pacientes</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <input type="text" class="form-control" id="patientsSearch" placeholder="Buscar por nombre..." />
+                        </div>
+                        <div class="list-group" id="patientsList" style="max-height:420px; overflow:auto;">
+                            <?php foreach ($pacientesList as $p): ?>
+                                <label class="list-group-item d-flex align-items-center gap-2" data-name="<?= strtolower(htmlspecialchars($p['nombre'], ENT_QUOTES, 'UTF-8')) ?>">
+                                    <input class="form-check-input flex-shrink-0 patient-checkbox" type="checkbox" value="<?= (int)$p['id'] ?>" />
+                                    <span class="flex-grow-1">
+                                        <?= htmlspecialchars($p['nombre'], ENT_QUOTES, 'UTF-8') ?>
+                                        <small class="text-muted">(ID: <?= (int)$p['id'] ?>)</small>
+                                    </span>
+                                </label>
+                            <?php endforeach; ?>
+                        </div>
+                    </div>
+                    <div class="modal-footer d-flex justify-content-between">
+                        <div>
+                            <button type="button" class="btn btn-outline-secondary btn-sm" id="clearSelectionBtn"><i class="bi bi-x-circle me-1"></i>Limpiar</button>
+                        </div>
+                        <div class="d-flex gap-2">
+                            <button type="button" class="btn btn-outline-primary" id="selectAllBtn"><i class="bi bi-check-all me-1"></i>Todos</button>
+                            <button type="button" class="btn btn-success" id="confirmPatientsBtn"><i class="bi bi-save me-1"></i>Confirmar Selección</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <?php endif; ?>
 
     <script>
         function previewImage(event) {
@@ -389,6 +450,106 @@ $csrf = $_SESSION['csrf'];
                 preview.style.display = 'none';
             }
         }
+
+        <?php if ($isPrivileged): ?>
+        // --- Gestión modal selección de pacientes ---
+        const openBtn = document.getElementById('openPatientsModal');
+        const patientsModalEl = document.getElementById('patientsModal');
+        const searchInput = document.getElementById('patientsSearch');
+        const listEl = document.getElementById('patientsList');
+        const confirmBtn = document.getElementById('confirmPatientsBtn');
+        const selectAllBtn = document.getElementById('selectAllBtn');
+        const clearBtn = document.getElementById('clearSelectionBtn');
+        const summaryEl = document.getElementById('selectedPatientsSummary');
+        const hiddenInputsEl = document.getElementById('hiddenPatientsInputs');
+        let patientsModal;
+
+        if (openBtn) {
+            openBtn.addEventListener('click', () => {
+                if (!patientsModal) patientsModal = new bootstrap.Modal(patientsModalEl);
+                patientsModal.show();
+            });
+        }
+
+        // Búsqueda en vivo
+        if (searchInput) {
+            searchInput.addEventListener('input', () => {
+                const q = searchInput.value.trim().toLowerCase();
+                listEl.querySelectorAll('.list-group-item').forEach(item => {
+                    const name = item.getAttribute('data-name');
+                    item.style.display = name.includes(q) ? '' : 'none';
+                });
+            });
+        }
+
+        // Seleccionar todos
+        if (selectAllBtn) {
+            selectAllBtn.addEventListener('click', () => {
+                listEl.querySelectorAll('.patient-checkbox').forEach(cb => { cb.checked = true; });
+            });
+        }
+
+        // Limpiar selección
+        if (clearBtn) {
+            clearBtn.addEventListener('click', () => {
+                listEl.querySelectorAll('.patient-checkbox').forEach(cb => { cb.checked = false; });
+                updateSummary([]);
+                hiddenInputsEl.innerHTML = '';
+            });
+        }
+
+        // Confirmar
+        if (confirmBtn) {
+            confirmBtn.addEventListener('click', () => {
+                const ids = []; const names = [];
+                listEl.querySelectorAll('.patient-checkbox:checked').forEach(cb => {
+                    ids.push(cb.value);
+                    const label = cb.closest('.list-group-item');
+                    names.push(label.querySelector('span').textContent.trim());
+                });
+                // Actualizar hidden inputs
+                hiddenInputsEl.innerHTML = '';
+                ids.forEach(id => {
+                    const input = document.createElement('input');
+                    input.type = 'hidden';
+                    input.name = 'id_pacientes[]';
+                    input.value = id;
+                    hiddenInputsEl.appendChild(input);
+                });
+                updateSummary(names);
+                if (patientsModal) patientsModal.hide();
+            });
+        }
+
+        function updateSummary(names) {
+            summaryEl.innerHTML = '';
+            if (!names.length) {
+                summaryEl.innerHTML = '<span class="text-muted">Sin pacientes seleccionados.</span>';
+                return;
+            }
+            names.forEach(n => {
+                const pill = document.createElement('span');
+                pill.className = 'badge bg-success d-inline-flex align-items-center gap-1';
+                pill.textContent = n;
+                summaryEl.appendChild(pill);
+            });
+        }
+        // Inicializar si venimos de un POST (persistencia)
+        <?php if (isset($_POST['id_pacientes']) && is_array($_POST['id_pacientes'])): ?>
+            updateSummary(<?php
+                $persistNames = [];
+                foreach ($pacientesList as $p) {
+                    if (in_array($p['id'], array_map('intval', $_POST['id_pacientes']), true)) {
+                        $persistNames[] = htmlspecialchars($p['nombre'], ENT_QUOTES, 'UTF-8') . ' (ID: ' . (int)$p['id'] . ')';
+                        echo "\n"; // just spacing
+                    }
+                }
+                echo json_encode($persistNames, JSON_UNESCAPED_UNICODE);
+            ?>);
+        <?php else: ?>
+            updateSummary([]);
+        <?php endif; ?>
+        <?php endif; ?>
     </script>
 </body>
 </html>

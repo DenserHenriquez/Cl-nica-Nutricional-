@@ -26,7 +26,9 @@ if ($role === null) {
 }
 $isPrivileged = ($role === 'Medico' || $role === 'Administrador');
 
-// Si NO es privilegiado, debe ser paciente registrado
+// Si NO es privilegiado, validar registro de paciente
+$paciente_id = 0;
+$noRegistrado = false;
 if (!$isPrivileged) {
     $stmt = $conexion->prepare("SELECT id_pacientes FROM pacientes WHERE id_usuarios = ? LIMIT 1");
     if (!$stmt) { die("Error preparing statement: " . $conexion->error); }
@@ -36,8 +38,9 @@ if (!$isPrivileged) {
     if ($row = $result->fetch_assoc()) {
         $paciente_id = (int)$row['id_pacientes'];
     } else {
-        header('Location: Menuprincipal.php?error=No eres un paciente registrado.');
-        exit;
+        // Paciente no registrado: mostrar aviso y ocultar UI (sin redirección)
+        $paciente_id = 0;
+        $noRegistrado = true;
     }
     $stmt->close();
 }
@@ -57,28 +60,35 @@ $conexion->query("CREATE TABLE IF NOT EXISTS recetas (
     CONSTRAINT fk_recetas_paciente FOREIGN KEY (id_pacientes) REFERENCES pacientes(id_pacientes) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;");
 
-// Búsqueda
+// Búsqueda (solo ejecutar si no está en estado no-registrado para Paciente)
 $search = isset($_GET['search']) ? trim($_GET['search']) : '';
 $recetas = [];
-$sql = "SELECT id, nombre, ingredientes, porciones, instrucciones, nota_nutricional, foto_path, created_at FROM recetas WHERE 1=1";
-$params = [];
-$types = '';
-if (!empty($search)) {
-    $sql .= " AND (nombre LIKE ? OR ingredientes LIKE ?)";
-    $params[] = '%' . $search . '%';
-    $params[] = '%' . $search . '%';
-    $types .= 'ss';
-}
-$sql .= " ORDER BY created_at DESC";
-$stmt = $conexion->prepare($sql);
-if ($stmt) {
-    if ($types !== '') { $stmt->bind_param($types, ...$params); }
-    $stmt->execute();
-    $result = $stmt->get_result();
-    while ($row = $result->fetch_assoc()) {
-        $recetas[] = $row;
+if (!($noRegistrado && !$isPrivileged)) {
+    $sql = "SELECT id, nombre, ingredientes, porciones, instrucciones, nota_nutricional, foto_path, created_at FROM recetas WHERE 1=1";
+    $params = [];
+    $types = '';
+    if (!$isPrivileged) {
+        $sql .= " AND id_pacientes = ?";
+        $params[] = $paciente_id;
+        $types .= 'i';
     }
-    $stmt->close();
+    if (!empty($search)) {
+        $sql .= " AND (nombre LIKE ? OR ingredientes LIKE ?)";
+        $params[] = '%' . $search . '%';
+        $params[] = '%' . $search . '%';
+        $types .= 'ss';
+    }
+    $sql .= " ORDER BY created_at DESC";
+    $stmt = $conexion->prepare($sql);
+    if ($stmt) {
+        if ($types !== '') { $stmt->bind_param($types, ...$params); }
+        $stmt->execute();
+        $result = $stmt->get_result();
+        while ($row = $result->fetch_assoc()) {
+            $recetas[] = $row;
+        }
+        $stmt->close();
+    }
 }
 
 // CSRF token
@@ -127,16 +137,21 @@ $csrf = $_SESSION['csrf'];
                 <?php if ($isPrivileged): ?>
                     Busca y visualiza todas las recetas.
                 <?php else: ?>
-                    Paciente #<?= (int)$paciente_id ?> | Busca y visualiza todas las recetas.
+                    Paciente #<?= (int)$paciente_id ?> | Busca y visualiza tus recetas.
                 <?php endif; ?>
             </p>
         </div>
     </div>
 
     <div class="container mb-5">
+        <?php if (!empty($noRegistrado) && !$isPrivileged): ?>
+            <div class="alert alert-warning" role="alert">
+                <i class="bi bi-exclamation-triangle-fill"></i>
+                Paciente nuevo: primero necesitas actualizar tus datos con tu médico tratante. Si aún no estás registrado como paciente en la clínica, ponte en contacto con el personal o tu médico para completar tu registro.
+            </div>
+        <?php endif; ?>
 
-
-
+        <?php if (!($noRegistrado && !$isPrivileged)): ?>
         <div class="mb-4">
             <form method="get" class="d-flex">
                 <input type="text" class="form-control me-2" name="search" value="<?= htmlspecialchars($search, ENT_QUOTES, 'UTF-8') ?>" placeholder="Buscar por nombre o ingredientes">
@@ -194,6 +209,7 @@ $csrf = $_SESSION['csrf'];
                     </div>
                 </div>
             <?php endforeach; ?>
+        <?php endif; ?>
         <?php endif; ?>
     </div>
 

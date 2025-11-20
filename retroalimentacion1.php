@@ -5,6 +5,7 @@ require_once __DIR__ . '/db_connection.php';
 function h($s){ return htmlspecialchars((string)$s, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); }
 $userId = (int)($_SESSION['id_usuarios'] ?? 0);
 $userRole = $_SESSION['rol'] ?? '';
+$noRegistrado = false;
 // Obtener id_pacientes del usuario si es Paciente
 $currentPatientId = 0;
 if ($userRole === 'Paciente') {
@@ -15,8 +16,8 @@ if ($userRole === 'Paciente') {
 		if ($stPid->fetch()) { $currentPatientId = (int)$pidDb; }
 		$stPid->close();
 	}
-	// Si no existe paciente relacionado, bloquear acceso
-	if ($currentPatientId <= 0) { header('Location: Menuprincipal.php?error=No eres un paciente registrado.'); exit; }
+	// Si no existe paciente relacionado, mostrar aviso y ocultar UI (sin redirección)
+	if ($currentPatientId <= 0) { $noRegistrado = true; }
 }
 $nutriId = $userId; // Se mantiene para nutricionista
 
@@ -33,6 +34,8 @@ $conexion->query("CREATE TABLE IF NOT EXISTS retroalimentacion (
 // Handler AJAX: detalles para modal
 if (isset($_GET['action']) && $_GET['action']==='details') {
 		header('Content-Type: application/json');
+		// Bloquear si es paciente no registrado
+		if ($userRole === 'Paciente' && $currentPatientId <= 0) { echo json_encode(['ok'=>false,'error'=>'Paciente no registrado']); exit; }
 		$pid = (int)($_GET['id'] ?? 0);
 		// Forzar id propio si es paciente
 		if ($userRole === 'Paciente') { $pid = $currentPatientId; }
@@ -61,6 +64,8 @@ if (isset($_GET['action']) && $_GET['action']==='details') {
 // Handler AJAX: guardar comentario
 if (isset($_POST['action']) && $_POST['action']==='comment') {
 		header('Content-Type: application/json');
+		// Bloquear si es paciente no registrado
+		if ($userRole === 'Paciente' && $currentPatientId <= 0) { echo json_encode(['ok'=>false,'error'=>'Paciente no registrado']); exit; }
 		$pid = (int)($_POST['id_pacientes'] ?? 0);
 		$coment = trim($_POST['comentario'] ?? '');
 		$notificar = isset($_POST['notificar']) ? 1 : 0;
@@ -196,12 +201,21 @@ if ($userRole === 'Paciente') {
 	</div>
 
 	<main class="content">
+		<?php if (!($noRegistrado && ($userRole === 'Paciente'))): ?>
 		<div class="section-title">
 			<h4 class="mb-0"><?= ($_SESSION['rol'] ?? '') === 'Paciente' ? 'Mis Registros de Comidas' : 'Actividad reciente de los pacientes'; ?></h4>
 			<?php if(($_SESSION['rol'] ?? '') !== 'Paciente'): ?>
 			<a class="btn btn-sm btn-outline-primary" href="retroalimentacion1.php">Vista clásica</a>
 			<?php endif; ?>
 		</div>
+		<?php endif; ?>
+
+		<?php if (!empty($noRegistrado) && ($userRole === 'Paciente')): ?>
+			<div class="alert alert-warning">
+				<i class="bi bi-exclamation-triangle-fill"></i>
+				Paciente nuevo: primero necesitas actualizar tus datos con tu médico tratante. Si aún no estás registrado como paciente en la clínica, ponte en contacto con el personal o tu médico para completar tu registro.
+			</div>
+		<?php else: ?>
 		<?php if (empty($cards)): ?>
 			<div class="alert alert-secondary">No hay actividad reciente.</div>
 		<?php else: ?>
@@ -226,6 +240,7 @@ if ($userRole === 'Paciente') {
 					</div>
 				<?php endforeach; ?>
 			</div>
+		<?php endif; ?>
 		<?php endif; ?>
 	</main>
 

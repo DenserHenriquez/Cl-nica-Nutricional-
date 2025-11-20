@@ -58,7 +58,7 @@ $menuItems = [
     'registro_alimentos' => ['Medico', 'Paciente', 'Administrador'],
     'clasificacion_alimentos' => ['Medico', 'Administrador'],
     'crear_receta' => ['Medico', 'Administrador'],
-    'gestion_receta' => ['Medico', 'Administrador'],
+    'gestion_receta' => ['Medico', 'Administrador', 'Paciente'],
     'seguimiento_ejercicio' => ['Medico', 'Paciente', 'Administrador'],
     'retroalimentacion' => ['Medico', 'Paciente', 'Administrador']
 ];
@@ -787,16 +787,6 @@ function e($str) { return htmlspecialchars((string)$str, ENT_QUOTES, 'UTF-8'); }
 
                         <?php if (hasAccess('seguimiento_ejercicio', $userRole, $menuItems)): ?>
                         <li class="nav-item">
-                            <a class="nav-link" href="Crear_Receta.php" target="main-content">
-                                <i class="bi bi-receipt"></i> Crear Receta
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="Gestion_Receta.php" target="main-content">
-                                <i class="bi bi-journal-text"></i> Gestión de Recetas
-                            </a>
-                        </li>
-                        <li class="nav-item">
                             <a class="nav-link" href="Seguimiento_ejercicio.php" target="main-content">
                                 <i class="bi bi-activity"></i> Seguimiento de Ejercicios
                             </a>
@@ -816,7 +806,8 @@ function e($str) { return htmlspecialchars((string)$str, ENT_QUOTES, 'UTF-8'); }
 
             <!-- Main content -->
             <main>
-                <iframe name="main-content" src="<?php echo ($userRole === 'Paciente') ? 'Disponibilidad_citas.php' : 'inicio.php'; ?>"></iframe>
+                <!-- Cargar siempre la página de inicio al ingresar sin distinguir rol -->
+                <iframe name="main-content" src="inicio.php"></iframe>
             </main>
         </div>
     </div>
