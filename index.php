@@ -338,16 +338,29 @@
                     e.preventDefault();
                 }
             });
+
+            // Check URL parameters for modal and tab
+            const urlParams = new URLSearchParams(window.location.search);
+            const error = urlParams.get('error');
+            const ok = urlParams.get('ok');
+            const tab = urlParams.get('tab');
+
+            if (error || ok) {
+                // Show modal
+                const modal = new bootstrap.Modal(document.getElementById('loginModal'));
+                modal.show();
+
+                // Switch to specific tab if specified
+                if (tab) {
+                    const tabTrigger = document.querySelector(`#${tab}-tab`);
+                    if (tabTrigger) {
+                        const tabInstance = new bootstrap.Tab(tabTrigger);
+                        tabInstance.show();
+                    }
+                }
+            }
         });
     </script>
-</body>
-</html>
-
-
-
-
-
-
 </body>
 </html>
 

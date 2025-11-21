@@ -9,11 +9,15 @@ ini_set('error_log', __DIR__ . '/php_errors.log');
 mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
 
 // Helper para responder y detener ejecución
-function redirect_with_message($msg, $ok = false) {
+function redirect_with_message($msg, $ok = false, $tab = '') {
     // Puedes ajustar el redireccionamiento a otra página si lo prefieres
     // Aquí regresamos a index.php con un mensaje en querystring
     $param = $ok ? 'ok' : 'error';
-    header('Location: index.php?' . $param . '=' . urlencode($msg));
+    $url = 'index.php?' . $param . '=' . urlencode($msg);
+    if ($tab) {
+        $url .= '&tab=' . $tab;
+    }
+    header('Location: ' . $url);
     exit;
 }
 
@@ -47,14 +51,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         // Comprobar unicidad de usuario y correo
         $stmt = $conexion->prepare('SELECT 1 FROM usuarios WHERE Usuario = ? OR Correo_electronico = ? LIMIT 1');
         if (!$stmt) {
-            redirect_with_message('Error al preparar consulta: ' . $conexion->error);
+            redirect_with_message('Error al preparar consulta: ' . $conexion->error, false, 'register');
         }
         $stmt->bind_param('ss', $usuario, $correo);
         $stmt->execute();
         $stmt->store_result();
         if ($stmt->num_rows > 0) {
             $stmt->close();
-            redirect_with_message('El usuario o correo ya existe');
+            redirect_with_message('El usuario o correo ya existe', false, 'register');
         }
         $stmt->close();
 
@@ -71,7 +75,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         // Hashear contraseña
         $hash = password_hash($contrasena, PASSWORD_BCRYPT);
         if ($hash === false) {
-            redirect_with_message('Error al procesar la contrasena');
+            redirect_with_message('Error al procesar la contrasena', false, 'register');
         }
 
         // Insertar usuario (intentar con Rol, si falla reintentar sin Rol)
@@ -94,7 +98,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         } else {
             $err = $stmt->error;
             $stmt->close();
-            redirect_with_message('Error al registrar: ' . $err);
+            redirect_with_message('Error al registrar: ' . $err, false, 'register');
         }
     } else {
         // Proceso de login
@@ -102,7 +106,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $pass_login = isset($_POST['contrasena']) ? (string)$_POST['contrasena'] : '';
 
         if ($correo_login === '' || $pass_login === '') {
-            redirect_with_message('Correo y contraseña son requeridos');
+            redirect_with_message('Correo y contraseña son requeridos', false, 'login');
         }
 
 
@@ -114,7 +118,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $stmt = $conexion->prepare('SELECT id_usuarios, Contrasena, Nombre_completo, Usuario FROM usuarios WHERE Correo_electronico = ? LIMIT 1');
         }
         if (!$stmt) {
-            redirect_with_message('Error al preparar consulta: ' . $conexion->error);
+            redirect_with_message('Error al preparar consulta: ' . $conexion->error, false, 'login');
         }
         $stmt->bind_param('s', $correo_login);
         $stmt->execute();
@@ -140,7 +144,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     }
                 }
             } else {
-                redirect_with_message('Credenciales inválidas');
+                redirect_with_message('Credenciales inválidas', false, 'login');
             }
         }
 
