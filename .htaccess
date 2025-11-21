@@ -1,0 +1,9 @@
+# Custom project .htaccess
+# Shows a friendly 404 page instead of the default Apache error page.
+# Adjust the path below if your project is served from a different URL path.
+
+# Prevent directory listing
+Options -Indexes
+
+# Custom 404 handler (absolute path from web root)
+ErrorDocument 404 /Cl-nica-Nutricional-J/Cl-nica-Nutricional-/404.php
