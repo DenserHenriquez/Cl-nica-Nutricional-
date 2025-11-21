@@ -255,28 +255,28 @@ $total_entradas = $resultado->num_rows;
                                 
                                 echo "<td class='estado-text estado-".htmlspecialchars($fila['estado'])." col-hide-xs'>".htmlspecialchars($fila['estado'])."</td>";
                                 echo "<td class='col-acciones'>
-    <div class='d-flex align-items-center gap-1'>
-        <!-- Panel evolución -->
-        <a href='panelevolucionpaciente.php?id=".htmlspecialchars($fila['id_pacientes'])."' class='btn btn-outline-info btn-sm' title='Panel evolución'>
-            <i class='bi bi-bar-chart-line'></i>
-        </a>
-        <!-- Actualizar Perfil -->
-        <a href='Actualizar_perfil.php?id=".htmlspecialchars($fila['id_usuarios'])."' class='btn btn-outline-primary btn-sm' title='Actualizar perfil'>
-            <i class='bi bi-person-gear'></i>
-        </a>
-        <!-- Eliminar -->
-        <button onclick=\"if(confirm('¿Eliminar paciente?')) location.href='eliminar_paciente.php?id=".htmlspecialchars($fila['id_pacientes'])."';\" class='btn btn-outline-danger btn-sm' title='Eliminar'>
-            <i class='bi bi-trash'></i>
-        </button>
-        <!-- Activar/Desactivar -->
-        <label class='switch' title='Activar/Desactivar'>
-            <input type='checkbox' class='estado-switch'
-                   data-id='".$fila['id_pacientes']."'
-                   ".(($fila['estado']=='Activo')?'checked':'').">
-            <span class='slider round'></span>
-        </label>
-    </div>
-</td>";
+                            <div class='d-flex align-items-center gap-1'>
+                                <!-- Panel evolución -->
+                                <a href='panelevolucionpaciente.php?id=".htmlspecialchars($fila['id_pacientes'])."' class='btn btn-outline-info btn-sm' title='Panel evolución'>
+                                    <i class='bi bi-bar-chart-line'></i>
+                                </a>
+                                <!-- Actualizar Perfil -->
+                                <a href='Actualizar_perfil.php?id=".htmlspecialchars($fila['id_usuarios'])."' class='btn btn-outline-primary btn-sm' title='Actualizar perfil'>
+                                    <i class='bi bi-person-gear'></i>
+                                </a>
+                                <!-- Eliminar (usa modal personalizado) -->
+                                <button data-id='".htmlspecialchars($fila['id_pacientes'])."' class='btn btn-outline-danger btn-sm btn-delete-paciente' title='Eliminar'>
+                                    <i class='bi bi-trash'></i>
+                                </button>
+                                <!-- Activar/Desactivar -->
+                                <label class='switch' title='Activar/Desactivar'>
+                                    <input type='checkbox' class='estado-switch'
+                                           data-id='".$fila['id_pacientes']."'
+                                           ".(($fila['estado']=='Activo')?'checked':'').">
+                                    <span class='slider round'></span>
+                                </label>
+                            </div>
+                        </td>";
                                 echo "</tr>";
                             }
                         } else {
@@ -323,46 +323,131 @@ document.querySelectorAll('.rol-select').forEach(function(selectEl) {
         const idUsuario = this.dataset.usuarioId;
         const nuevoRol = this.value;
         const selectOriginal = this;
-        const valorAnterior = Array.from(selectOriginal.options).find(opt => opt.selected && opt !== selectOriginal.options[selectOriginal.selectedIndex]);
+        const valorAnterior = selectOriginal.getAttribute('data-current-role') || (Array.from(selectOriginal.options).find(opt => opt.defaultSelected) || {}).value;
 
-        if(!confirm('¿Cambiar el rol de este usuario a ' + nuevoRol + '?')) {
-            // Revertir selección si cancela
-            if(valorAnterior) selectOriginal.value = valorAnterior.value;
-            return;
+        // Mostrar modal estético de confirmación
+        showConfirm('¿Cambiar el rol de este usuario a ' + nuevoRol + '?').then(function(confirmed) {
+            if (!confirmed) {
+                // Revertir selección si cancela
+                if (valorAnterior) selectOriginal.value = valorAnterior;
+                return;
+            }
+
+            // AJAX POST a cambiar_rol_usuario.php
+            const xhr = new XMLHttpRequest();
+            xhr.open("POST", "cambiar_rol_usuario.php", true);
+            xhr.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+            xhr.onload = function() {
+                if(xhr.status === 200) {
+                    try {
+                        const response = JSON.parse(xhr.responseText);
+                        if(response.success) {
+                            // Actualizar data-current-role para futuras reversiones
+                            selectOriginal.setAttribute('data-current-role', nuevoRol);
+                            showToast('Rol actualizado exitosamente a ' + nuevoRol, 'success');
+                        } else {
+                            showToast('Error: ' + response.message, 'danger');
+                            if(valorAnterior) selectOriginal.value = valorAnterior;
+                        }
+                    } catch(e) {
+                        showToast('Error al procesar respuesta del servidor', 'danger');
+                        if(valorAnterior) selectOriginal.value = valorAnterior;
+                    }
+                } else {
+                    showToast('Error al cambiar el rol del usuario', 'danger');
+                    if(valorAnterior) selectOriginal.value = valorAnterior;
+                }
+            };
+            xhr.onerror = function() {
+                showToast('Error de conexión', 'danger');
+                if(valorAnterior) selectOriginal.value = valorAnterior;
+            };
+            xhr.send("id_usuarios=" + encodeURIComponent(idUsuario) + "&rol=" + encodeURIComponent(nuevoRol));
+        });
+    });
+});
+
+// --- Custom confirmation modal and helpers ---
+function showConfirm(message) {
+    return new Promise(function(resolve) {
+        const modal = document.getElementById('confirmModal');
+        const msg = document.getElementById('confirmModalMessage');
+        const btnConfirm = document.getElementById('confirmModalOk');
+        const btnCancel = document.getElementById('confirmModalCancel');
+
+        msg.textContent = message;
+        modal.classList.add('show');
+
+        function cleanup() {
+            modal.classList.remove('show');
+            btnConfirm.removeEventListener('click', onOk);
+            btnCancel.removeEventListener('click', onCancel);
         }
 
-        // AJAX POST a cambiar_rol_usuario.php
-        const xhr = new XMLHttpRequest();
-        xhr.open("POST", "cambiar_rol_usuario.php", true);
-        xhr.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
-        xhr.onload = function() {
-            if(xhr.status === 200) {
-                try {
-                    const response = JSON.parse(xhr.responseText);
-                    if(response.success) {
-                        alert("Rol actualizado exitosamente a " + nuevoRol);
-                    } else {
-                        alert("Error: " + response.message);
-                        // Revertir selección si falla
-                        if(valorAnterior) selectOriginal.value = valorAnterior.value;
-                    }
-                } catch(e) {
-                    alert("Error al procesar respuesta del servidor");
-                    if(valorAnterior) selectOriginal.value = valorAnterior.value;
-                }
-            } else {
-                alert("Error al cambiar el rol del usuario");
-                if(valorAnterior) selectOriginal.value = valorAnterior.value;
+        function onOk() { cleanup(); resolve(true); }
+        function onCancel() { cleanup(); resolve(false); }
+
+        btnConfirm.addEventListener('click', onOk);
+        btnCancel.addEventListener('click', onCancel);
+    });
+}
+
+function showToast(message, type) {
+    // Simple temporary toast in top-right corner
+    const toast = document.createElement('div');
+    toast.className = 'custom-toast bg-' + (type === 'success' ? 'success' : 'danger');
+    toast.textContent = message;
+    document.body.appendChild(toast);
+    setTimeout(() => { toast.classList.add('visible'); }, 10);
+    setTimeout(() => { toast.classList.remove('visible'); setTimeout(() => toast.remove(), 300); }, 3500);
+}
+
+// Attach delete handlers that use modal
+document.querySelectorAll('.btn-delete-paciente').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+        const id = this.getAttribute('data-id');
+        showConfirm('¿Eliminar paciente?').then(function(ok) {
+            if (ok) {
+                window.location.href = 'eliminar_paciente.php?id=' + encodeURIComponent(id);
             }
-        };
-        xhr.onerror = function() {
-            alert("Error de conexión");
-            if(valorAnterior) selectOriginal.value = valorAnterior.value;
-        };
-        xhr.send("id_usuarios=" + idUsuario + "&rol=" + nuevoRol);
+        });
     });
 });
 </script>
+
+<!-- Confirm modal markup (floating box) -->
+<div id="confirmModal" class="confirm-modal" role="dialog" aria-modal="true" aria-hidden="true">
+    <div class="confirm-modal__backdrop" onclick="document.getElementById('confirmModal').classList.remove('show')"></div>
+    <div class="confirm-modal__box">
+        <div class="confirm-modal__icon"><i class="bi bi-exclamation-triangle-fill"></i></div>
+        <div class="confirm-modal__content">
+            <p id="confirmModalMessage">¿Confirmar?</p>
+            <div class="confirm-modal__actions">
+                <button id="confirmModalCancel" class="btn btn-secondary">Cancelar</button>
+                <button id="confirmModalOk" class="btn btn-danger">Confirmar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+/* Modal styles */
+.confirm-modal { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; pointer-events: none; z-index: 2147483647; }
+.confirm-modal__backdrop { position: absolute; inset: 0; background: rgba(0,0,0,0.45); opacity: 0; transition: opacity .18s ease; }
+.confirm-modal__box { position: relative; width: 100%; max-width: 420px; background: #fff; border-radius: 12px; box-shadow: 0 12px 40px rgba(2,6,23,0.35); transform: translateY(12px) scale(.98); opacity: 0; transition: all .18s ease; display:flex; gap:12px; padding:18px; align-items: center; }
+.confirm-modal__icon { font-size: 2.2rem; color: #f6c23e; flex: 0 0 48px; display:flex; align-items:center; justify-content:center; }
+.confirm-modal__content p { margin: 0 0 12px 0; font-weight:600; color:#222; }
+.confirm-modal__actions { display:flex; gap:8px; justify-content:flex-end; }
+.confirm-modal.show { pointer-events: auto; }
+.confirm-modal.show .confirm-modal__backdrop { opacity: 1; }
+.confirm-modal.show .confirm-modal__box { opacity: 1; transform: translateY(0) scale(1); }
+
+/* Toast */
+.custom-toast { position: fixed; top: 20px; right: 20px; padding: 10px 14px; border-radius: 8px; color: #fff; font-weight:600; opacity:0; transform: translateY(-6px); transition: all .25s ease; z-index: 9999; }
+.custom-toast.bg-success { background: #198754; }
+.custom-toast.bg-danger { background: #d32f2f; }
+.custom-toast.visible { opacity: 1; transform: translateY(0); }
+</style>
 
 </body>
 </html>
