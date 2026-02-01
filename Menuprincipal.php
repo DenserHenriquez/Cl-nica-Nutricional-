@@ -701,7 +701,7 @@ function e($str) { return htmlspecialchars((string)$str, ENT_QUOTES, 'UTF-8'); }
                         <?php if (hasAccess('estado_paciente', $userRole, $menuItems)): ?>
                         <li class="nav-item">
                             <a class="nav-link" href="Activar_desactivar_paciente.php" target="main-content">
-                                <i class="bi bi-toggle-on"></i> Estado de Usuarios
+                                <i class="bi bi-toggle-on"></i> Usuarios
                             </a>
                         </li>
                         <?php endif; ?>
