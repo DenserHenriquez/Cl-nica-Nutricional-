@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Nov 11, 2025 at 03:09 AM
+-- Generation Time: Nov 23, 2025 at 05:02 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -45,7 +45,7 @@ CREATE TABLE `alimentos_nutricionales` (
 
 INSERT INTO `alimentos_nutricionales` (`id_alimento`, `nombre`, `tipo`, `calorias`, `proteinas`, `grasas`, `carbohidratos`, `created_by`, `fecha_creacion`) VALUES
 (1, 'Huevo Cocido', 'alimento', 78.00, 6.30, 5.30, 0.60, 1, '2025-11-07 18:37:13'),
-(2, 'Pollo a la plancha con Arroz', 'plato', 420.00, 38.00, 12.00, 40.00, 1, '2025-11-07 18:45:03');
+(3, 'ensalada', 'plato', 20.00, 5.00, 2.00, 3.00, 1, '2025-11-18 22:44:39');
 
 -- --------------------------------------------------------
 
@@ -76,7 +76,9 @@ INSERT INTO `alimentos_registro` (`id`, `id_pacientes`, `fecha`, `tipo_comida`, 
 (7, 4, '2025-10-27', 'desayuno', 'Bowl de frutas', '07:30:00', 'assets/images/alimentos/paciente_420251028_064942fd3904f3.png', '2025-10-27 23:49:42'),
 (8, 4, '2025-10-28', 'almuerzo', 'Arroz, Pollo y ensalada de aguacate y tomate', '12:00:00', 'assets/images/alimentos/paciente_420251028_065200d392ddce.jpg', '2025-10-27 23:52:00'),
 (9, 1, '2025-10-29', 'almuerzo', 'Arroz, pollo, ensalada de aguacate y tomate', '12:20:00', 'assets/images/alimentos/paciente_120251029_224346b63ec590.jpg', '2025-10-29 15:43:46'),
-(10, 1, '2025-11-11', 'cena', 'Pan integral con aguacate', '20:23:00', 'assets/images/alimentos/paciente_120251111_022503d1dc2d66.jpg', '2025-11-10 19:25:03');
+(10, 1, '2025-11-11', 'cena', 'Pan integral con aguacate', '20:23:00', 'assets/images/alimentos/paciente_120251111_022503d1dc2d66.jpg', '2025-11-10 19:25:03'),
+(11, 5, '2025-11-11', 'snack', 'pollo', '22:36:00', 'assets/images/alimentos/paciente_520251111_043540365af368.jpg', '2025-11-10 21:35:40'),
+(12, 5, '2025-11-21', 'desayuno', 'a', '00:38:00', NULL, '2025-11-10 21:35:53');
 
 -- --------------------------------------------------------
 
@@ -110,6 +112,14 @@ CREATE TABLE `disponibilidades` (
   `estado` enum('libre','bloqueado') NOT NULL DEFAULT 'libre'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+--
+-- Dumping data for table `disponibilidades`
+--
+
+INSERT INTO `disponibilidades` (`id`, `medico_id`, `fecha`, `hora`, `estado`) VALUES
+(1, 1, '2025-11-19', '13:30:00', 'libre'),
+(2, 1, '2025-11-19', '14:00:00', 'libre');
+
 -- --------------------------------------------------------
 
 --
@@ -136,7 +146,8 @@ INSERT INTO `ejercicios` (`id_ejercicio`, `paciente_id`, `tipo_ejercicio`, `tiem
 (1, 1, 'Gimnasio', 30, '00:00:00', '2025-10-27', NULL, 'Realize remo con mancuernas', '2025-10-27 19:19:53'),
 (2, 1, 'Caminata', 30, '00:00:00', '2025-10-28', 'uploads/ejercicios/69003be939acb_Caminata.jpg', '', '2025-10-28 03:43:37'),
 (3, 1, 'Caminata', 30, '00:00:00', '2025-10-28', 'uploads/ejercicios/69003c817865a_Caminata.jpg', '', '2025-10-28 03:46:09'),
-(4, 4, 'Correr', 30, '00:00:00', '2025-10-27', 'uploads/ejercicios/690055ed4d1a3_Caminata.jpg', '', '2025-10-28 05:34:37');
+(4, 4, 'Correr', 30, '00:00:00', '2025-10-27', 'uploads/ejercicios/690055ed4d1a3_Caminata.jpg', '', '2025-10-28 05:34:37'),
+(5, 5, 'Ciclismo', 180, '23:35:00', '2025-11-12', 'uploads/ejercicios/paciente_5_20251111_043433_47fffd.jpg', 'no', '2025-11-11 03:34:33');
 
 -- --------------------------------------------------------
 
@@ -169,7 +180,15 @@ INSERT INTO `expediente` (`id_expediente`, `id_pacientes`, `talla`, `peso`, `est
 (6, 5, 172.10, 72.00, 172.01, 24.33, 55.01, 'a', 'b', '2025-11-08 05:33:18'),
 (7, 5, 172.10, 76.00, 172.01, 25.69, 55.01, 'a', 'b', '2025-11-08 05:33:35'),
 (8, 5, 172.10, 72.00, 172.01, 24.33, 55.01, 'a', 'b', '2025-11-08 05:34:13'),
-(9, 9, 180.00, NULL, 180.00, NULL, 25.00, 'n', 'n', '2025-11-09 04:26:04');
+(9, 9, 180.00, NULL, 180.00, NULL, 25.00, 'n', 'n', '2025-11-09 04:26:04'),
+(10, 5, 180.00, NULL, 180.00, NULL, 25.00, 'a', 'b', '2025-11-11 03:31:31'),
+(11, 5, 172.12, 76.00, 172.12, 25.65, 55.01, 'a', 'b', '2025-11-11 03:32:57'),
+(12, 6, 180.00, NULL, 180.00, NULL, 25.00, 'a', 'aa', '2025-11-11 03:53:48'),
+(13, 7, 170.00, 77.00, 170.00, 26.64, 50.00, 'x', 'x', '2025-11-11 04:05:47'),
+(14, 8, 170.00, 77.00, 170.00, 26.64, 50.00, 'no', 'tampoco', '2025-11-11 04:52:45'),
+(15, 9, 170.00, 77.00, 170.00, 26.64, 50.00, 'a', 'a', '2025-11-15 03:13:12'),
+(16, 10, 170.00, 77.00, 170.00, 26.64, 50.00, NULL, NULL, '2025-11-15 03:17:01'),
+(17, 11, 160.00, 54.20, 160.00, 21.17, 48.00, 'Ninguna', 'Ninguno', '2025-11-19 04:49:51');
 
 -- --------------------------------------------------------
 
@@ -205,7 +224,14 @@ INSERT INTO `historial_actualizaciones` (`id_historial`, `id_usuarios`, `campo`,
 (11, 1, 'edad', '19', '20', 1, '2025-10-27 23:34:25'),
 (12, 1, 'Contrasena', '$2y$10$eA.D3HQlEoX0bfcVDOcHReCJ/2Om3YtPnFm/a3kKrYpbJcnZ.aue6', '$2y$10$N3MAup0mWpMx9ZePPZru1OYzMaHJJIKJtDvwmQ76o56dKUBU6O89e', 1, '2025-10-28 16:01:16'),
 (13, 1, 'Contrasena', '$2y$10$N3MAup0mWpMx9ZePPZru1OYzMaHJJIKJtDvwmQ76o56dKUBU6O89e', '$2y$10$SPA6cFDoZ7RC/DgE5PJOheZ3rG7h/taCA9uRbG6e7NAU0IDHCwtdW', 1, '2025-10-30 22:29:27'),
-(14, 1, 'telefono', '99553211', '33456012', 1, '2025-10-30 22:29:27');
+(14, 1, 'telefono', '99553211', '33456012', 1, '2025-10-30 22:29:27'),
+(15, 9, 'talla', NULL, '172.12', 9, '2025-11-11 03:32:57'),
+(16, 9, 'peso', NULL, '76.00', 9, '2025-11-11 03:32:57'),
+(17, 9, 'estatura', NULL, '172.12', 9, '2025-11-11 03:32:57'),
+(18, 9, 'IMC', NULL, '25.65', 9, '2025-11-11 03:32:57'),
+(19, 9, 'masa_muscular', NULL, '55.01', 9, '2025-11-11 03:32:57'),
+(20, 9, 'enfermedades_base', NULL, 'a', 9, '2025-11-11 03:32:57'),
+(21, 9, 'medicamentos', NULL, 'b', 9, '2025-11-11 03:32:57');
 
 -- --------------------------------------------------------
 
@@ -232,7 +258,47 @@ INSERT INTO `pacientes` (`id_pacientes`, `id_usuarios`, `nombre_completo`, `DNI`
 (1, 1, 'Damaris  Bonilla Garcia', '0823200610125', '2005-08-01', 20, '33456012', 'Activo'),
 (2, 2, 'Jose Levi Canales', '1705201000216', '2010-10-08', 15, '32653641', 'Activo'),
 (3, 3, 'Juan David Perez ', '0801200015300', '2025-04-08', 25, '33452018', 'Inactivo'),
-(4, 4, 'Evelenth Garcia', '0823200013256', '2000-07-06', 25, '33654892', 'Inactivo');
+(4, 4, 'Evelenth Garcia', '0823200013256', '2000-07-06', 25, '33654892', 'Inactivo'),
+(5, 9, 'anthony', '0801200012346', '2012-11-05', 13, '99887766', 'Activo'),
+(6, 10, 'kaleth', '0801200012346', '2012-11-05', 13, '99887766', 'Activo'),
+(7, 12, 'a', '0801200012348', '2025-06-18', 0, '99999911', 'Activo'),
+(8, 13, 'leonel messi', '0801200012349', '2025-06-18', 0, '99999912', 'Activo'),
+(9, 18, 'paciente12', '1234567891234', '2001-05-17', 24, '99999914', 'Activo'),
+(10, 17, 'paciente11', '0823123451234', '2001-05-17', 24, '99999914', 'Activo'),
+(11, 15, 'admin', '0826200010365', '2000-11-03', 25, '36458010', 'Activo');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `recetas`
+--
+
+CREATE TABLE `recetas` (
+  `id` int(11) NOT NULL,
+  `id_pacientes` int(11) NOT NULL,
+  `nombre` varchar(255) NOT NULL,
+  `ingredientes` text NOT NULL,
+  `porciones` int(11) DEFAULT NULL,
+  `instrucciones` text DEFAULT NULL,
+  `nota_nutricional` text DEFAULT NULL,
+  `foto_path` varchar(255) DEFAULT NULL,
+  `created_at` datetime NOT NULL DEFAULT current_timestamp(),
+  `id_medico` int(11) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `recetas`
+--
+
+INSERT INTO `recetas` (`id`, `id_pacientes`, `nombre`, `ingredientes`, `porciones`, `instrucciones`, `nota_nutricional`, `foto_path`, `created_at`, `id_medico`) VALUES
+(1, 5, 'Salmón al Horno con Aderezo de Eneldo y Ensalada de Berries', 'Filetes de salmón (4 unidades de 150g), aceite de oliva virgen extra, brócoli (200g), espinacas frescas (150g), arándanos (100g), fresas (150g), nueces (50g), limón (1 unidad), eneldo fresco, sal marina y pimienta.', 4, '1. Preparar Salmón: Precalentar el horno a 180°C. Colocar los filetes de salmón en una bandeja. Rociar con aceite de oliva, jugo de medio limón, sal, pimienta y eneldo picado. Hornear por 15-20 minutos o hasta que esté bien cocido. 2. Cocer Vegetales: Cocer al vapor el brócoli durante 5 minutos para que quede crujiente. 3. Montaje: En un bol grande, mezclar las espinacas frescas con los arándanos, las fresas cortadas y las nueces. Colocar el salmón y el brócoli al lado de la ensalada de berries.', 'Alto en Ácidos Grasos Omega-3 (salmón), esenciales para la salud cardiovascular y cerebral. Fuente significativa de fibra (vegetales y berries) y antioxidantes (arándanos y fresas). Es una comida completa, baja en carbohidratos netos y rica en proteínas de alto valor biológico. Ideal para el control de peso y dietas antiinflamatorias.', NULL, '2025-11-17 23:29:21', NULL),
+(2, 5, 'Curry de Lentejas Rojas y Kale (Vegano)', 'Lentejas rojas secas (250g), Leche de coco de lata (400ml), Caldo de verduras (500ml), Jengibre fresco (2cm), Cúrcuma en polvo, Curry en polvo, Aceite de oliva, 1 Cebolla, 2 Zanahorias, 1 pimiento rojo, Kale (col rizada) (100g), Cilantro fresco para decorar, Sal y pimienta.', 5, '1. Sofrito: Picar la cebolla, el jengibre y el pimiento. En una olla, calentar aceite de oliva y sofreír la cebolla hasta que esté transparente. Añadir las especias (cúrcuma y curry) y cocinar por 1 minuto. 2. Cocer Lentejas: Añadir las lentejas rojas y la zanahoria en cubos a la olla. Cubrir con la leche de coco y el caldo de verduras. Dejar que hierva, luego reducir el fuego y cocinar a fuego lento por 20 minutos. 3. Finalizar: Incorporar las hojas de kale picadas y cocinar por 5 minutos más hasta que estén tiernas. Sazonar con sal y pimienta. Servir caliente y decorar con cilantro fresco.', 'Excelente fuente de proteína vegetal completa y hierro (lentejas), lo que lo hace ideal para dietas vegetarianas y veganas. Alto contenido de fibra dietética para la salud intestinal. El kale y la cúrcuma aportan compuestos antiinflamatorios y altos niveles de vitaminas A y K. Se sugiere acompañar con una porción de arroz integral para una mejor absorción de nutrientes.', 'assets/images/recetas/receta_5_20251118_064808_ce425c31.webp', '2025-11-17 23:48:08', NULL),
+(3, 7, 'Curry de Lentejas Rojas y Kale (Vegano)', 'arroz', 5, 'ninguna', 'a', NULL, '2025-11-18 22:26:09', NULL),
+(4, 9, 'no', 'no tiene', 2, 'tampoco', '12', NULL, '2025-11-18 22:27:57', NULL),
+(5, 10, 'pepsi', 'solo tomela', 1, 'abrir y tomar', 'tómesela completa', 'assets/images/recetas/receta_0_20251120_041350_337c0391.jpg', '2025-11-19 21:13:50', NULL),
+(6, 10, 'Batido Verde de Kiwi y Espinacas con Semillas de Chía', '1 taza de espinacas frescas, 2 kiwis (pelados), 1 banana madura (congelada si es posible), 1/2 taza de leche de almendra (o agua), 1 cucharada de semillas de chía, 1 cucharadita de miel o stevia (opcional).', 2, '1. Preparación: Coloque primero la leche de almendra o el agua en la licuadora. 2. Añadir Ingredientes: Agregue la espinaca, el kiwi, la banana y las semillas de chía. 3. Licuar: Licúe a velocidad media-alta hasta obtener una consistencia suave y homogénea. Si queda demasiado espeso, añada un poco más de líquido. 4. Servir: Sirva inmediatamente. Si lo desea más frío, añada 2-3 cubos de hielo.', 'Excelente fuente de Vitamina C (kiwi), Potasio (banana) y Ácido Fólico (espinacas). La adición de semillas de chía proporciona una dosis importante de fibra soluble y Omega-3, favoreciendo la saciedad y la salud digestiva. Es ideal para un desayuno rápido o una recuperación post-ejercicio.', 'assets/images/recetas/receta_0_20251120_044425_a52d17e4.webp', '2025-11-19 21:44:25', NULL),
+(7, 9, 'Batido Verde de Kiwi y Espinacas con Semillas de Chía', '1 taza de espinacas frescas, 2 kiwis (pelados), 1 banana madura (congelada si es posible), 1/2 taza de leche de almendra (o agua), 1 cucharada de semillas de chía, 1 cucharadita de miel o stevia (opcional).', 2, '1. Preparación: Coloque primero la leche de almendra o el agua en la licuadora. 2. Añadir Ingredientes: Agregue la espinaca, el kiwi, la banana y las semillas de chía. 3. Licuar: Licúe a velocidad media-alta hasta obtener una consistencia suave y homogénea. Si queda demasiado espeso, añada un poco más de líquido. 4. Servir: Sirva inmediatamente. Si lo desea más frío, añada 2-3 cubos de hielo.', 'Excelente fuente de Vitamina C (kiwi), Potasio (banana) y Ácido Fólico (espinacas). La adición de semillas de chía proporciona una dosis importante de fibra soluble y Omega-3, favoreciendo la saciedad y la salud digestiva. Es ideal para un desayuno rápido o una recuperación post-ejercicio.', 'assets/images/recetas/receta_0_20251120_044425_a52d17e4.webp', '2025-11-19 21:44:25', NULL),
+(8, 10, 'Pechugas de Pollo Rellenas de Espinacas y Feta', '4 pechugas de pollo deshuesadas y sin piel, 150g de espinacas frescas picadas, 100g de queso feta desmoronado, 1 diente de ajo picado, 2 cucharadas de aceite de oliva, Sal, pimienta, y orégano seco.', 4, '1. Preparar el Relleno: En un bol, mezclar las espinacas, el queso feta, el ajo picado, una cucharada de aceite de oliva, sal, pimienta y orégano. 2. Rellenar el Pollo: Abrir un bolsillo profundo en el lateral de cada pechuga de pollo. Rellenar con la mezcla de espinacas y feta, asegurándose de que el relleno quede dentro. 3. Cocinar: Calentar la cucharada de aceite restante en una sartén grande. Dorar las pechugas por ambos lados. 4. Hornear (Opcional): Terminar de cocinar en el horno precalentado a 180°C durante 15-20 minutos, o hasta que el pollo esté completamente cocido.', 'Excelente fuente de proteína magra (pollo), esencial para la reparación y el mantenimiento muscular. Bajo en grasas saturadas y carbohidratos. El relleno proporciona calcio (feta) y hierro/fibra (espinacas). Perfecto para dietas de control de peso, desarrollo muscular o como una cena ligera.', 'assets/images/recetas/receta_0_20251120_045234_8dde2ff2.avif', '2025-11-19 21:52:34', NULL);
 
 -- --------------------------------------------------------
 
@@ -258,7 +324,9 @@ INSERT INTO `retroalimentacion` (`id`, `id_pacientes`, `id_nutricionista`, `come
 (2, 5, 5, 'no tome mucha pepsi', 0, '2025-11-08 22:09:08'),
 (3, 8, 5, 'mas agua', 0, '2025-11-08 22:09:40'),
 (4, 5, 5, 'tome mas agua', 0, '2025-11-08 22:12:37'),
-(5, 5, 5, 'x', 0, '2025-11-09 18:11:37');
+(5, 5, 5, 'x', 0, '2025-11-09 18:11:37'),
+(6, 1, 9, 'x', 0, '2025-11-10 21:32:15'),
+(7, 5, 18, 'no coma eso', 0, '2025-11-14 20:49:06');
 
 -- --------------------------------------------------------
 
@@ -271,22 +339,32 @@ CREATE TABLE `usuarios` (
   `Nombre_completo` varchar(50) NOT NULL,
   `Correo_electronico` varchar(50) NOT NULL,
   `Usuario` varchar(50) NOT NULL,
-  `Contrasena` varchar(255) NOT NULL
+  `Contrasena` varchar(255) NOT NULL,
+  `rol` enum('Medico','Paciente','Administrador') NOT NULL DEFAULT 'Paciente'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `usuarios`
 --
 
-INSERT INTO `usuarios` (`id_usuarios`, `Nombre_completo`, `Correo_electronico`, `Usuario`, `Contrasena`) VALUES
-(1, 'Damaris Bonilla Garcia', 'Dambg@gmail.com', 'Damaris Bonilla G', '$2y$10$SPA6cFDoZ7RC/DgE5PJOheZ3rG7h/taCA9uRbG6e7NAU0IDHCwtdW'),
-(2, 'Jose Levi Canales', 'canaleslevi@hotmail.com', 'Levi Canales', '$2y$10$RsWgM5yK7EInM92pAjfnae7wr86PaHUaO8oi5Q.Ek96CMMdh6XQQe'),
-(3, 'Juan Perez', 'Jperez30@gmail.com', 'J Perez', '$2y$10$81Yn2vE2K4QflfgSeK2Eb.yh/ThDlGcECAQxT45Tt205D7HENpfK2'),
-(4, 'Evelenth Garcia', 'Eygarcia@gmail.com', 'E Garcia', '$2y$10$NCVgVAoAz40berzOj0cUR.yaXRX6tgmtnwRS1dEiHLJIHWpsbkPKu'),
-(5, 'Jazel Bonilla', 'gjazelbonilla@gmail.com', 'G Jazel Bonilla', '$2y$10$ubreqJoa9ejIWJyw98/cBO/mAGHDjaI/Vyg2OKv4mZ6qjahrkEb8C'),
-(6, 'Lizbeth Dominguez', 'lizd@gmail.com', 'Lizbeth D', '$2y$10$z6sy5o8yGEtwxNoZq9aqLePBdEfVsI5B1B4S38.IvRFlY/.9jtMyO'),
-(7, 'Arnold Cruz', 'cruz01@gmail.com', 'Arnold Cruz B', '$2y$10$AiBaVE0Ef.j3vu.gfAHlUeZrWVT4IE8bRjZmaPTuxTI.NlOWN08gm'),
-(8, 'Luli Garcia', 'lugarci01@gmail.com', 'luli', '$2y$10$s0TUmmufgCLn/cvH2SLzDesoVOGcyTL/wWhDABB6LUdyu1vjKNv5i');
+INSERT INTO `usuarios` (`id_usuarios`, `Nombre_completo`, `Correo_electronico`, `Usuario`, `Contrasena`, `rol`) VALUES
+(1, 'Damaris Bonilla Garcia', 'Dambg@gmail.com', 'Damaris Bonilla G', '$2y$10$SPA6cFDoZ7RC/DgE5PJOheZ3rG7h/taCA9uRbG6e7NAU0IDHCwtdW', 'Paciente'),
+(2, 'Jose Levi Canales', 'canaleslevi@hotmail.com', 'Levi Canales', '$2y$10$RsWgM5yK7EInM92pAjfnae7wr86PaHUaO8oi5Q.Ek96CMMdh6XQQe', 'Medico'),
+(3, 'Juan Perez', 'Jperez30@gmail.com', 'J Perez', '$2y$10$81Yn2vE2K4QflfgSeK2Eb.yh/ThDlGcECAQxT45Tt205D7HENpfK2', 'Medico'),
+(4, 'Evelenth Garcia', 'Eygarcia@gmail.com', 'E Garcia', '$2y$10$NCVgVAoAz40berzOj0cUR.yaXRX6tgmtnwRS1dEiHLJIHWpsbkPKu', 'Medico'),
+(5, 'Jazel Bonilla', 'gjazelbonilla@gmail.com', 'G Jazel Bonilla', '$2y$10$ubreqJoa9ejIWJyw98/cBO/mAGHDjaI/Vyg2OKv4mZ6qjahrkEb8C', 'Medico'),
+(6, 'Lizbeth Dominguez', 'lizd@gmail.com', 'Lizbeth D', '$2y$10$z6sy5o8yGEtwxNoZq9aqLePBdEfVsI5B1B4S38.IvRFlY/.9jtMyO', 'Medico'),
+(7, 'Arnold Cruz', 'cruz01@gmail.com', 'Arnold Cruz B', '$2y$10$AiBaVE0Ef.j3vu.gfAHlUeZrWVT4IE8bRjZmaPTuxTI.NlOWN08gm', 'Medico'),
+(8, 'Luli Garcia', 'lugarci01@gmail.com', 'luli', '$2y$10$s0TUmmufgCLn/cvH2SLzDesoVOGcyTL/wWhDABB6LUdyu1vjKNv5i', 'Medico'),
+(9, 'anthony', 'a@a.mx', 'anthony', '$2y$10$.P3ARwO3S/9ggXL0fNhy/.mTj/1jJQyGtTd04wcO10XIhyLAeZkOm', 'Medico'),
+(10, 'kaleth', 'k@a.mx', 'Kaleth', '$2y$10$S4dPMAj3/ZWu7fM1Lu8F9uWgET8oqREJKu2iV9cTdbHwHzMZRdZIq', 'Medico'),
+(11, 'prueba', 'prueba@c.com', 'prueba', '$2y$10$0y3d5/ao2gKO98P3ny7Uk.1FjE1q7p/Uf8JMpyPbx4QUYCAdsYoQq', 'Medico'),
+(12, 'a', 'a@a.com', 'a', '$2y$10$9960JcPoRO0avYatpjfG5e1lCgJNbfNc.6ouLhjYLf/.gnflAvl/G', 'Paciente'),
+(13, 'leonel messi', 'messi@gmail.com', 'campeon', '$2y$10$uQ6XY7hUPPd0m37l28hNi.j3OLzfnaD0tKiJvsVUs15/Jx8KwtYae', 'Medico'),
+(14, 'ba', 'ba@c.com', 'chocolate', '$2y$10$JJ3tdsGongFs2j933EKkhOj57q5Bp9MpssVlPteIENY6e2PWQzVPG', 'Medico'),
+(15, 'admin', 'admin@correo.com', 'admin', '$2y$10$47nh09.oqmX6Wbf1ayRyF.8G0rH6eZxZSRZtaiEoxTngs8p8004yG', 'Administrador'),
+(17, 'paciente11', 'paciente11@correo.com', 'paciente11', '$2y$10$X/amdta3MMv/up/wBoqYpO1GoNfvC1ibHhCTvEbBhIXcl3KfdliPG', 'Paciente'),
+(18, 'paciente12', 'paciente12@correo.com', 'paciente12', '$2y$10$8BikHqKvCN9Wh3XUC9l5vORmkgFJQN.UPd8Yp/odnlcX38S4EKTNq', 'Paciente');
 
 --
 -- Indexes for dumped tables
@@ -350,6 +428,14 @@ ALTER TABLE `pacientes`
   ADD KEY `id_usuarios` (`id_usuarios`);
 
 --
+-- Indexes for table `recetas`
+--
+ALTER TABLE `recetas`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `idx_paciente` (`id_pacientes`),
+  ADD KEY `idx_medico` (`id_medico`);
+
+--
 -- Indexes for table `retroalimentacion`
 --
 ALTER TABLE `retroalimentacion`
@@ -369,13 +455,13 @@ ALTER TABLE `usuarios`
 -- AUTO_INCREMENT for table `alimentos_nutricionales`
 --
 ALTER TABLE `alimentos_nutricionales`
-  MODIFY `id_alimento` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `id_alimento` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- AUTO_INCREMENT for table `alimentos_registro`
 --
 ALTER TABLE `alimentos_registro`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
 
 --
 -- AUTO_INCREMENT for table `citas`
@@ -387,43 +473,49 @@ ALTER TABLE `citas`
 -- AUTO_INCREMENT for table `disponibilidades`
 --
 ALTER TABLE `disponibilidades`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT for table `ejercicios`
 --
 ALTER TABLE `ejercicios`
-  MODIFY `id_ejercicio` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+  MODIFY `id_ejercicio` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 
 --
 -- AUTO_INCREMENT for table `expediente`
 --
 ALTER TABLE `expediente`
-  MODIFY `id_expediente` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
+  MODIFY `id_expediente` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=18;
 
 --
 -- AUTO_INCREMENT for table `historial_actualizaciones`
 --
 ALTER TABLE `historial_actualizaciones`
-  MODIFY `id_historial` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=15;
+  MODIFY `id_historial` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=22;
 
 --
 -- AUTO_INCREMENT for table `pacientes`
 --
 ALTER TABLE `pacientes`
-  MODIFY `id_pacientes` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+  MODIFY `id_pacientes` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
+
+--
+-- AUTO_INCREMENT for table `recetas`
+--
+ALTER TABLE `recetas`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
 
 --
 -- AUTO_INCREMENT for table `retroalimentacion`
 --
 ALTER TABLE `retroalimentacion`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
 
 --
 -- AUTO_INCREMENT for table `usuarios`
 --
 ALTER TABLE `usuarios`
-  MODIFY `id_usuarios` int(15) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
+  MODIFY `id_usuarios` int(15) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=19;
 
 --
 -- Constraints for dumped tables
@@ -441,6 +533,12 @@ ALTER TABLE `historial_actualizaciones`
 --
 ALTER TABLE `pacientes`
   ADD CONSTRAINT `pacientes_ibfk_1` FOREIGN KEY (`id_usuarios`) REFERENCES `usuarios` (`id_usuarios`);
+
+--
+-- Constraints for table `recetas`
+--
+ALTER TABLE `recetas`
+  ADD CONSTRAINT `fk_recetas_paciente` FOREIGN KEY (`id_pacientes`) REFERENCES `pacientes` (`id_pacientes`) ON DELETE CASCADE;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;

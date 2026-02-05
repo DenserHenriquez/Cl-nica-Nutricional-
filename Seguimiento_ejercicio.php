@@ -356,7 +356,7 @@ if ($vista === 'diaria') {
           <p class="text-muted mb-0">No hay registros para el periodo seleccionado.</p>
         <?php else: ?>
           <div class="table-responsive">
-            <table class="table table-striped align-middle">
+            <table class="table table-striped align-middle enhance-table">
               <thead><tr><?= $vista==='semanal'?'<th>Fecha</th>':'' ?><th>Hora</th><th>Tipo</th><th>Tiempo</th><th>Notas</th><th>Foto</th><th>Acciones</th></tr></thead>
               <tbody>
                 <?php foreach ($historial as $row): ?>
@@ -427,3 +427,4 @@ if ($vista === 'diaria') {
 </body>
 </html>
 <?php $conexion->close(); ?>
+<script src="assets/js/script.js"></script>

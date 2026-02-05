@@ -86,8 +86,26 @@ if (!$usuario) {
 }
 
 $paciente = cargarPaciente($conexion, $TABLE_PATIENTS, $userId, $FIELDS_SELECT_PATIENTS);
-if (!$paciente) {
-    $errores[] = 'No se pudo cargar la información del paciente.';
+
+// Detectar rol y privilegios (Médico/Administrador)
+$role = $_SESSION['rol'] ?? null;
+if ($role === null) {
+    if ($stmtRole = $conexion->prepare("SELECT Rol FROM usuarios WHERE id_usuarios = ? LIMIT 1")) {
+        $stmtRole->bind_param('i', $userId);
+        $stmtRole->execute();
+        $stmtRole->bind_result($dbRole);
+        if ($stmtRole->fetch()) { $role = $dbRole; $_SESSION['rol'] = $dbRole; }
+        $stmtRole->close();
+    }
+}
+$isPrivileged = ($role === 'Medico' || $role === 'Administrador');
+
+// Si NO es privilegiado, validar registro de paciente — bloquear UI y mostrar mensaje si no existe registro
+$noRegistrado = false;
+if (!$isPrivileged) {
+    if (!$paciente) {
+        $noRegistrado = true;
+    }
 }
 
 // Cargar expediente si existe (puede ser null si aún no se ha creado)
@@ -426,90 +444,99 @@ $historial = cargarHistorial($conexion, $TABLE_HISTORY, $userId);
     </div>
 
     <div class="container mb-5">
-        <?php if (!empty($errores)): ?>
-            <div class="alert alert-danger" role="alert">
-                <ul class="mb-0">
-                    <?php foreach ($errores as $e): ?>
-                        <li><?= htmlspecialchars($e, ENT_QUOTES, 'UTF-8') ?></li>
-                    <?php endforeach; ?>
-                </ul>
-            </div>
-        <?php endif; ?>
-        <?php if ($exito): ?>
-            <div class="alert alert-success" role="alert">
-                <i class="bi bi-check-circle-fill me-2"></i><?= htmlspecialchars($exito, ENT_QUOTES, 'UTF-8') ?>
+        <?php if (!empty($noRegistrado) && !$isPrivileged): ?>
+            <div class="alert alert-warning" role="alert">
+                <i class="bi bi-exclamation-triangle-fill"></i>
+                Paciente nuevo: primero necesitas actualizar tus datos con tu médico tratante. Si aún no estás registrado como paciente en la clínica, ponte en contacto con el personal o tu médico para completar tu registro.
             </div>
         <?php endif; ?>
 
-        <div class="card">
-            <div class="card-header bg-primary text-white">
-                <h5 class="card-title mb-0"><i class="bi bi-person-plus me-2"></i>Información del Perfil</h5>
+        <?php if (!($noRegistrado && !$isPrivileged)): ?>
+            <?php if (!empty($errores)): ?>
+                <div class="alert alert-danger" role="alert">
+                    <ul class="mb-0">
+                        <?php foreach ($errores as $e): ?>
+                            <li><?= htmlspecialchars($e, ENT_QUOTES, 'UTF-8') ?></li>
+                        <?php endforeach; ?>
+                    </ul>
+                </div>
+            <?php endif; ?>
+            <?php if ($exito): ?>
+                <div class="alert alert-success" role="alert">
+                    <i class="bi bi-check-circle-fill me-2"></i><?= htmlspecialchars($exito, ENT_QUOTES, 'UTF-8') ?>
+                </div>
+            <?php endif; ?>
+
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="card-title mb-0"><i class="bi bi-person-plus me-2"></i>Información del Perfil</h5>
+                </div>
+                <div class="card-body">
+                    <form method="post" enctype="multipart/form-data">
+
+                        <div class="mb-3">
+                            <label for="Correo_electronico" class="form-label">
+                                <i class="bi bi-envelope me-1"></i>Correo electrónico
+                            </label>
+                            <input type="email" class="form-control" id="Correo_electronico" name="Correo_electronico" value="<?= htmlspecialchars($usuario['Correo_electronico'] ?? '', ENT_QUOTES, 'UTF-8') ?>" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="Contrasena" class="form-label">
+                                <i class="bi bi-lock me-1"></i>Nueva contraseña
+                            </label>
+                            <input type="password" class="form-control" id="Contrasena" name="Contrasena" placeholder="Dejar en blanco para no cambiar">
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="nombre_completo" class="form-label">
+                                <i class="bi bi-person me-1"></i>Nombre completo
+                            </label>
+                            <input type="text" class="form-control" id="nombre_completo" name="nombre_completo" value="<?= htmlspecialchars($paciente['nombre_completo'] ?? '', ENT_QUOTES, 'UTF-8') ?>" required>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="DNI" class="form-label">
+                                    <i class="bi bi-card-text me-1"></i>DNI
+                                </label>
+                                <input type="text" class="form-control" id="DNI" name="DNI" value="<?= htmlspecialchars($paciente['DNI'] ?? '', ENT_QUOTES, 'UTF-8') ?>" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="telefono" class="form-label">
+                                    <i class="bi bi-telephone me-1"></i>Teléfono
+                                </label>
+                                <input type="text" class="form-control" id="telefono" name="telefono" value="<?= htmlspecialchars($paciente['telefono'] ?? '', ENT_QUOTES, 'UTF-8') ?>" required>
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="fecha_nacimiento" class="form-label">
+                                    <i class="bi bi-calendar me-1"></i>Fecha de nacimiento
+                                </label>
+                                <input type="date" class="form-control" id="fecha_nacimiento" name="fecha_nacimiento" value="<?= htmlspecialchars($paciente['fecha_nacimiento'] ?? '', ENT_QUOTES, 'UTF-8') ?>" required onchange="calcularEdad()">
+                            </div>
+                            <div class="col-md-6">
+                                <label for="edad" class="form-label">
+                                    <i class="bi bi-hash me-1"></i>Edad
+                                </label>
+                                <input type="text" class="form-control" id="edad" value="<?= htmlspecialchars($paciente['edad'] ?? '', ENT_QUOTES, 'UTF-8') ?>" readonly>
+                            </div>
+                        </div>
+
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <i class="bi bi-save me-2"></i>Guardar Cambios
+                            </button>
+                            <button type="button" class="btn btn-secondary btn-lg" id="btnHistorial">
+                                <i class="bi bi-clock-history me-2"></i>Ver Historial
+                            </button>
+                        </div>
+                    </form>
+                </div>
             </div>
-            <div class="card-body">
-                <form method="post" enctype="multipart/form-data">
-
-                    <div class="mb-3">
-                        <label for="Correo_electronico" class="form-label">
-                            <i class="bi bi-envelope me-1"></i>Correo electrónico
-                        </label>
-                        <input type="email" class="form-control" id="Correo_electronico" name="Correo_electronico" value="<?= htmlspecialchars($usuario['Correo_electronico'] ?? '', ENT_QUOTES, 'UTF-8') ?>" required>
-                    </div>
-
-                    <div class="mb-3">
-                        <label for="Contrasena" class="form-label">
-                            <i class="bi bi-lock me-1"></i>Nueva contraseña
-                        </label>
-                        <input type="password" class="form-control" id="Contrasena" name="Contrasena" placeholder="Dejar en blanco para no cambiar">
-                    </div>
-
-                    <div class="mb-3">
-                        <label for="nombre_completo" class="form-label">
-                            <i class="bi bi-person me-1"></i>Nombre completo
-                        </label>
-                        <input type="text" class="form-control" id="nombre_completo" name="nombre_completo" value="<?= htmlspecialchars($paciente['nombre_completo'] ?? '', ENT_QUOTES, 'UTF-8') ?>" required>
-                    </div>
-
-                    <div class="row mb-3">
-                        <div class="col-md-6">
-                            <label for="DNI" class="form-label">
-                                <i class="bi bi-card-text me-1"></i>DNI
-                            </label>
-                            <input type="text" class="form-control" id="DNI" name="DNI" value="<?= htmlspecialchars($paciente['DNI'] ?? '', ENT_QUOTES, 'UTF-8') ?>" required>
-                        </div>
-                        <div class="col-md-6">
-                            <label for="telefono" class="form-label">
-                                <i class="bi bi-telephone me-1"></i>Teléfono
-                            </label>
-                            <input type="text" class="form-control" id="telefono" name="telefono" value="<?= htmlspecialchars($paciente['telefono'] ?? '', ENT_QUOTES, 'UTF-8') ?>" required>
-                        </div>
-                    </div>
-
-                    <div class="row mb-3">
-                        <div class="col-md-6">
-                            <label for="fecha_nacimiento" class="form-label">
-                                <i class="bi bi-calendar me-1"></i>Fecha de nacimiento
-                            </label>
-                            <input type="date" class="form-control" id="fecha_nacimiento" name="fecha_nacimiento" value="<?= htmlspecialchars($paciente['fecha_nacimiento'] ?? '', ENT_QUOTES, 'UTF-8') ?>" required onchange="calcularEdad()">
-                        </div>
-                        <div class="col-md-6">
-                            <label for="edad" class="form-label">
-                                <i class="bi bi-hash me-1"></i>Edad
-                            </label>
-                            <input type="text" class="form-control" id="edad" value="<?= htmlspecialchars($paciente['edad'] ?? '', ENT_QUOTES, 'UTF-8') ?>" readonly>
-                        </div>
-                    </div>
-
-                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
-                        <button type="submit" class="btn btn-primary btn-lg">
-                            <i class="bi bi-save me-2"></i>Guardar Cambios
-                        </button>
-                        <button type="button" class="btn btn-secondary btn-lg" id="btnHistorial">
-                            <i class="bi bi-clock-history me-2"></i>Ver Historial
-                        </button>
-                    </div>
-                </form>
-            </div>
-        </div>
+        <?php endif; ?>
         <?php if ($_SESSION['rol'] !== 'Paciente'): ?>
         <!-- Sección Expediente Médico -->
         <div class="card mt-4">
@@ -572,7 +599,7 @@ $historial = cargarHistorial($conexion, $TABLE_HISTORY, $userId);
                     <p style="text-align: center; color: #666;">No hay actualizaciones registradas para este usuario.</p>
                 <?php else: ?>
                     <div style="overflow-x: auto;">
-                        <table class="historial-table">
+                        <table class="historial-table enhance-table">
                             <thead>
                                 <tr>
                                     <th>Campo Modificado</th>
@@ -647,3 +674,4 @@ $historial = cargarHistorial($conexion, $TABLE_HISTORY, $userId);
     </script>
 </body>
 </html>
+<script src="assets/js/script.js"></script>

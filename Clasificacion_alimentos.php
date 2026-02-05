@@ -300,7 +300,7 @@ if ($stmtList) {
                     <p class="muted">No hay alimentos registrados aún.</p>
                 <?php else: ?>
                     <div class="table-responsive">
-                        <table class="table table-striped">
+                        <table class="table table-striped enhance-table">
                             <thead>
                                 <tr>
                                     <th>Nombre</th>
@@ -341,5 +341,7 @@ if ($stmtList) {
             </div>
         </div>
     </div>
+</div>
+    <script src="assets/js/script.js"></script>
 </body>
 </html>

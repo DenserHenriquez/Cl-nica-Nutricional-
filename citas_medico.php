@@ -470,7 +470,7 @@ function monthNameEs($m) {
                     </div>
                     <h4 class="mb-3" style="font-weight:600; color:#198754; font-size:1.6rem;">Listado de citas del mes</h4>
                     <div class="table-responsive">
-                        <table class="table table-bordered table-hover">
+                        <table class="table table-bordered table-hover enhance-table">
                             <thead>
                                 <tr>
                                         <th>Fecha</th>
@@ -535,6 +535,7 @@ function monthNameEs($m) {
                 </div>
             </div>
         </div>
+    <script src="assets/js/script.js"></script>
 
     <script>
         // PHP data to JS

@@ -27,6 +27,7 @@ $total_entradas = $resultado->num_rows;
         th, td { border:1px solid #ddd; padding:8px; text-align:left;}
         th { background:#f0f0f0;}
         tr:nth-child(even) { background:#f9f9f9;}
+        .form-control { padding:6px 8px; border:1px solid #ccc; border-radius:4px; }
        /* Switch estilo iPhone */
         .switch { position: relative; display: inline-block; width: 50px; height: 24px;}
         .switch input { opacity: 0; width: 0; height: 0;}
@@ -39,7 +40,7 @@ $total_entradas = $resultado->num_rows;
 <body>
     <div class="main-content">
         <h1>Lista de Pacientes</h1>
-        <table>
+        <table class="enhance-table">
             <thead>
                 <tr>
                     <th>ID Paciente</th>
@@ -108,6 +109,7 @@ $total_entradas = $resultado->num_rows;
         });
     });
     </script>
+    <script src="assets/js/script.js"></script>
 </body>
 </html>
 

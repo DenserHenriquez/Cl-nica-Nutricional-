@@ -476,7 +476,7 @@ if ($vista === 'diaria') {
                     <p class="muted">No hay registros para el periodo seleccionado.</p>
                 <?php else: ?>
                     <div class="table-responsive">
-                        <table class="table table-striped">
+                        <table class="table table-striped enhance-table">
                             <thead>
                                 <tr>
                                     <?php if ($vista==='semanal'): ?><th>Fecha</th><?php endif; ?>
@@ -592,5 +592,6 @@ if ($vista === 'diaria') {
             }
         }
     </script>
+    <script src="assets/js/script.js"></script>
 </body>
 </html>

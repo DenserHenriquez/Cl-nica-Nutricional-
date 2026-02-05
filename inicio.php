@@ -56,7 +56,7 @@ $actions = [];
 if ($userRole === 'Administrador') {
     $actions = [
         ['href'=>'Actualizar_perfil.php','icon'=>'bi-person-circle','text'=>'Actualizar Perfil','desc'=>'Modifica tu información personal y credenciales de acceso'],
-        ['href'=>'Activar_desactivar_paciente.php','icon'=>'bi-toggle-on','text'=>'Estado del Paciente','desc'=>'Activa o desactiva el acceso de pacientes al sistema'],
+        ['href'=>'Activar_desactivar_paciente.php','icon'=>'bi-toggle-on','text'=>'Usuario','desc'=>'Activa o desactiva el acceso de pacientes al sistema'],
         ['href'=>'panelevolucionpaciente.php','icon'=>'bi-graph-up','text'=>'Panel de Evolución','desc'=>'Visualiza el progreso y evolución de los pacientes'],
         ['href'=>'Busqueda_avanzada.php','icon'=>'bi-search','text'=>'Búsqueda Avanzada','desc'=>'Busca pacientes por múltiples criterios y filtros'],
         ['href'=>'citas_medico.php','icon'=>'bi-calendar-event','text'=>'Citas Médicas','desc'=>'Gestiona y programa citas con los pacientes'],
@@ -72,7 +72,7 @@ if ($userRole === 'Administrador') {
 } elseif ($userRole === 'Medico') {
     $actions = [
         ['href'=>'Actualizar_perfil.php','icon'=>'bi-person-circle','text'=>'Actualizar Perfil','desc'=>'Modifica tu información personal y credenciales de acceso'],
-        ['href'=>'Activar_desactivar_paciente.php','icon'=>'bi-toggle-on','text'=>'Estado del Paciente','desc'=>'Activa o desactiva el acceso de pacientes al sistema'],
+        ['href'=>'Activar_desactivar_paciente.php','icon'=>'bi-toggle-on','text'=>'Usuario','desc'=>'Activa o desactiva el acceso de pacientes al sistema'],
         ['href'=>'panelevolucionpaciente.php','icon'=>'bi-graph-up','text'=>'Panel de Evolución','desc'=>'Visualiza el progreso y evolución de los pacientes'],
         ['href'=>'Busqueda_avanzada.php','icon'=>'bi-search','text'=>'Búsqueda Avanzada','desc'=>'Busca pacientes por múltiples criterios y filtros'],
         ['href'=>'citas_medico.php','icon'=>'bi-calendar-event','text'=>'Citas Médicas','desc'=>'Gestiona y programa citas con los pacientes'],

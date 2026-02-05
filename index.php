@@ -19,8 +19,12 @@
     <!-- Navigation -->
     <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm fixed-top">
         <div class="container">
-            <a class="navbar-brand fw-bold text-success" href="#">
-                <i class="fas fa-leaf me-2"></i>Clínica Nutricional
+            <!-- Brand in navbar (moved from hero) -->
+            <a class="navbar-brand d-flex align-items-center me-3 text-decoration-none" href="index.php" style="gap:10px">
+                <span style="width:40px;height:40px;display:inline-flex;align-items:center;justify-content:center;border-radius:8px;background:linear-gradient(135deg,#198754,#146c43);color:#fff;font-weight:700">
+                    <i class="fas fa-leaf" style="font-size:16px"></i>
+                </span>
+                <span class="fw-bold" style="color:#198754;">Clínica Nutricional</span>
             </a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                 <span class="navbar-toggler-icon"></span>
@@ -42,10 +46,14 @@
         </div>
     </nav>
 
+    <!-- Brand block will be shown inside the hero card below -->
+
     <!-- Welcome Title Section -->
     <section class="py-5 bg-success text-white text-center">
         <div class="container">
-            <h1 class="display-4 fw-bold">Bienvenidos a la Clínica Nutricional</h1>
+            <!-- (Brand moved to navbar) -->
+
+            <h1 class="display-4 fw-bold text-white">Bienvenidos a la Clínica Nutricional</h1>
         </div>
     </section>
 
@@ -338,16 +346,29 @@
                     e.preventDefault();
                 }
             });
+
+            // Check URL parameters for modal and tab
+            const urlParams = new URLSearchParams(window.location.search);
+            const error = urlParams.get('error');
+            const ok = urlParams.get('ok');
+            const tab = urlParams.get('tab');
+
+            if (error || ok) {
+                // Show modal
+                const modal = new bootstrap.Modal(document.getElementById('loginModal'));
+                modal.show();
+
+                // Switch to specific tab if specified
+                if (tab) {
+                    const tabTrigger = document.querySelector(`#${tab}-tab`);
+                    if (tabTrigger) {
+                        const tabInstance = new bootstrap.Tab(tabTrigger);
+                        tabInstance.show();
+                    }
+                }
+            }
         });
     </script>
-</body>
-</html>
-
-
-
-
-
-
 </body>
 </html>
 

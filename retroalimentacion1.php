@@ -121,6 +121,58 @@ if ($userRole === 'Paciente') {
 		$res->close();
 	}
 }
+
+// Cálculo de inactividad para roles distintos a Paciente
+$inactivos = [];
+if ($userRole !== 'Paciente') {
+	// Detectar FK en ejercicios (paciente_id o id_pacientes)
+	$exFk = 'paciente_id';
+	$resCol = $conexion->query("SHOW COLUMNS FROM ejercicios LIKE 'paciente_id'");
+	if (!$resCol || $resCol->num_rows === 0) { $exFk = 'id_pacientes'; }
+	if ($resCol) { $resCol->close(); }
+
+	// Mapas de últimas fechas de actividad
+	$lastFoodMap = [];
+	if ($resLF = $conexion->query("SELECT id_pacientes, MAX(CONCAT(fecha,' ',hora)) AS last_food_dt FROM alimentos_registro GROUP BY id_pacientes")) {
+		while ($r = $resLF->fetch_assoc()) { $lastFoodMap[(int)$r['id_pacientes']] = $r['last_food_dt']; }
+		$resLF->close();
+	}
+	$lastExMap = [];
+	if ($resLE = $conexion->query("SELECT {$exFk} AS id_pacientes, MAX(CONCAT(fecha,' ',hora)) AS last_ex_dt FROM ejercicios GROUP BY {$exFk}")) {
+		while ($r = $resLE->fetch_assoc()) { $lastExMap[(int)$r['id_pacientes']] = $r['last_ex_dt']; }
+		$resLE->close();
+	}
+	$nowTs = time();
+	$thresholdDays = 3; // umbral de inactividad (días)
+	foreach ($cards as $idx => $c) {
+		$pid = (int)($c['id_pacientes'] ?? 0);
+		if ($pid <= 0) continue;
+		$lfdt = $lastFoodMap[$pid] ?? null;
+		$ledt = $lastExMap[$pid] ?? null;
+		$daysFood = is_null($lfdt) ? null : max(0, floor(($nowTs - strtotime($lfdt)) / 86400));
+		$daysEx   = is_null($ledt) ? null : max(0, floor(($nowTs - strtotime($ledt)) / 86400));
+		$cards[$idx]['last_food_dt'] = $lfdt;
+		$cards[$idx]['last_ex_dt'] = $ledt;
+		$cards[$idx]['days_food'] = $daysFood;
+		$cards[$idx]['days_ex'] = $daysEx;
+		$motivos = [];
+		if (is_null($lfdt) || $daysFood >= $thresholdDays) {
+			$motivos[] = is_null($lfdt) ? 'sin registros de alimentos' : ('sin alimentos hace ' . $daysFood . ' días');
+		}
+		if (is_null($ledt) || $daysEx >= $thresholdDays) {
+			$motivos[] = is_null($ledt) ? 'sin registros de ejercicio' : ('sin ejercicio hace ' . $daysEx . ' días');
+		}
+		if ($motivos) {
+			$inactivos[] = [
+				'id_pacientes'    => $pid,
+				'nombre_completo' => $c['nombre_completo'] ?? 'Paciente',
+				'motivo'          => implode(' • ', $motivos),
+				'days_food'       => $daysFood,
+				'days_ex'         => $daysEx,
+			];
+		}
+	}
+}
 ?>
 <!doctype html>
 <html lang="es">
@@ -204,10 +256,21 @@ if ($userRole === 'Paciente') {
 		<?php if (!($noRegistrado && ($userRole === 'Paciente'))): ?>
 		<div class="section-title">
 			<h4 class="mb-0"><?= ($_SESSION['rol'] ?? '') === 'Paciente' ? 'Mis Registros de Comidas' : 'Actividad reciente de los pacientes'; ?></h4>
-			<?php if(($_SESSION['rol'] ?? '') !== 'Paciente'): ?>
-			<a class="btn btn-sm btn-outline-primary" href="retroalimentacion1.php">Vista clásica</a>
-			<?php endif; ?>
 		</div>
+		<?php if(($_SESSION['rol'] ?? '') !== 'Paciente' && !empty($inactivos)): ?>
+		<div class="alert alert-warning mt-3">
+			<i class="bi bi-bell-exclamation me-1"></i>
+			Pacientes con inactividad reciente (≥ 3 días):
+			<ul class="mb-0 mt-2">
+				<?php foreach ($inactivos as $ia): ?>
+				<li>
+					<strong><?= h($ia['nombre_completo']) ?></strong> — <?= h($ia['motivo']) ?>
+					<button class="btn btn-link btn-sm p-0 ms-2" onclick="openModal(<?= (int)$ia['id_pacientes'] ?>, '<?= h(addslashes($ia['nombre_completo'])) ?>')">ver</button>
+				</li>
+				<?php endforeach; ?>
+			</ul>
+		</div>
+		<?php endif; ?>
 		<?php endif; ?>
 
 		<?php if (!empty($noRegistrado) && ($userRole === 'Paciente')): ?>
@@ -232,6 +295,25 @@ if ($userRole === 'Paciente') {
 								<div>
 									<div class="name"><?= h($c['nombre_completo'] ?? 'Paciente') ?></div>
 									<div class="meta"><i class="bi bi-calendar3 me-1"></i><?= h($c['fecha'] ?? '') ?> <?= h($c['hora'] ?? '') ?></div>
+									<?php if(($_SESSION['rol'] ?? '') !== 'Paciente'): ?>
+									<div class="mt-1">
+									<?php if (!isset($c['days_food']) || is_null($c['days_food'])): ?>
+									<span class="badge bg-secondary me-1">Alimentos: nunca</span>
+									<?php elseif ($c['days_food'] >= 7): ?>
+									<span class="badge bg-danger me-1">Alimentos: <?= (int)$c['days_food'] ?>d</span>
+									<?php elseif ($c['days_food'] >= 3): ?>
+									<span class="badge bg-warning text-dark me-1">Alimentos: <?= (int)$c['days_food'] ?>d</span>
+									<?php endif; ?>
+									
+									<?php if (!isset($c['days_ex']) || is_null($c['days_ex'])): ?>
+									<span class="badge bg-secondary me-1">Ejercicio: nunca</span>
+									<?php elseif ($c['days_ex'] >= 7): ?>
+									<span class="badge bg-danger me-1">Ejercicio: <?= (int)$c['days_ex'] ?>d</span>
+									<?php elseif ($c['days_ex'] >= 3): ?>
+									<span class="badge bg-warning text-dark me-1">Ejercicio: <?= (int)$c['days_ex'] ?>d</span>
+									<?php endif; ?>
+									</div>
+									<?php endif; ?>
 								</div>
 								<button class="btn btn-primary btn-circle" title="Comentar" onclick="openModal(<?= $pid ?>, '<?= h(addslashes($c['nombre_completo'])) ?>')"><i class="bi bi-chat-dots"></i></button>
 							</div>
