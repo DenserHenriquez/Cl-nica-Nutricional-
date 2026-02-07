@@ -83,23 +83,31 @@ if ($medico_id === 0) {
             .header-section {
                 background: linear-gradient(135deg, #198754 0%, #146c43 100%);
                 color: white;
-                padding: 2rem 0;
-                margin-bottom: 2rem;
+                /* Reduced height: ~60% */
+                padding: 0.8rem 0;
+                margin-bottom: 1rem;
             }
             .header-section h1 {
-                font-size: 2.5rem;
+                font-size: 2.2rem;
                 font-weight: 700;
+                margin: 0.15rem 0 0.25rem;
             }
             .header-section p {
-                font-size: 1.1rem;
-                opacity: 0.9;
+                font-size: 1.05rem;
+                opacity: 0.95;
+                margin: 0;
+            }
+            .medical-icon {
+                font-size: 1.9rem;
+                margin-bottom: 0.35rem;
+                color: #ffffff;
             }
         </style>
     </head>
     <body>
         <div class="header-section text-center">
             <div class="medical-icon">
-                <i class="bi bi-calendar-check" style="font-size:3rem;"></i>
+                <i class="bi bi-calendar-check"></i>
             </div>
             <h1>Agendar Cita - Seleccionar Médico</h1>
             <p>Haga clic en el médico para ver su calendario de disponibilidad.</p>

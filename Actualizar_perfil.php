@@ -399,23 +399,23 @@ $historial = cargarHistorial($conexion, $TABLE_HISTORY, $userId);
         .header-section {
             background: linear-gradient(135deg, #198754 0%, #146c43 100%);
             color: white;
-            /* Mantener el encabezado compacto pero con texto más legible */
-            padding: 1rem 0;
-            margin-bottom: 0.8rem;
+            /* Reduced height: ~60% */
+            padding: 0.8rem 0;
+            margin-bottom: 1rem;
         }
         .header-section h1 {
-            font-size: 1.8rem;
+            font-size: 2.2rem;
             font-weight: 700;
-            line-height: 1.05;
+            margin: 0.15rem 0 0.25rem;
         }
         .header-section p {
-            font-size: 1.0rem;
+            font-size: 1.05rem;
             opacity: 0.95;
-            margin-top: 0.25rem;
+            margin: 0;
         }
         .medical-icon {
-            font-size: 2.2rem;
-            margin-bottom: 0.4rem;
+            font-size: 1.9rem;
+            margin-bottom: 0.35rem;
             color: #ffffff;
         }
         /* Estilos para el modal */

@@ -70,3 +70,44 @@ body {
         font-size: 2.5rem !important;
     }
 }
+
+/* Global header-section style to match 'Actualizar Perfil' appearance */
+.header-section {
+    background: linear-gradient(135deg, #198754 0%, #146c43 100%) !important;
+    color: #ffffff !important;
+    /* Reduced height: ~40% of previous padding to make the band 60% smaller */
+    padding: 0.64rem 0 !important;
+    margin-bottom: 0.8rem !important;
+    box-shadow: inset 0 -2px 8px rgba(0,0,0,0.08);
+}
+.header-section .container {
+    text-align: center;
+}
+.header-section h1 {
+    /* Larger, readable heading */
+    font-size: 2.2rem !important;
+    font-weight: 700 !important;
+    line-height: 1.05 !important;
+    margin: 0 !important;
+    font-family: 'Roboto', sans-serif !important;
+}
+.header-section p {
+    font-size: 1.05rem !important;
+    opacity: 0.95 !important;
+    margin: 0.25rem 0 0 !important;
+    font-family: 'Roboto', sans-serif !important;
+}
+.medical-icon {
+    font-size: 1.6rem !important;
+    margin-bottom: 0.25rem !important;
+    color: #ffffff !important;
+}
+
+@media (min-width: 992px) {
+    /* Desktop: slightly larger vertical padding but still reduced overall */
+    .header-section { padding: 0.88rem 0 !important; }
+    .header-section h1 { font-size: 2.6rem !important; }
+    .medical-icon { font-size: 2.2rem !important; }
+}
+
+
