@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Clínica Nutricional - Tu Salud en Nuestras Manos</title>
+    <title>NUTRIVIDA - Tu Salud en Nuestras Manos</title>
 
     <!-- Bootstrap 5 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -24,7 +24,7 @@
                 <span style="width:40px;height:40px;display:inline-flex;align-items:center;justify-content:center;border-radius:8px;background:linear-gradient(135deg,#198754,#146c43);color:#fff;font-weight:700">
                     <i class="fas fa-leaf" style="font-size:16px"></i>
                 </span>
-                <span class="fw-bold" style="color:#198754;">Clínica Nutricional</span>
+                <span class="fw-bold" style="color:#198754;">NUTRIVIDA</span>
             </a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                 <span class="navbar-toggler-icon"></span>
@@ -53,10 +53,9 @@
         <div class="container">
             <!-- (Brand moved to navbar) -->
 
-            <h1 class="display-4 fw-bold text-white">Bienvenidos a la Clínica Nutricional</h1>
+            <h1 class="display-4 fw-bold text-white">Bienvenidos a NUTRIVIDA</h1>
         </div>
     </section>
-
 
 
 
@@ -147,7 +146,7 @@
         <div class="container">
             <div class="row">
                 <div class="col-md-4">
-                    <h5 class="fw-bold">Clínica Nutricional</h5>
+                    <h5 class="fw-bold">NUTRIVIDA</h5>
                     <p>Tu salud es nuestra prioridad. Expertos en nutrición personalizada.</p>
                 </div>
                 <div class="col-md-4">
@@ -166,7 +165,7 @@
             </div>
             <hr>
             <div class="text-center">
-                <p>&copy; 2025 Clínica Nutricional. Todos los derechos reservados.</p>
+                <p>&copy; 2025 NUTRIVIDA. Todos los derechos reservados.</p>
             </div>
         </div>
     </footer>
@@ -371,8 +370,3 @@
     </script>
 </body>
 </html>
-
-
-
-
-
