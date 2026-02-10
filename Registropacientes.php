@@ -280,6 +280,122 @@ if (isset($_SESSION['flash_success'])) {
             margin-bottom: 0.35rem;
             color: #ffffff;
         }
+        /* Filtros Style */
+        .filtros-card {
+            background: #f8f9fa;
+            padding: 0.75rem 1rem;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            border: 1px solid #e9ecef;
+        }
+        .filtros-titulo {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: #198754;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .filtro-grupo {
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+        }
+        .filtro-grupo label {
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: #495057;
+        }
+        .filtro-grupo input,
+        .filtro-grupo select {
+            padding: 6px 8px;
+            border: 1px solid #ced4da;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            background: white;
+            color: #212529;
+        }
+        .filtro-grupo input::placeholder {
+            color: #999;
+        }
+        .filtro-grupo input:focus,
+        .filtro-grupo select:focus {
+            border-color: #198754;
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(25, 135, 84, 0.1);
+        }
+        .filtro-botones {
+            display: flex;
+            gap: 6px;
+        }
+        .filtro-botones button {
+            padding: 6px 12px;
+            border: none;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.2s;
+            font-size: 0.85rem;
+        }
+        .btn-filtrar {
+            background: #198754;
+            color: white;
+        }
+        .btn-filtrar:hover {
+            background: #146c43;
+        }
+        .btn-limpiar {
+            background: #e9ecef;
+            color: #495057;
+        }
+        .btn-limpiar:hover {
+            background: #dee2e6;
+        }
+        .filtros-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 10px;
+            align-items: flex-end;
+        }
+        @media (max-width: 768px) {
+            .filtros-grid {
+                grid-template-columns: 1fr;
+            }
+            .filtro-botones {
+                flex-direction: column;
+                width: 100%;
+            }
+            .filtro-botones button {
+                width: 100%;
+            }
+        }
+
+        /* Estilos para ordenamiento de tabla */
+        .sortable {
+            cursor: pointer;
+            user-select: none;
+            white-space: nowrap;
+        }
+        .sortable:hover {
+            background-color: #e8f5e9;
+        }
+        .sortable::after {
+            content: ' \2195';
+            font-size: 0.8em;
+            opacity: 0.5;
+            margin-left: 4px;
+        }
+        .sortable.sort-asc::after {
+            content: ' \2191';
+            opacity: 1;
+            color: #198754;
+        }
+        .sortable.sort-desc::after {
+            content: ' \2193';
+            opacity: 1;
+            color: #198754;
+        }
     </style>
 </head>
 <body>
@@ -304,13 +420,35 @@ if (isset($_SESSION['flash_success'])) {
                     <?php if (empty($usuariosSinRegistro)): ?>
                         <div class="p-3 text-muted">Todos los usuarios Paciente ya tienen registro.</div>
                     <?php else: ?>
+                        <!-- Filtros -->
+                        <div class="filtros-card">
+                            <div class="filtros-titulo">
+                                <i class="bi bi-funnel"></i>Filtros de Usuario
+                            </div>
+                            <div class="filtros-grid">
+                                <div class="filtro-grupo">
+                                    <label for="filterNombreReg">
+                                        <i class="bi bi-search"></i> Nombre
+                                    </label>
+                                    <input type="text" id="filterNombreReg" class="form-control" placeholder="Buscar por nombre...">
+                                </div>
+                                <div class="filtro-botones">
+                                    <button class="btn-filtrar" onclick="aplicarFiltrosReg()">
+                                        <i class="bi bi-funnel me-1"></i>Filtrar
+                                    </button>
+                                    <button class="btn-limpiar" onclick="limpiarFiltrosReg()">
+                                        <i class="bi bi-arrow-clockwise me-1"></i>Limpiar
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
                         <div class="table-responsive">
-                            <table class="table table-striped table-hover mb-0">
+                            <table class="table table-striped table-hover mb-0 enhance-table external-filter" id="usuariosRegTable">
                                 <thead>
                                     <tr>
-                                        <th style="width:60px;">ID</th>
-                                        <th>Nombre</th>
-                                        <th style="width:140px;">Rol</th>
+                                        <th style="width:60px;" class="sortable">ID</th>
+                                        <th class="sortable">Nombre</th>
+                                        <th style="width:140px;" class="sortable">Rol</th>
                                         <th style="width:180px;" class="text-end">Acciones</th>
                                     </tr>
                                 </thead>
@@ -452,6 +590,48 @@ if (isset($_SESSION['flash_success'])) {
     </div>
 
     <script>
+        // Filtros para tabla de usuarios sin registro
+        function aplicarFiltrosReg() {
+            const nombre = document.getElementById('filterNombreReg').value.toLowerCase();
+            
+            const tabla = document.getElementById('usuariosRegTable');
+            if (!tabla) return;
+            
+            const filas = tabla.querySelectorAll('tbody tr');
+            
+            filas.forEach(fila => {
+                const nombreFila = fila.querySelector('td:nth-child(2)').textContent.toLowerCase();
+                
+                let mostrar = true;
+                
+                if (nombre && !nombreFila.includes(nombre)) {
+                    mostrar = false;
+                }
+                
+                fila.style.display = mostrar ? '' : 'none';
+            });
+        }
+        
+        function limpiarFiltrosReg() {
+            document.getElementById('filterNombreReg').value = '';
+            
+            const tabla = document.getElementById('usuariosRegTable');
+            if (!tabla) return;
+            const filas = tabla.querySelectorAll('tbody tr');
+            filas.forEach(fila => {
+                fila.style.display = '';
+            });
+        }
+        
+        document.addEventListener('DOMContentLoaded', function() {
+            const inputNombre = document.getElementById('filterNombreReg');
+            if (inputNombre) {
+                inputNombre.addEventListener('keypress', function(e) {
+                    if (e.key === 'Enter') aplicarFiltrosReg();
+                });
+            }
+        });
+        
         function calcularEdad() {
             const fechaInput = document.querySelector('input[name="fecha_nacimiento"]');
             const edadInput = document.getElementById('edad');
@@ -471,6 +651,105 @@ if (isset($_SESSION['flash_success'])) {
                 edadInput.value = '';
             }
         }
+
+        // Función para ordenamiento de tablas
+        function setupTableSorting(tableSelector) {
+            const table = document.querySelector(tableSelector);
+            if (!table) {
+                console.error('Tabla no encontrada:', tableSelector);
+                return;
+            }
+
+            const headers = table.querySelectorAll('th.sortable');
+            if (headers.length === 0) {
+                console.error('No se encontraron encabezados ordenables');
+                return;
+            }
+
+            let sortStates = {};
+
+            headers.forEach((header, headerIndex) => {
+                sortStates[headerIndex] = null; // null, 'asc', o 'desc'
+                
+                header.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    
+                    const tbody = table.querySelector('tbody');
+                    if (!tbody) return;
+
+                    const rows = Array.from(tbody.querySelectorAll('tr'));
+                    if (rows.length === 0) return;
+
+                    // Calcular índice de columna real
+                    const headerRow = table.querySelector('thead tr');
+                    const allHeaders = headerRow.querySelectorAll('th');
+                    let columnIndex = 0;
+                    for (let i = 0; i < allHeaders.length; i++) {
+                        if (allHeaders[i] === header) {
+                            columnIndex = i;
+                            break;
+                        }
+                    }
+
+                    // Determinar dirección
+                    let newSort = 'asc';
+                    if (sortStates[headerIndex] === 'asc') {
+                        newSort = 'desc';
+                    } else if (sortStates[headerIndex] === 'desc') {
+                        newSort = 'asc';
+                    }
+
+                    // Limpiar todas las clases de sort
+                    headers.forEach(h => {
+                        h.classList.remove('sort-asc', 'sort-desc');
+                    });
+
+                    // Aplicar nueva clase
+                    header.classList.add(newSort === 'asc' ? 'sort-asc' : 'sort-desc');
+                    sortStates[headerIndex] = newSort;
+
+                    // Ordenar
+                    rows.sort((rowA, rowB) => {
+                        const cellA = rowA.children[columnIndex];
+                        const cellB = rowB.children[columnIndex];
+
+                        if (!cellA || !cellB) return 0;
+
+                        let valueA = cellA.textContent.trim();
+                        let valueB = cellB.textContent.trim();
+
+                        // Intentar como número
+                        const numA = parseFloat(valueA);
+                        const numB = parseFloat(valueB);
+
+                        if (!isNaN(numA) && !isNaN(numB)) {
+                            return newSort === 'asc' ? numA - numB : numB - numA;
+                        }
+
+                        // Como texto
+                        if (newSort === 'asc') {
+                            return valueA.localeCompare(valueB, 'es', {numeric: true});
+                        } else {
+                            return valueB.localeCompare(valueA, 'es', {numeric: true});
+                        }
+                    });
+
+                    // Re-insertar filas
+                    rows.forEach(row => {
+                        tbody.appendChild(row);
+                    });
+                });
+            });
+
+            console.log('Ordenamiento inicializado para:', tableSelector);
+        }
+
+        // Inicializar ordenamiento cuando el documento carga
+        document.addEventListener('DOMContentLoaded', function() {
+            setupTableSorting('#usuariosRegTable');
+        });
     </script>
+
+    <script src="assets/js/script.js"></script>
 </body>
 </html>

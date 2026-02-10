@@ -389,7 +389,7 @@ function qs(array $data): string {
 
                 <?php if (!empty($resultados)): ?>
                     <div class="table-responsive">
-                        <table class="table table-striped tabla-resultados">
+                        <table class="table table-striped tabla-resultados enhance-table external-filter" data-external-filter="#q">
                             <thead class="table-light" style="color: #000000;">
                                 <tr>
                                     <th>ID</th>
@@ -464,5 +464,6 @@ function qs(array $data): string {
             </div>
         </div>
     </div>
+    <script src="assets/js/script.js"></script>
 </body>
 </html>
