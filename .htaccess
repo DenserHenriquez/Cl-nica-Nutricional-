@@ -6,4 +6,4 @@
 Options -Indexes
 
 # Custom 404 handler (absolute path from web root)
-ErrorDocument 404 /NUEVACN/Cl-nica-Nutricional-/404.php
+ErrorDocument 404 /NUTRI26/Cl-nica-Nutricional-/404.php
