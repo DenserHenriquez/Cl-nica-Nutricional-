@@ -68,6 +68,22 @@ if ($isPrivileged) {
 $errores = [];
 $exito = '';
 
+// Manejo de duplicación: si ?duplicar=id, cargar receta para prellenar
+$duplicar_id = isset($_GET['duplicar']) ? (int)$_GET['duplicar'] : 0;
+$recetaDuplicar = null;
+if ($duplicar_id > 0) {
+    $sqlDup = "SELECT nombre, ingredientes, porciones, instrucciones, nota_nutricional, foto_path FROM recetas WHERE id = ?";
+    if ($stmtDup = $conexion->prepare($sqlDup)) {
+        $stmtDup->bind_param('i', $duplicar_id);
+        $stmtDup->execute();
+        $resultDup = $stmtDup->get_result();
+        if ($rowDup = $resultDup->fetch_assoc()) {
+            $recetaDuplicar = $rowDup;
+        }
+        $stmtDup->close();
+    }
+}
+
 // Configuración de subida
 $uploadDir = __DIR__ . '/assets/images/recetas';
 if (!is_dir($uploadDir)) {
@@ -240,25 +256,11 @@ $csrf = $_SESSION['csrf'];
         .alert {
             border-radius: 0.375rem;
         }
-        .header-section {
-            background: linear-gradient(135deg, #198754 0%, #146c43 100%);
-            color: white;
-            padding: 2rem 0;
-            margin-bottom: 2rem;
-        }
-        .header-section h1 {
-            font-size: 2.5rem;
-            font-weight: 700;
-        }
-        .header-section p {
-            font-size: 1.1rem;
-            opacity: 0.9;
-        }
-        .medical-icon {
-            font-size: 3rem;
-            margin-bottom: 1rem;
-            color: #ffffff;
-        }
+        /* Header styles matched to Actualizar_perfil.php for consistent look */
+        .header-section { background: linear-gradient(135deg, #198754 0%, #146c43 100%); color: white; padding: 0.8rem 0; margin-bottom: 1rem; }
+        .header-section h1 { font-size: 2.2rem; font-weight: 700; margin: 0.15rem 0 0.25rem; }
+        .header-section p { font-size: 1.05rem; opacity: 0.95; margin: 0; }
+        .medical-icon { font-size: 1.9rem; margin-bottom: 0.35rem; color: #ffffff; }
         .muted {
             color: #6c757d;
             font-size: 0.875rem;
@@ -314,7 +316,7 @@ $csrf = $_SESSION['csrf'];
         <?php if (!(!empty($noRegistrado) && isset($_SESSION['rol']) && $_SESSION['rol'] === 'Paciente')): ?>
         <div class="card">
             <div class="card-header bg-primary text-white">
-                <h5 class="card-title mb-0"><i class="bi bi-plus-circle me-2"></i>Nueva Receta</h5>
+                <h5 class="card-title mb-0"><i class="bi bi-plus-circle me-2"></i><?php echo $duplicar_id > 0 ? 'Duplicar Receta' : 'Nueva Receta'; ?></h5>
             </div>
             <div class="card-body">
                 <form method="post" enctype="multipart/form-data">
@@ -341,13 +343,13 @@ $csrf = $_SESSION['csrf'];
                             <label for="nombre" class="form-label">
                                 <i class="bi bi-tag me-1"></i>Nombre de la receta
                             </label>
-                            <input type="text" class="form-control" id="nombre" name="nombre" required>
+                            <input type="text" class="form-control" id="nombre" name="nombre" required value="<?php echo $recetaDuplicar ? htmlspecialchars($recetaDuplicar['nombre'], ENT_QUOTES, 'UTF-8') : ''; ?>">
                         </div>
                         <div class="col-md-6">
                             <label for="porciones" class="form-label">
                                 <i class="bi bi-hash me-1"></i>Porciones
                             </label>
-                            <input type="number" class="form-control" id="porciones" name="porciones" min="1" placeholder="Ej: 4">
+                            <input type="number" class="form-control" id="porciones" name="porciones" min="1" placeholder="Ej: 4" value="<?php echo $recetaDuplicar ? htmlspecialchars($recetaDuplicar['porciones'] ?? '', ENT_QUOTES, 'UTF-8') : ''; ?>">
                         </div>
                     </div>
 
@@ -355,7 +357,7 @@ $csrf = $_SESSION['csrf'];
                         <label for="ingredientes" class="form-label">
                             <i class="bi bi-list-check me-1"></i>Ingredientes
                         </label>
-                        <textarea class="form-control" id="ingredientes" name="ingredientes" rows="4" placeholder="Lista de ingredientes separados por comas o líneas" required></textarea>
+                        <textarea class="form-control" id="ingredientes" name="ingredientes" rows="4" placeholder="Lista de ingredientes separados por comas o líneas" required><?php echo $recetaDuplicar ? htmlspecialchars($recetaDuplicar['ingredientes'], ENT_QUOTES, 'UTF-8') : ''; ?></textarea>
                     </div>
 
                     <div class="mb-3">
@@ -369,7 +371,7 @@ $csrf = $_SESSION['csrf'];
                         <label for="nota_nutricional" class="form-label">
                             <i class="bi bi-info-circle me-1"></i>Nota nutricional
                         </label>
-                        <textarea class="form-control" id="nota_nutricional" name="nota_nutricional" rows="3" placeholder="Información nutricional, calorías, etc."></textarea>
+                        <textarea class="form-control" id="nota_nutricional" name="nota_nutricional" rows="3" placeholder="Información nutricional, calorías, etc."><?php echo $recetaDuplicar ? htmlspecialchars($recetaDuplicar['nota_nutricional'] ?? '', ENT_QUOTES, 'UTF-8') : ''; ?></textarea>
                     </div>
 
                     <div class="mb-3">

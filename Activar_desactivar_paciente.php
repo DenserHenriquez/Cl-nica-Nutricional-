@@ -63,20 +63,23 @@ $total_entradas = $resultado->num_rows;
         .header-section {
             background: linear-gradient(135deg, #198754 0%, #146c43 100%);
             color: white;
-            padding: 2rem 0;
-            margin-bottom: 2rem;
+            /* Reduced height: ~60% */
+            padding: 0.8rem 0;
+            margin-bottom: 1rem;
         }
         .header-section h1 {
-            font-size: 2.5rem;
+            font-size: 2.2rem;
             font-weight: 700;
+            margin: 0.15rem 0 0.25rem;
         }
         .header-section p {
-            font-size: 1.1rem;
-            opacity: 0.9;
+            font-size: 1.05rem;
+            opacity: 0.95;
+            margin: 0;
         }
         .medical-icon {
-            font-size: 3rem;
-            margin-bottom: 1rem;
+            font-size: 1.9rem;
+            margin-bottom: 0.35rem;
             color: #ffffff;
         }
         .estado-text { font-weight: bold; }
@@ -187,6 +190,32 @@ $total_entradas = $resultado->num_rows;
                 transform: translateX(20px);
             }
         }
+
+        /* Estilos para ordenamiento de tabla */
+        .sortable {
+            cursor: pointer;
+            user-select: none;
+            white-space: nowrap;
+        }
+        .sortable:hover {
+            background-color: #e8f5e9;
+        }
+        .sortable::after {
+            content: ' \2195';
+            font-size: 0.8em;
+            opacity: 0.5;
+            margin-left: 4px;
+        }
+        .sortable.sort-asc::after {
+            content: ' \2191';
+            opacity: 1;
+            color: #198754;
+        }
+        .sortable.sort-desc::after {
+            content: ' \2193';
+            opacity: 1;
+            color: #198754;
+        }
     </style>
 </head>
 <body>
@@ -202,28 +231,65 @@ $total_entradas = $resultado->num_rows;
     </div>
 
     <div class="container mb-5">
+        <!-- Filtros -->
+        <div class="card mb-3" style="border: 1px solid #e0e0e0;">
+            <div class="card-header bg-success text-white">
+                <h5 class="card-title mb-0"><i class="bi bi-funnel me-2"></i>Filtros de Usuario</h5>
+            </div>
+            <div class="card-body" style="padding: 0.75rem 1rem;">
+                <div class="row g-2" style="align-items: flex-end;">
+                    <div class="col-auto">
+                        <label class="form-label mb-2" style="font-size: 0.85rem; display: block;"><i class="bi bi-search me-1"></i>Nombre</label>
+                        <input type="text" id="filterNombre" class="form-control form-control-sm" placeholder="Buscar..." style="font-size: 0.9rem; width: 180px;">
+                    </div>
+                    <div class="col-auto">
+                        <label class="form-label mb-2" style="font-size: 0.85rem; display: block;"><i class="bi bi-bookmark-check me-1"></i>Estado</label>
+                        <select id="filterEstado" class="form-select form-select-sm" style="font-size: 0.9rem; width: 130px;">
+                            <option value="">Todos</option>
+                            <option value="Activo">Activo</option>
+                            <option value="Inactivo">Inactivo</option>
+                        </select>
+                    </div>
+                    <?php if($userRole === 'Administrador' || $userRole === 'Medico'): ?>
+                    <div class="col-auto">
+                        <label class="form-label mb-2" style="font-size: 0.85rem; display: block;"><i class="bi bi-shield-check me-1"></i>Rol</label>
+                        <select id="filterRol" class="form-select form-select-sm" style="font-size: 0.9rem; width: 130px;">
+                            <option value="">Todos</option>
+                            <option value="Paciente">👤 Paciente</option>
+                            <option value="Medico">👨‍⚕️ Medico</option>
+                        </select>
+                    </div>
+                    <?php endif; ?>
+                    <div class="col-auto">
+                        <button id="btnFiltrar" class="btn btn-success btn-sm" style="font-size: 0.9rem; padding: 0.35rem 0.75rem;"><i class="bi bi-funnel me-1"></i>Filtrar</button>
+                        <button id="btnLimpiar" class="btn btn-secondary btn-sm" style="font-size: 0.9rem; padding: 0.35rem 0.75rem;"><i class="bi bi-arrow-clockwise me-1"></i>Limpiar</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <div class="card">
             <div class="card-header bg-success text-white">
                 <h5 class="card-title mb-0"><i class="bi bi-list-check me-2"></i>Usuarios</h5>
             </div>
             <div class="card-body">
                 <div class="table-responsive">
-                    <table class="table table-striped table-hover">
+                    <table class="table table-striped table-hover" id="usuariosTable">
                         <thead class="table-success">
                             <tr>
-                                <th class="col-hide-sm">ID Paciente</th>
-                                <th class="col-hide-md">ID Usuario</th>
-                                <th class="col-nombre">Nombre Completo</th>
-                                <th class="col-hide-xs">DNI</th>
-                                <th class="col-hide-lg">Fecha Nac.</th>
-                                <th class="col-hide-md">Edad</th>
-                                <th class="col-hide-sm">Teléfono</th>
-                                <th class="col-hide-lg">Usuario</th>
-                                <th class="col-hide-lg">Correo</th>
-                                <?php if($userRole === 'Administrador'): ?>
-                                <th class="col-hide-md">Rol</th>
+                                <th class="col-hide-sm sortable">ID Paciente</th>
+                                <th class="col-hide-md sortable">ID Usuario</th>
+                                <th class="col-nombre sortable">Nombre Completo</th>
+                                <th class="col-hide-xs sortable">DNI</th>
+                                <th class="col-hide-lg sortable">Fecha Nac.</th>
+                                <th class="col-hide-md sortable">Edad</th>
+                                <th class="col-hide-sm sortable">Teléfono</th>
+                                <th class="col-hide-lg sortable">Usuario</th>
+                                <th class="col-hide-lg sortable">Correo</th>
+                                <?php if($userRole === 'Administrador' || $userRole === 'Medico'): ?>
+                                <th class="col-hide-md sortable">Rol</th>
                                 <?php endif; ?>
-                                <th class="col-hide-xs">Estado</th>
+                                <th class="col-hide-xs sortable">Estado</th>
                                 <th class="col-acciones">Acción</th>
                             </tr>
                         </thead>
@@ -242,15 +308,21 @@ $total_entradas = $resultado->num_rows;
                                 echo "<td class='col-hide-lg'>".htmlspecialchars($fila['usuario_nombre'])."</td>";
                                 echo "<td class='col-hide-lg'>".htmlspecialchars($fila['Correo_electronico'])."</td>";
                                 
-                                // Columna Rol (solo visible para Administrador)
-                                if($userRole === 'Administrador') {
+                                // Columna Rol (visible para Administrador y Médico, pero solo modificable por Administrador)
+                                if($userRole === 'Administrador' || $userRole === 'Medico') {
                                     $rolActual = htmlspecialchars($fila['Rol']);
-                                    echo "<td class='col-hide-md'>
-                                        <select class='form-select form-select-sm rol-select' data-usuario-id='".$fila['id_usuarios']."' style='min-width: 100px;'>
-                                            <option value='Paciente' ".($rolActual=='Paciente'?'selected':'').">👤 Paciente</option>
-                                            <option value='Medico' ".($rolActual=='Medico'?'selected':'').">👨‍⚕️ Medico</option>
-                                        </select>
-                                    </td>";
+                                    if($userRole === 'Administrador') {
+                                        // Administrador puede modificar
+                                        echo "<td class='col-hide-md'>
+                                            <select class='form-select form-select-sm rol-select' data-usuario-id='".$fila['id_usuarios']."' style='min-width: 100px;'>
+                                                <option value='Paciente' ".($rolActual=='Paciente'?'selected':'').">👤 Paciente</option>
+                                                <option value='Medico' ".($rolActual=='Medico'?'selected':'').">👨‍⚕️ Medico</option>
+                                            </select>
+                                        </td>";
+                                    } else {
+                                        // Médico solo puede ver (lectura)
+                                        echo "<td class='col-hide-md'><span class='badge bg-info'>".$rolActual."</span></td>";
+                                    }
                                 }
                                 
                                 echo "<td class='estado-text estado-".htmlspecialchars($fila['estado'])." col-hide-xs'>".htmlspecialchars($fila['estado'])."</td>";
@@ -280,7 +352,7 @@ $total_entradas = $resultado->num_rows;
                                 echo "</tr>";
                             }
                         } else {
-                            $colspan = ($userRole === 'Administrador') ? 12 : 11;
+                            $colspan = ($userRole === 'Administrador' || $userRole === 'Medico') ? 12 : 11;
                             echo "<tr><td colspan='$colspan' class='text-center'>No se encontraron pacientes.</td></tr>";
                         }
                         ?>
@@ -290,6 +362,59 @@ $total_entradas = $resultado->num_rows;
             </div>
         </div>
     </div>
+
+<script>
+// Funcionalidad de filtros
+document.getElementById('btnFiltrar').addEventListener('click', function() {
+    const nombre = document.getElementById('filterNombre').value.toLowerCase();
+    const estado = document.getElementById('filterEstado').value;
+    const rolFilter = document.getElementById('filterRol') ? document.getElementById('filterRol').value : '';
+    
+    const filas = document.querySelectorAll('table tbody tr');
+    filas.forEach(fila => {
+        const nombreFila = fila.children[2].textContent.toLowerCase();
+        const estadoFila = fila.children[<?php echo $userRole === 'Administrador' || $userRole === 'Medico' ? '10' : '9'; ?>].textContent.trim();
+        
+        // Obtener el rol - puede estar en un select o en un badge
+        let rolFila = '';
+        if (<?php echo $userRole === 'Administrador' || $userRole === 'Medico' ? 'true' : 'false'; ?>) {
+            const rolCell = fila.children[9];
+            const selectEl = rolCell.querySelector('select');
+            const badgeEl = rolCell.querySelector('.badge');
+            if (selectEl) {
+                rolFila = selectEl.value; // Obtener valor del select
+            } else if (badgeEl) {
+                rolFila = badgeEl.textContent.trim(); // Obtener texto del badge
+            }
+        }
+        
+        let visible = true;
+        if (nombre && !nombreFila.includes(nombre)) visible = false;
+        if (estado && !estadoFila.includes(estado)) visible = false;
+        if (rolFilter && rolFila && !rolFila.includes(rolFilter)) visible = false;
+        
+        fila.style.display = visible ? '' : 'none';
+    });
+});
+
+document.getElementById('btnLimpiar').addEventListener('click', function() {
+    document.getElementById('filterNombre').value = '';
+    document.getElementById('filterEstado').value = '';
+    if (document.getElementById('filterRol')) {
+        document.getElementById('filterRol').value = '';
+    }
+    const filas = document.querySelectorAll('table tbody tr');
+    filas.forEach(fila => {
+        fila.style.display = '';
+    });
+});
+
+// Permitir filtrar al presionar Enter en los inputs
+document.getElementById('filterNombre').addEventListener('keypress', function(e) {
+    if (e.key === 'Enter') document.getElementById('btnFiltrar').click();
+});
+
+</script>
 
 <script>
 // Switch de estado (Activo/Inactivo)
@@ -413,6 +538,104 @@ document.querySelectorAll('.btn-delete-paciente').forEach(function(btn) {
         });
     });
 });
+
+// Función para ordenamiento de tablas
+function setupTableSorting(tableSelector) {
+    const table = document.querySelector(tableSelector);
+    if (!table) {
+        console.error('Tabla no encontrada:', tableSelector);
+        return;
+    }
+
+    const headers = table.querySelectorAll('th.sortable');
+    if (headers.length === 0) {
+        console.error('No se encontraron encabezados ordenables');
+        return;
+    }
+
+    let sortStates = {};
+
+    headers.forEach((header, headerIndex) => {
+        sortStates[headerIndex] = null; // null, 'asc', o 'desc'
+        
+        header.addEventListener('click', function(e) {
+            e.preventDefault();
+            
+            const tbody = table.querySelector('tbody');
+            if (!tbody) return;
+
+            const rows = Array.from(tbody.querySelectorAll('tr'));
+            if (rows.length === 0) return;
+
+            // Calcular índice de columna real
+            const headerRow = table.querySelector('thead tr');
+            const allHeaders = headerRow.querySelectorAll('th');
+            let columnIndex = 0;
+            for (let i = 0; i < allHeaders.length; i++) {
+                if (allHeaders[i] === header) {
+                    columnIndex = i;
+                    break;
+                }
+            }
+
+            // Determinar dirección
+            let newSort = 'asc';
+            if (sortStates[headerIndex] === 'asc') {
+                newSort = 'desc';
+            } else if (sortStates[headerIndex] === 'desc') {
+                newSort = 'asc';
+            }
+
+            // Limpiar todas las clases de sort
+            headers.forEach(h => {
+                h.classList.remove('sort-asc', 'sort-desc');
+            });
+
+            // Aplicar nueva clase
+            header.classList.add(newSort === 'asc' ? 'sort-asc' : 'sort-desc');
+            sortStates[headerIndex] = newSort;
+
+            // Ordenar
+            rows.sort((rowA, rowB) => {
+                const cellA = rowA.children[columnIndex];
+                const cellB = rowB.children[columnIndex];
+
+                if (!cellA || !cellB) return 0;
+
+                let valueA = cellA.textContent.trim();
+                let valueB = cellB.textContent.trim();
+
+                // Intentar como número
+                const numA = parseFloat(valueA);
+                const numB = parseFloat(valueB);
+
+                if (!isNaN(numA) && !isNaN(numB)) {
+                    return newSort === 'asc' ? numA - numB : numB - numA;
+                }
+
+                // Como texto
+                if (newSort === 'asc') {
+                    return valueA.localeCompare(valueB, 'es', {numeric: true});
+                } else {
+                    return valueB.localeCompare(valueA, 'es', {numeric: true});
+                }
+            });
+
+            // Re-insertar filas
+            rows.forEach(row => {
+                tbody.appendChild(row);
+            });
+        });
+    });
+
+    console.log('Ordenamiento inicializado para:', tableSelector);
+}
+
+// Inicializar ordenamiento cuando el documento carga
+document.addEventListener('DOMContentLoaded', function() {
+    setupTableSorting('#usuariosTable');
+});
+
 </script>
 
 <!-- Confirm modal markup (floating box) -->

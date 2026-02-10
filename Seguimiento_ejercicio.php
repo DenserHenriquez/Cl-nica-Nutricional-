@@ -232,23 +232,26 @@ if ($vista === 'diaria') {
             border-radius: 0.375rem;
         }
         .header-section {
-            background: linear-gradient(135deg, #198754 0%, #146c43 100%);
-            color: white;
-            padding: 2rem 0;
-            margin-bottom: 2rem;
+          background: linear-gradient(135deg, #198754 0%, #146c43 100%);
+          color: white;
+          /* Reduced height: ~60% */
+          padding: 0.8rem 0;
+          margin-bottom: 1rem;
         }
         .header-section h1 {
-            font-size: 2.5rem;
-            font-weight: 700;
+          font-size: 2.2rem;
+          font-weight: 700;
+          margin: 0.15rem 0 0.25rem;
         }
         .header-section p {
-            font-size: 1.1rem;
-            opacity: 0.9;
+          font-size: 1.05rem;
+          opacity: 0.95;
+          margin: 0;
         }
         .medical-icon {
-            font-size: 3rem;
-            margin-bottom: 1rem;
-            color: #ffffff;
+          font-size: 1.9rem;
+          margin-bottom: 0.35rem;
+          color: #ffffff;
         }
         .table {
             margin-top: 1rem;
@@ -269,7 +272,7 @@ if ($vista === 'diaria') {
     <div class="header-section">
         <div class="container text-center">
             <div class="medical-icon">
-                <i class="bi bi-activity"></i>
+              <i class="bi bi-activity"></i>
             </div>
             <h1>Seguimiento de Ejercicios</h1>
             <p>Paciente | Registra y sigue tus actividades físicas.</p>
