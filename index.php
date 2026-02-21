@@ -247,6 +247,7 @@
                                 <p class="text-muted">Regístrate para acceder a tu panel nutricional</p>
                             </div>
                             <form action="Login.php" method="POST">
+                                <div id="registerAlert" class="alert alert-warning d-none" role="alert"></div>
                                 <div class="mb-3">
                                     <label for="registerName" class="form-label fw-semibold">
                                         <i class="fas fa-user me-2 text-success"></i>Nombre Completo
@@ -287,6 +288,10 @@
                                         </button>
                                     </div>
                                     <div id="passwordHelp" class="form-text text-danger d-none">Las contraseñas no coinciden</div>
+                                    <div id="registerErrors" class="alert alert-danger d-none mt-2" role="alert"></div>
+                                    <div id="registerRules" class="form-text text-muted mt-2">
+                                        Requisitos: mínimo 8 caracteres, al menos una letra mayúscula, un número y un símbolo.
+                                    </div>
                                 </div>
                                 <input type="hidden" name="origen" value="index">
                                 <div class="d-grid">
@@ -322,29 +327,95 @@
             }
         }
 
-        document.addEventListener('DOMContentLoaded', function () {
-            const pass = document.getElementById('registerPassword');
-            const pass2 = document.getElementById('registerPasswordConfirm');
-            const form = pass.closest('form');
-            const help = document.getElementById('passwordHelp');
-            function validate() {
-                if (pass2.value && pass.value !== pass2.value) {
-                    help.classList.remove('d-none');
-                    pass2.classList.add('is-invalid');
-                    return false;
-                } else {
-                    help.classList.add('d-none');
-                    pass2.classList.remove('is-invalid');
-                    return true;
-                }
+    document.addEventListener('DOMContentLoaded', function () {
+        const pass = document.getElementById('registerPassword');
+        const pass2 = document.getElementById('registerPasswordConfirm');
+        const form = pass.closest('form');
+        const help = document.getElementById('passwordHelp');
+        const registerErrors = document.getElementById('registerErrors');
+        const registerAlert = document.getElementById('registerAlert');
+
+        function getStrengthErrors(v) {
+            const errors = [];
+            if (v.length < 8) errors.push('La contraseña debe tener al menos 8 caracteres.');
+            if (!/[A-Z]/.test(v)) errors.push('Incluir al menos una letra mayúscula.');
+            if (!/[0-9]/.test(v)) errors.push('Incluir al menos un número.');
+            if (!/[^A-Za-z0-9]/.test(v)) errors.push('Incluir al menos un símbolo (ej: !@#$%).');
+            return errors;
+        }
+
+        function validate() {
+            const errors = [];
+            const v = pass.value || '';
+
+            // Match check
+            if (pass2.value && v !== pass2.value) {
+                help.classList.remove('d-none');
+                pass2.classList.add('is-invalid');
+                errors.push('Las contraseñas no coinciden.');
+            } else {
+                help.classList.add('d-none');
+                pass2.classList.remove('is-invalid');
             }
-            pass.addEventListener('input', validate);
-            pass2.addEventListener('input', validate);
-            form.addEventListener('submit', function (e) {
-                if (!validate()) {
-                    e.preventDefault();
+
+            // Strength checks (only if user typed something)
+            if (v.length > 0) {
+                const s = getStrengthErrors(v);
+                errors.push(...s);
+            }
+
+            if (errors.length) {
+                registerErrors.innerHTML = '<ul class="mb-0"><li>' + errors.join('</li><li>') + '</li></ul>';
+                registerErrors.classList.remove('d-none');
+            } else {
+                registerErrors.classList.add('d-none');
+                registerErrors.innerHTML = '';
+            }
+
+            return errors.length === 0;
+        }
+
+        pass.addEventListener('input', function(){ validate(); if (registerAlert) registerAlert.classList.add('d-none'); });
+        pass2.addEventListener('input', function(){ validate(); if (registerAlert) registerAlert.classList.add('d-none'); });
+        form.addEventListener('submit', function (e) {
+            e.preventDefault(); // take control so button state won't be left in spinner
+            const submitBtn = form.querySelector('button[type="submit"]');
+            const originalHtml = submitBtn ? submitBtn.getAttribute('data-original-html') : null;
+
+            // Ensure we have stored the original HTML to restore later
+            if (submitBtn && !originalHtml) {
+                submitBtn.setAttribute('data-original-html', submitBtn.innerHTML);
+            }
+
+            if (!validate()) {
+                // Validation failed: show clear alert and restore UI so user can try again
+                if (registerAlert) {
+                    registerAlert.innerHTML = 'La contraseña no cumple los requisitos. Asegúrese de que tenga al menos 8 caracteres, una letra mayúscula, un número y un carácter especial.';
+                    registerAlert.classList.remove('d-none');
                 }
-            });
+                // Re-enable submit button and restore its label
+                if (submitBtn) {
+                    submitBtn.disabled = false;
+                    const orig = submitBtn.getAttribute('data-original-html') || '<i class="fas fa-user-plus me-2"></i>Regístrarse';
+                    submitBtn.innerHTML = orig;
+                }
+                // Ensure password fields are enabled and focused for retry
+                pass.removeAttribute('disabled');
+                pass2.removeAttribute('disabled');
+                pass.focus();
+                // Auto-hide alert after a few seconds
+                if (registerAlert) { setTimeout(() => registerAlert.classList.add('d-none'), 6000); }
+                return;
+            }
+
+            // Passed client validation: show spinner and submit programmatically
+            if (submitBtn) {
+                submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Procesando...';
+                submitBtn.disabled = true;
+            }
+            // small timeout to allow UI update before navigating
+            setTimeout(function(){ form.submit(); }, 50);
+        });
 
             // Check URL parameters for modal and tab
             const urlParams = new URLSearchParams(window.location.search);
