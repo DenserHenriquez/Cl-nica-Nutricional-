@@ -59,6 +59,7 @@ $menuItems = [
     'clasificacion_alimentos' => ['Medico', 'Administrador'],
     'crear_receta' => ['Medico', 'Administrador'],
     'gestion_receta' => ['Medico', 'Administrador', 'Paciente'],
+    'cambiar_contrasena' => ['Medico', 'Administrador', 'Paciente'],
     'seguimiento_ejercicio' => ['Medico', 'Paciente', 'Administrador'],
     'retroalimentacion' => ['Medico', 'Paciente', 'Administrador']
 ];
@@ -285,6 +286,11 @@ function e($str) { return htmlspecialchars((string)$str, ENT_QUOTES, 'UTF-8'); }
                     <i class="bi bi-person-gear me-1"></i> Actualizar Perfil
                 </a>
                 <?php endif; ?>
+                <?php if (hasAccess('cambiar_contrasena', $userRole, $menuItems)): ?>
+                <a href="Cambiar_Contrasena.php" target="main-content">
+                    <i class="bi bi-key-fill me-1"></i> Cambiar Contraseña
+                </a>
+                <?php endif; ?>
                 <a href="Login.php">
                     <i class="bi bi-box-arrow-right me-1"></i> Cerrar Sesion
                 </a>
@@ -316,6 +322,13 @@ function e($str) { return htmlspecialchars((string)$str, ENT_QUOTES, 'UTF-8'); }
                         <li class="nav-item">
                             <a class="nav-link" href="Actualizar_perfil.php" target="main-content">
                                 <i class="bi bi-person-circle"></i> Actualizar Perfil
+                            </a>
+                        </li>
+                        <?php endif; ?>
+                        <?php if (hasAccess('cambiar_contrasena', $userRole, $menuItems)): ?>
+                        <li class="nav-item">
+                            <a class="nav-link" href="Cambiar_Contrasena.php" target="main-content">
+                                <i class="bi bi-key-fill"></i> Cambiar Contraseña
                             </a>
                         </li>
                         <?php endif; ?>

@@ -39,8 +39,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if (!filter_var($correo, FILTER_VALIDATE_EMAIL)) {
             redirect_with_message('Correo electronico invalido');
         }
-        if (strlen($contrasena) < 6) {
-            redirect_with_message('La contrasena debe tener al menos 6 caracteres');
+        // Reglas de contraseña para registro: mínimo 8 caracteres, al menos una mayúscula, un número y un símbolo
+        if (strlen($contrasena) < 8) {
+            redirect_with_message('La contraseña debe tener al menos 8 caracteres');
+        }
+        if (!preg_match('/[A-Z]/', $contrasena)) {
+            redirect_with_message('La contraseña debe incluir al menos una letra mayúscula');
+        }
+        if (!preg_match('/[0-9]/', $contrasena)) {
+            redirect_with_message('La contraseña debe incluir al menos un número');
+        }
+        if (!preg_match('/[\W_]/', $contrasena)) {
+            redirect_with_message('La contraseña debe incluir al menos un símbolo (por ejemplo: !@#$%)');
         }
         if ($contrasena !== $contrasena2) {
             redirect_with_message('Las contrasenas no coinciden');
