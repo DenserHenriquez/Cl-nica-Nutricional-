@@ -444,6 +444,12 @@ function e($str) { return htmlspecialchars((string)$str, ENT_QUOTES, 'UTF-8'); }
         © <span id="year"></span> NUTRIVIDA. Todos los derechos reservados.
     </footer>
 
+    <!-- Parent-level inactivity modal (visible above iframe) -->
+    <div id="parent-inactivity-modal" style="display:none;">
+        <div id="parent-inactivity-overlay" style="position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:2147483646;"></div>
+        <div id="parent-inactivity-dialog" style="position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);z-index:2147483647;background:#fff;border-radius:10px;padding:20px;width:92%;max-width:520px;text-align:center;box-shadow:0 12px 36px rgba(0,0,0,0.28);"></div>
+    </div>
+
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
@@ -513,6 +519,82 @@ function e($str) { return htmlspecialchars((string)$str, ENT_QUOTES, 'UTF-8'); }
                 }
             });
         });
+
+        // --- Inactivity parent modal handling (listen for child iframe) ---
+        (function(){
+            const parentModal = document.getElementById('parent-inactivity-modal');
+            const dialog = document.getElementById('parent-inactivity-dialog');
+            let countdown = 10;
+            let countdownTimer = null;
+            let childWindow = null;
+
+            function renderDialog(){
+                dialog.innerHTML = '';
+                const h = document.createElement('h3'); h.textContent = '¿Sigues ahí?'; h.style.margin='0 0 8px'; h.style.color='#0d5132'; h.style.fontWeight='700';
+                const p = document.createElement('p'); p.style.margin='0 0 14px'; p.style.color='#495057';
+                p.innerHTML = "Toca 'Sí' para continuar en esta página, o 'Cerrar Sesión' para salir. Se cerrará automáticamente en <strong><span id='parent-inactivity-count'>"+countdown+"</span>s</strong>.";
+                const actions = document.createElement('div'); actions.style.display='flex'; actions.style.justifyContent='center'; actions.style.gap='12px'; actions.style.marginTop='12px';
+                const yes = document.createElement('button'); yes.className='btn btn-success'; yes.textContent='Sí'; yes.style.minWidth='120px';
+                const logout = document.createElement('button'); logout.className='btn btn-outline-danger'; logout.textContent='Cerrar Sesión'; logout.style.minWidth='120px';
+                actions.appendChild(yes); actions.appendChild(logout);
+                dialog.appendChild(h); dialog.appendChild(p); dialog.appendChild(actions);
+
+                yes.addEventListener('click', function(e){
+                    // notify child iframe to reset
+                    if (childWindow && typeof childWindow.postMessage === 'function') {
+                        childWindow.postMessage({ type: 'inactivity-cancel' }, '*');
+                    }
+                    // also notify any inactivity script running in the parent itself
+                    try { window.postMessage({ type: 'inactivity-cancel' }, '*'); } catch (ex) {}
+                    hideParentModal();
+                });
+                logout.addEventListener('click', function(e){
+                    try { top.location.href = 'index.php'; } catch (ex) { window.location.href = 'index.php'; }
+                });
+            }
+
+            function showParentModal(initialCount){
+                countdown = initialCount || 10;
+                renderDialog();
+                parentModal.style.display = 'block';
+                const countEl = document.getElementById('parent-inactivity-count');
+                if (countEl) countEl.textContent = String(countdown);
+                clearInterval(countdownTimer);
+                countdownTimer = setInterval(() => {
+                    countdown -= 1;
+                    if (countEl) countEl.textContent = String(Math.max(0, countdown));
+                    if (countdown <= 0) {
+                        clearInterval(countdownTimer);
+                        try { top.location.href = 'index.php'; } catch (e) { window.location.href = 'index.php'; }
+                    }
+                }, 1000);
+            }
+
+            function hideParentModal(){
+                parentModal.style.display = 'none';
+                clearInterval(countdownTimer);
+            }
+
+            // Listen for messages from child iframe(s)
+            window.addEventListener('message', function(ev){
+                const m = ev && ev.data;
+                console.log('[parent-inactivity] message received from child:', m);
+                if (!m || typeof m !== 'object') return;
+                if (m.type === 'inactivity-show') {
+                    // remember which child sent it so we can reply
+                    childWindow = ev.source;
+                    console.log('[parent-inactivity] showing parent modal, countdown=', m.countdown || 10);
+                    showParentModal(m.countdown || 10);
+                }
+            });
+        })();
+        // Cargar el script de inactivity en el padre para que gestione todo el sistema
+        (function(){
+            var s = document.createElement('script');
+            s.src = 'assets/js/inactivity.js';
+            s.defer = true;
+            document.body.appendChild(s);
+        })();
     </script>
 </body>
 </html>

@@ -190,6 +190,7 @@ $tipNutricional = $tips[array_rand($tips)];
     .action-btn:hover .action-btn-desc { color:#e8f5e9; }
     .section-heading { font-size:1.3rem; font-weight:700; margin:28px 0 12px; color:#146c43; }
     @media (max-width:600px){ .metric-value { font-size:1.9rem; } }
+    
 </style>
 </head>
 <body>
@@ -268,5 +269,7 @@ $tipNutricional = $tips[array_rand($tips)];
             <?php endforeach; ?>
         </div>
     </div>
+
+    <!-- Inactivity is handled globally in Menuprincipal.php -->
 </body>
 </html>
