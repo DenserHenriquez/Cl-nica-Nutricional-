@@ -1,9 +1,9 @@
 // assets/js/inactivity.js
-// Detecta inactividad (2 minutos) y muestra modal con contador de 10 segundos.
+// Detecta inactividad (2 minutos) y muestra modal con contador de 60 segundos.
 (function(){
-    // MODO PRUEBA: reducido a 10s. Cambiar a 2*60*1000 para producción.
-    const INACTIVITY_LIMIT = 10 * 1000; // 10 segundos (prueba)
-    const COUNTDOWN_START = 10; // segundos
+    // MODO PRUEBA: reducido a 60s. Cambiar a 2*60*1000 para producción.
+    const INACTIVITY_LIMIT = 60 * 1000; // 60 segundos (prueba)
+    const COUNTDOWN_START = 60; // segundos
 
     let inactivityTimer = null;
     let countdownTimer = null;
