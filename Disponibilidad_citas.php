@@ -44,13 +44,36 @@ if ($userName) {
     }
 }
 
-// Datos estáticos de médicos (igual que en citas_medico.php)
-$medicos = [
-    1 => ['nombre' => 'Dr. Denser Henriquez', 'especialidad' => 'Nutrición General', 'email' => 'denser.henriquez@nutri.hn', 'telefono' => '9880-8080', 'imagen' => 'https://www.emagister.com/blog/wp-content/uploads/2017/08/nutricion-3.jpg'],
-    2 => ['nombre' => 'Dra. Genesis Bonilla', 'especialidad' => 'Nutrición Deportiva', 'email' => 'genesis.bonilla@nutri.hn', 'telefono' => '9858-8569', 'imagen' => 'https://blob.medicinaysaludpublica.com/images/2023/06/05/formato-sacs-22-7b57bcca-focus-min0.07-0.49-688-364.png'],
-    3 => ['nombre' => 'Dr. Anthony Rodriguez', 'especialidad' => 'Nutrición Clínica', 'email' => 'Anthony.rodriguez@nutri.hn', 'telefono' => '9632-7895', 'imagen' => 'https://img.freepik.com/fotos-premium/doctor-hombre-manzana-retrato-sonrisa-salud-nutricionista-aislado-fondo-estudio-profesional-medico-feliz-medico-masculino-cuidado-salud-promueven-dieta-nutricion-saludables_590464-179119.jpg'],
-    4 => ['nombre' => 'Dra. Ana Rodríguez', 'especialidad' => 'Nutrición Pediátrica', 'email' => 'ana.rodriguez@nutri.hn', 'telefono' => '9785-2503', 'imagen' => 'https://s3-sa-east-1.amazonaws.com/doctoralia.co/doctor/756cc1/756cc10699684fa2c30c96388a1d0258_large.jpg']
-];
+// Asegurar columnas opcionales en usuarios
+foreach (['imagen VARCHAR(500)', 'especialidad VARCHAR(255)', 'telefono VARCHAR(30)'] as $colDef) {
+    $colName = explode(' ', $colDef)[0];
+    $chk = $conn->query("SHOW COLUMNS FROM usuarios LIKE '$colName'");
+    if ($chk && $chk->num_rows === 0) {
+        @$conn->query("ALTER TABLE usuarios ADD COLUMN $colDef DEFAULT NULL");
+    }
+}
+
+// Obtener lista de médicos desde la tabla usuarios con rol='Medico'
+$medicos = [];
+$stmt = $conn->prepare("SELECT id_usuarios, Nombre_completo, Correo_electronico, COALESCE(especialidad, '') AS especialidad, COALESCE(imagen, '') AS imagen, COALESCE(telefono, '') AS telefono FROM usuarios WHERE Rol = 'Medico' ORDER BY Nombre_completo ASC");
+if ($stmt) {
+    $stmt->execute();
+    $result = $stmt->get_result();
+    while ($row = $result->fetch_assoc()) {
+        $img = '';
+        if (!empty($row['imagen'])) {
+            $img = $row['imagen'];
+        }
+        $medicos[(int)$row['id_usuarios']] = [
+            'nombre'       => $row['Nombre_completo'],
+            'email'        => $row['Correo_electronico'],
+            'especialidad' => $row['especialidad'] ?: 'Médico de la Clínica',
+            'imagen'       => $img,
+            'telefono'     => $row['telefono'] ?? '',
+        ];
+    }
+    $stmt->close();
+}
 
 // Si no hay medico_id, mostrar selección de médicos
 if ($medico_id === 0) {
@@ -61,80 +84,89 @@ if ($medico_id === 0) {
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Agendar Cita - Disponibilidad de Médicos</title>
-        <!-- Bootstrap 5 CSS -->
+        <title>Agendar Cita - Seleccionar Médico</title>
         <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-        <!-- Bootstrap Icons -->
         <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
         <style>
-            body { background-color: #f8f9fa; }
-            .card-medico {
-                border: none;
-                box-shadow: 0 0.125rem 0.25rem rgba(0,0,0,0.075);
-                border-radius: 1rem;
-                transition: box-shadow 0.3s;
-            }
-            .card-medico:hover {
-                box-shadow: 0 0.5rem 1rem rgba(25,135,84,0.15);
-            }
-            .medico-img {
-                width: 80px; height: 80px; object-fit: cover; border-radius: 50%; margin-bottom: 10px;
-            }
+            body { background-color: #f8f9fa; font-family: system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif; }
             .header-section {
                 background: linear-gradient(135deg, #198754 0%, #146c43 100%);
                 color: white;
-                /* Reduced height: ~60% */
                 padding: 0.8rem 0;
                 margin-bottom: 1rem;
             }
-            .header-section h1 {
-                font-size: 2.2rem;
-                font-weight: 700;
-                margin: 0.15rem 0 0.25rem;
+            .header-section h1 { font-size: 2.2rem; font-weight: 700; margin: 0.15rem 0 0.25rem; }
+            .header-section p { font-size: 1.05rem; opacity: 0.95; margin: 0; }
+            .medical-icon { font-size: 1.9rem; margin-bottom: 0.35rem; color: #ffffff; }
+            .cardx {
+                background: #fff;
+                border: 1px solid #e9eef6;
+                border-radius: 12px;
+                overflow: hidden;
+                box-shadow: 0 4px 14px rgba(13,110,253,.06);
+                cursor: pointer;
+                transition: box-shadow 0.2s, transform 0.2s;
             }
-            .header-section p {
-                font-size: 1.05rem;
-                opacity: 0.95;
-                margin: 0;
-            }
-            .medical-icon {
-                font-size: 1.9rem;
-                margin-bottom: 0.35rem;
-                color: #ffffff;
-            }
+            .cardx:hover { box-shadow: 0 8px 24px rgba(25,135,84,0.15); transform: translateY(-2px); }
+            .cardx img { width: 100%; height: 161px; object-fit: cover; display: block; }
+            .cardx .info { padding: 10px; }
+            .cardx .name { font-weight: 700; color: #212529; }
+            .cardx .meta { color: #6c757d; font-size: .85rem; }
+            .medico-card-wrap.hidden-medico { display: none !important; }
         </style>
     </head>
     <body>
         <div class="header-section text-center">
-            <div class="medical-icon">
-                <i class="bi bi-calendar-check"></i>
-            </div>
+            <div class="medical-icon"><i class="bi bi-calendar-check"></i></div>
             <h1>Agendar Cita - Seleccionar Médico</h1>
             <p>Haga clic en el médico para ver su calendario de disponibilidad.</p>
         </div>
-        <div class="container">
-            <div class="row justify-content-center">
+        <div class="container py-4">
+            <?php if (empty($medicos)): ?>
+                <div class="alert alert-warning text-center mt-4" style="padding:40px;">
+                    <h4><i class="bi bi-exclamation-triangle"></i> No hay médicos disponibles</h4>
+                    <p>Por favor, intente más tarde o contacte al administrador.</p>
+                </div>
+            <?php else: ?>
+                <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:20px;">
                 <?php foreach ($medicos as $id => $medico): ?>
-                    <div class="col-md-3 mb-4">
-                        <div class="card card-medico text-center h-100" onclick="selectMedico(<?php echo $id; ?>)" style="cursor:pointer;">
-                            <div class="card-body">
-                                <img src="<?php echo htmlspecialchars($medico['imagen']); ?>" alt="Foto de <?php echo htmlspecialchars($medico['nombre']); ?>" class="medico-img">
-                                <h5 class="card-title mb-1"><?php echo htmlspecialchars($medico['nombre']); ?></h5>
-                                <div class="text-success mb-1"><?php echo htmlspecialchars($medico['especialidad']); ?></div>
-                                <div class="small text-muted mb-1"><i class="bi bi-envelope"></i> <?php echo htmlspecialchars($medico['email']); ?></div>
-                                <div class="small text-muted"><i class="bi bi-telephone"></i> <?php echo htmlspecialchars($medico['telefono']); ?></div>
+                    <?php
+                        $cardCover = $medico['imagen'] ? $medico['imagen'] : ('https://ui-avatars.com/api/?name=' . urlencode($medico['nombre']) . '&background=e8f5e9&color=198754&bold=true&size=300&font-size=0.4');
+                    ?>
+                    <div class="medico-card-wrap" data-medico-id="<?php echo (int)$id; ?>">
+                        <div class="cardx" onclick="selectMedico(<?php echo (int)$id; ?>)">
+                            <img src="<?php echo htmlspecialchars($cardCover); ?>" alt="">
+                            <div class="info">
+                                <div class="name"><?php echo htmlspecialchars($medico['nombre']); ?></div>
+                                <div class="meta" style="color:#198754;font-weight:600;"><?php echo htmlspecialchars($medico['especialidad']); ?></div>
+                                <?php if (!empty($medico['telefono'])): ?>
+                                <div class="meta"><i class="bi bi-telephone"></i> <?php echo htmlspecialchars($medico['telefono']); ?></div>
+                                <?php endif; ?>
+                                <div class="meta"><i class="bi bi-envelope"></i> <?php echo htmlspecialchars($medico['email']); ?></div>
                             </div>
                         </div>
                     </div>
                 <?php endforeach; ?>
-            </div>
+                </div>
+            <?php endif; ?>
         </div>
         <script>
+            var MEDICOS_IDS = <?php echo json_encode(array_keys($medicos)); ?>;
+            var VIS_KEY = 'medicos_visible_v2';
             function selectMedico(id) {
                 window.location.href = '?medico_id=' + id;
             }
+            function applyVisibility() {
+                var vis = {};
+                try { vis = JSON.parse(localStorage.getItem(VIS_KEY)) || {}; } catch(e) {}
+                document.querySelectorAll('.medico-card-wrap').forEach(function(card) {
+                    var mid = parseInt(card.getAttribute('data-medico-id'));
+                    var show = vis[mid] === false ? false : true;
+                    card.classList.toggle('hidden-medico', !show);
+                });
+            }
+            document.addEventListener('DOMContentLoaded', applyVisibility);
         </script>
-        <!-- Bootstrap JS -->
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     </body>
     </html>
@@ -466,7 +498,10 @@ function monthNameEs($m) {
                     <div class="card-header d-flex justify-content-between align-items-center bg-white position-relative" style="border-radius: 18px 18px 0 0;">
                         <div class="d-flex align-items-center gap-3">
                             <?php if (isset($medicos[$medico_id])): ?>
-                                <img src="<?php echo htmlspecialchars($medicos[$medico_id]['imagen']); ?>" alt="<?php echo htmlspecialchars($medicos[$medico_id]['nombre']); ?>" class="rounded-circle" style="width: 60px; height: 60px; object-fit: cover; border: 3px solid #198754;">
+                                <img src="https://ui-avatars.com/api/?name=<?php echo urlencode($medicos[$medico_id]['nombre']); ?>&background=198754&color=ffffff&bold=true&size=60" 
+                                     alt="<?php echo htmlspecialchars($medicos[$medico_id]['nombre']); ?>" 
+                                     class="rounded-circle" 
+                                     style="width: 60px; height: 60px; border: 3px solid #198754;">
                                 <div>
                                     <h4 class="mb-1" style="color: #198754; font-size: 1.8rem; font-weight: 700;"><?php echo htmlspecialchars($medicos[$medico_id]['nombre']); ?></h4>
                                     <span class="badge" style="background-color: #198754; color: white; font-size: 1.1rem; padding: 6px 12px;"><?php echo htmlspecialchars($medicos[$medico_id]['especialidad']); ?></span>
@@ -474,7 +509,7 @@ function monthNameEs($m) {
                             <?php endif; ?>
                         </div>
                         <button class="btn" style="position: absolute; top: 18px; right: 18px; background-color:#198754; color:#ffffff; border-color:#198754;" onclick="backToSelection()">
-                            <i class="bi bi-arrow-left-circle"></i> Seleccionar Otro Médico
+                            <i class="bi bi-arrow-left"></i> Atrás
                         </button>
                     </div>
                     <div class="card-body" style="border-radius: 0 0 18px 18px; background-color:#ffffff;">
