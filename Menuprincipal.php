@@ -62,6 +62,7 @@ $menuItems = [
     'cambiar_contrasena' => ['Medico', 'Administrador', 'Paciente'],
     'seguimiento_ejercicio' => ['Medico', 'Paciente', 'Administrador'],
     'retroalimentacion' => ['Medico', 'Paciente', 'Administrador']
+    ,'estadisticas_medico' => ['Administrador']
 ];
 
 // Función para verificar si el usuario tiene acceso a un item del menú
@@ -361,6 +362,14 @@ function e($str) { return htmlspecialchars((string)$str, ENT_QUOTES, 'UTF-8'); }
                         <li class="nav-item">
                             <a class="nav-link" href="citas_medico.php" target="main-content">
                                 <i class="bi bi-calendar-event"></i> Citas Medicas
+                            </a>
+                        </li>
+                        <?php endif; ?>
+
+                        <?php if (hasAccess('estadisticas_medico', $userRole, $menuItems)): ?>
+                        <li class="nav-item">
+                            <a class="nav-link" href="estadisticasmedico.php" target="main-content">
+                                <i class="bi bi-bar-chart-line"></i> Estadísticas
                             </a>
                         </li>
                         <?php endif; ?>
