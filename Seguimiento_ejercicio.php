@@ -26,7 +26,7 @@ $exito = '';
 
 $user_id = (int)$_SESSION['id_usuarios'];
 
-// Obtener id_pacientes del usuario
+// Obtener id_pacientes del usuario (por defecto usamos el paciente asociado al usuario en sesión)
 $stmt = $conexion->prepare("SELECT id_pacientes FROM pacientes WHERE id_usuarios = ? LIMIT 1");
 $stmt->bind_param('i', $user_id);
 $stmt->execute();
@@ -38,18 +38,23 @@ $isStaff = in_array($userRole, ['Medico', 'Administrador'], true);
 if ($row = $res->fetch_assoc()) {
   $paciente_id = (int)$row['id_pacientes'];
 } else {
-  // Si el usuario tiene rol Paciente pero aún no existe la fila en pacientes,
-  // mostramos un aviso en la interfaz en lugar de redirigir inmediatamente.
   if ($userRole === 'Paciente') {
     $paciente_id = 0;
     $noRegistrado = true;
   } else {
-    // Médico/Administrador no necesitan registro de paciente; acceso completo sin restricciones
     $paciente_id = 0;
     $noRegistrado = false;
   }
 }
 $stmt->close();
+
+// Permitir que personal (Medico/Administrador) pase ?id=<id_pacientes> para ver el seguimiento de un paciente
+if ($isStaff && isset($_GET['id']) && ctype_digit((string)$_GET['id'])) {
+    $requested = (int)$_GET['id'];
+    if ($requested > 0) {
+        $paciente_id = $requested;
+    }
+}
 
 // ---------------- Preparación de tabla y columnas ----------------
 $conexion->query("CREATE TABLE IF NOT EXISTS ejercicios (

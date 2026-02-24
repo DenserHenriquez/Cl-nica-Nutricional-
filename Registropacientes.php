@@ -92,6 +92,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $dni = isset($_POST['dni']) ? trim($_POST['dni']) : '';
     $fecha_nacimiento = isset($_POST['fecha_nacimiento']) ? trim($_POST['fecha_nacimiento']) : '';
     $telefono = isset($_POST['telefono']) ? trim($_POST['telefono']) : '';
+    $referencia_medica = isset($_POST['referencia_medica']) ? trim($_POST['referencia_medica']) : '';
     $talla = isset($_POST['talla']) ? trim($_POST['talla']) : '';
     $peso = isset($_POST['peso']) ? trim($_POST['peso']) : '';
     $estatura = isset($_POST['estatura']) ? trim($_POST['estatura']) : '';
@@ -121,6 +122,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     if (!preg_match('/^\d{8}$/', $telefono)) {
         $errores[] = 'Teléfono debe contener exactamente 8 dígitos numéricos.';
+    }
+
+    if (!empty($referencia_medica) && mb_strlen($referencia_medica) > 255) {
+        $errores[] = 'Referencia médica demasiado larga (máx 255 caracteres).';
     }
 
     // Validaciones para nuevos campos
@@ -164,10 +169,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         // Insertar paciente (NOTA: la tabla pacientes no incluye campos clínicos como talla/peso/IMC)
-        $sql = "INSERT INTO pacientes (id_usuarios, nombre_completo, DNI, fecha_nacimiento, edad, telefono) VALUES (?,?,?,?,?,?)";
+        $sql = "INSERT INTO pacientes (id_usuarios, nombre_completo, DNI, fecha_nacimiento, edad, telefono, referencia_medica) VALUES (?,?,?,?,?,?,?)";
         $stmt = $conexion->prepare($sql);
         if ($stmt) {
-            $stmt->bind_param('isssis', $effectiveUserId, $effectiveUserName, $dni, $fecha_nacimiento, $edad, $telefono);
+            $stmt->bind_param('isssiss', $effectiveUserId, $effectiveUserName, $dni, $fecha_nacimiento, $edad, $telefono, $referencia_medica);
             if ($stmt->execute()) {
                 $nuevoPacienteId = $stmt->insert_id;
                 $exito = 'Paciente registrado correctamente.';
@@ -503,6 +508,13 @@ if (isset($_SESSION['flash_success'])) {
                             <i class="bi bi-person me-1"></i>Nombre completo
                         </label>
                         <input type="text" class="form-control" id="nombre_completo" value="<?= htmlspecialchars($targetUserName, ENT_QUOTES, 'UTF-8') ?>" readonly>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="referencia_medica" class="form-label">
+                            <i class="bi bi-journal-medical me-1"></i>Referencia Médica
+                        </label>
+                        <input type="text" class="form-control" id="referencia_medica" name="referencia_medica" maxlength="255" placeholder="Nombre del médico que refiere">
                     </div>
 
                     <div class="row mb-3">

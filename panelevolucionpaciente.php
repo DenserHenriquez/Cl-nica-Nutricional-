@@ -29,7 +29,7 @@ if ($idPaciente <= 0) {
 // Datos del paciente (solo si registrado)
 $paciente = null;
 if (!$noRegistrado) {
-  if ($stmt = $conexion->prepare('SELECT nombre_completo, edad, telefono, DNI FROM pacientes WHERE id_pacientes = ? LIMIT 1')) {
+  if ($stmt = $conexion->prepare('SELECT nombre_completo, edad, telefono, DNI, referencia_medica FROM pacientes WHERE id_pacientes = ? LIMIT 1')) {
     $stmt->bind_param('i', $idPaciente);
     $stmt->execute();
     $res = $stmt->get_result();
@@ -240,7 +240,12 @@ $cambio = $pesoActual - $pesoInicial;
   <div class="header-card d-flex justify-content-between align-items-center flex-wrap">
     <div>
       <h3 class="mb-1"><?= e($paciente['nombre_completo']) ?></h3>
-      <small>Edad: <?= e($paciente['edad']) ?> años • DNI: <?= e($paciente['DNI']) ?> • Tel: <?= e($paciente['telefono']) ?></small>
+      <small>
+        Edad: <?= e($paciente['edad']) ?> años • DNI: <?= e($paciente['DNI']) ?> • Tel: <?= e($paciente['telefono']) ?>
+        <?php if (!empty($paciente['referencia_medica'])): ?>
+          • Referencia: <?= e($paciente['referencia_medica']) ?>
+        <?php endif; ?>
+      </small>
     </div>
     <?php if ($userRole !== 'Paciente'): ?>
       <a class="btn-back" href="Activar_desactivar_paciente.php">
