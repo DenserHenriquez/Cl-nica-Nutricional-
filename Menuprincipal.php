@@ -55,12 +55,12 @@ $menuItems = [
     'citas_medicas' => ['Medico', 'Administrador'],
     'disponibilidad_citas' => ['Medico', 'Administrador', 'Paciente'],
     'registro_pacientes' => ['Medico', 'Administrador'],
-    'registro_alimentos' => ['Medico', 'Paciente', 'Administrador'],
+    'registro_alimentos' => ['Paciente'],
     'clasificacion_alimentos' => ['Medico', 'Administrador'],
     'crear_receta' => ['Medico', 'Administrador'],
     'gestion_receta' => ['Medico', 'Administrador', 'Paciente'],
     'cambiar_contrasena' => ['Medico', 'Administrador', 'Paciente'],
-    'seguimiento_ejercicio' => ['Medico', 'Paciente', 'Administrador'],
+    'seguimiento_ejercicio' => ['Paciente'],
     'retroalimentacion' => ['Medico', 'Paciente', 'Administrador']
     ,'estadisticas_medico' => ['Administrador']
 ];

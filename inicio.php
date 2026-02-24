@@ -62,11 +62,10 @@ if ($userRole === 'Administrador') {
         ['href'=>'citas_medico.php','icon'=>'bi-calendar-event','text'=>'Citas Médicas','desc'=>'Gestiona y programa citas con los pacientes'],
         ['href'=>'Disponibilidad_citas.php','icon'=>'bi-clock','text'=>'Disponibilidad de Citas','desc'=>'Configura horarios disponibles para consultas'],
         ['href'=>'Registropacientes.php','icon'=>'bi-person-plus','text'=>'Registro de Pacientes','desc'=>'Añade nuevos pacientes al sistema de la clínica'],
-        ['href'=>'Resgistro_Alimentos.php','icon'=>'bi-apple','text'=>'Registro de Alimentos','desc'=>'Registra el consumo diario de alimentos'],
+        
         ['href'=>'Clasificacion_alimentos.php','icon'=>'bi-list-check','text'=>'Clasificación de Alimentos','desc'=>'Organiza y categoriza los alimentos por grupos'],
         ['href'=>'Crear_Receta.php','icon'=>'bi-receipt','text'=>'Crear Receta','desc'=>'Genera nuevas recetas nutricionales personalizadas'],
         ['href'=>'Gestion_Receta.php','icon'=>'bi-journal-text','text'=>'Gestión de Recetas','desc'=>'Administra y edita las recetas existentes'],
-        ['href'=>'Seguimiento_ejercicio.php','icon'=>'bi-activity','text'=>'Seguimiento de Ejercicios','desc'=>'Monitorea la actividad física y rutinas de ejercicio'],
         ['href'=>'retroalimentacion1.php','icon'=>'bi-chat-dots','text'=>'Retroalimentación','desc'=>'Envía y recibe comentarios sobre el tratamiento']
     ];
 } elseif ($userRole === 'Medico') {
@@ -78,11 +77,11 @@ if ($userRole === 'Administrador') {
         ['href'=>'citas_medico.php','icon'=>'bi-calendar-event','text'=>'Citas Médicas','desc'=>'Gestiona y programa citas con los pacientes'],
         ['href'=>'Disponibilidad_citas.php','icon'=>'bi-clock','text'=>'Disponibilidad de Citas','desc'=>'Configura horarios disponibles para consultas'],
         ['href'=>'Registropacientes.php','icon'=>'bi-person-plus','text'=>'Registro de Pacientes','desc'=>'Añade nuevos pacientes al sistema de la clínica'],
-        ['href'=>'Resgistro_Alimentos.php','icon'=>'bi-apple','text'=>'Registro de Alimentos','desc'=>'Registra el consumo diario de alimentos'],
+        
         ['href'=>'Clasificacion_alimentos.php','icon'=>'bi-list-check','text'=>'Clasificación de Alimentos','desc'=>'Organiza y categoriza los alimentos por grupos'],
         ['href'=>'Crear_Receta.php','icon'=>'bi-receipt','text'=>'Crear Receta','desc'=>'Genera nuevas recetas nutricionales personalizadas'],
         ['href'=>'Gestion_Receta.php','icon'=>'bi-journal-text','text'=>'Gestión de Recetas','desc'=>'Administra y edita las recetas existentes'],
-        ['href'=>'Seguimiento_ejercicio.php','icon'=>'bi-activity','text'=>'Seguimiento de Ejercicios','desc'=>'Monitorea la actividad física y rutinas de ejercicio'],
+        
         ['href'=>'retroalimentacion1.php','icon'=>'bi-chat-dots','text'=>'Retroalimentación','desc'=>'Envía y recibe comentarios sobre el tratamiento']
     ];
 } else { // Paciente
@@ -92,7 +91,7 @@ if ($userRole === 'Administrador') {
         ['href'=>'panelevolucionpaciente.php','icon'=>'bi-graph-up','text'=>'Panel de Evolución','desc'=>'Revisa tu progreso y evolución nutricional'],
         ['href'=>'Resgistro_Alimentos.php','icon'=>'bi-apple','text'=>'Registro de Alimentos','desc'=>'Registra los alimentos que consumes diariamente'],
         ['href'=>'Gestion_Receta.php','icon'=>'bi-journal-text','text'=>'Gestión de Recetas','desc'=>'Consulta tus recetas nutricionales personalizadas'],
-        ['href'=>'Seguimiento_ejercicio.php','icon'=>'bi-activity','text'=>'Seguimiento de Ejercicios','desc'=>'Registra y sigue tus rutinas de ejercicio'],
+        
         ['href'=>'retroalimentacion1.php','icon'=>'bi-chat-dots','text'=>'Retroalimentación','desc'=>'Comunícate con tu nutricionista sobre el tratamiento']
     ];
 }

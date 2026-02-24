@@ -11,7 +11,7 @@ require_once __DIR__ . '/db_connection.php';
 $TABLE_USERS = 'usuarios';
 $FIELDS_SELECT_USERS = 'id_usuarios, Nombre_completo, Correo_electronico, Usuario, Contrasena';
 $TABLE_PATIENTS = 'pacientes';
-$FIELDS_SELECT_PATIENTS = 'id_pacientes, id_usuarios, nombre_completo, DNI, fecha_nacimiento, edad, telefono';
+$FIELDS_SELECT_PATIENTS = 'id_pacientes, id_usuarios, nombre_completo, DNI, fecha_nacimiento, edad, telefono, referencia_medica';
 // Tabla expediente (registro médico del paciente)
 $TABLE_EXPEDIENTE = 'expediente';
 $FIELDS_SELECT_EXPEDIENTE = 'id_expediente, id_pacientes, talla, peso, estatura, IMC, masa_muscular, enfermedades_base, medicamentos';
@@ -164,6 +164,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $dni = trim($_POST['DNI'] ?? '');
         $fechaNacimiento = trim($_POST['fecha_nacimiento'] ?? '');
         $telefono = trim($_POST['telefono'] ?? '');
+        $referencia_medica = trim($_POST['referencia_medica'] ?? '');
 
         if ($correo === '' || !filter_var($correo, FILTER_VALIDATE_EMAIL)) $errores[] = 'Correo electrónico inválido';
         if ($nombreCompletoPaciente === '') $errores[] = 'El nombre completo del paciente es obligatorio';
@@ -187,10 +188,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             'fecha_nacimiento' => $fechaNacimiento,
             'edad' => $edadCalculada,
             'telefono' => $telefono,
+            'referencia_medica' => $referencia_medica,
         ];
 
         $cambiosUsuario = diffs_campos($usuario ?? [], $payloadNuevoUsuario, $permitidosUsuario);
-        $permitidosPaciente = ['nombre_completo', 'DNI', 'fecha_nacimiento', 'edad', 'telefono'];
+        $permitidosPaciente = ['nombre_completo', 'DNI', 'fecha_nacimiento', 'edad', 'telefono', 'referencia_medica'];
         $cambiosPaciente = diffs_campos($paciente ?? [], $payloadNuevoPaciente, $permitidosPaciente);
 
         if (!$errores) {
@@ -336,6 +338,7 @@ function cargarHistorial(mysqli $conexion, string $tablaHist, int $idUsuarios): 
         'fecha_nacimiento' => 'Fecha de Nacimiento',
         'edad' => 'Edad',
         'telefono' => 'Teléfono',
+        'referencia_medica' => 'Referencia Médica',
         // Campos expediente
         'talla' => 'Talla (cm)',
         'peso' => 'Peso (kg)',
@@ -470,6 +473,23 @@ $historial = cargarHistorial($conexion, $TABLE_HISTORY, $userId);
                 </div>
             <?php endif; ?>
 
+                <?php if (!empty($paciente) && isset($paciente['id_pacientes'])): ?>
+                    <div class="mb-4">
+                        <h5 class="mb-2" style="color:var(--brand-primary,#198754);">Acciones Rápidas</h5>
+                        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;">
+                            <a href="#" id="openEjerciciosBtn" class="action-btn" style="text-decoration:none;">
+                                <div style="display:flex;align-items:center;gap:12px;">
+                                    <i class="bi bi-activity" style="font-size:28px;color:var(--brand-primary,#198754);"></i>
+                                    <div>
+                                        <div style="font-weight:700;color:#0d5132;">Seguimiento de Ejercicios</div>
+                                        <div style="color:#6c757d;font-size:0.95rem;">Registra y visualiza la actividad física del paciente</div>
+                                    </div>
+                                </div>
+                            </a>
+                        </div>
+                    </div>
+                <?php endif; ?>
+
             <div class="card">
                 <div class="card-header bg-primary text-white">
                     <h5 class="card-title mb-0"><i class="bi bi-person-plus me-2"></i>Información del Perfil</h5>
@@ -513,6 +533,13 @@ $historial = cargarHistorial($conexion, $TABLE_HISTORY, $userId);
                             </div>
                         </div>
 
+                        <div class="mb-3">
+                            <label for="referencia_medica" class="form-label">
+                                <i class="bi bi-journal-medical me-1"></i>Referencia Médica
+                            </label>
+                            <input type="text" class="form-control" id="referencia_medica" name="referencia_medica" value="<?= htmlspecialchars($paciente['referencia_medica'] ?? '', ENT_QUOTES, 'UTF-8') ?>" maxlength="255" placeholder="Nombre del médico que refiere">
+                        </div>
+
                         <div class="row mb-3">
                             <div class="col-md-6">
                                 <label for="fecha_nacimiento" class="form-label">
@@ -540,6 +567,41 @@ $historial = cargarHistorial($conexion, $TABLE_HISTORY, $userId);
                 </div>
             </div>
         <?php endif; ?>
+        <?php if (!empty($paciente) && isset($paciente['id_pacientes'])): ?>
+            <!-- Modal para Seguimiento de Ejercicios -->
+            <div id="modalEjercicios" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:2147483647;align-items:center;justify-content:center;">
+                <div style="background:#fff;width:95%;max-width:1000px;border-radius:8px;overflow:hidden;box-shadow:0 12px 36px rgba(0,0,0,0.28);">
+                    <div style="padding:12px 16px;background:linear-gradient(135deg,#198754,#146c43);color:#fff;display:flex;align-items:center;justify-content:space-between;">
+                        <strong>Seguimiento de Ejercicios - <?= htmlspecialchars($paciente['nombre_completo'] ?? 'Paciente', ENT_QUOTES, 'UTF-8') ?></strong>
+                        <button id="closeEjercicios" class="btn btn-light btn-sm">Cerrar</button>
+                    </div>
+                    <iframe id="iframeEjercicios" src="Seguimiento_ejercicio.php?id=<?= (int)$paciente['id_pacientes'] ?>" style="width:100%;height:640px;border:0;"></iframe>
+                </div>
+            </div>
+            <script>
+                (function(){
+                    var btn = document.getElementById('openEjerciciosBtn');
+                    var modal = document.getElementById('modalEjercicios');
+                    var closeBtn = document.getElementById('closeEjercicios');
+                    if (btn && modal) {
+                        btn.addEventListener('click', function(e){ e.preventDefault(); modal.style.display = 'flex'; });
+                    }
+                    if (closeBtn && modal) closeBtn.addEventListener('click', function(){ modal.style.display='none'; });
+                    window.addEventListener('click', function(ev){ if (ev.target === modal) modal.style.display='none'; });
+                })();
+            </script>
+        <?php endif; ?>
+                        <!-- Incrustar seguimiento de ejercicios (widget) para el paciente actual -->
+                        <?php if ($paciente && isset($paciente['id_pacientes'])): ?>
+                            <div class="card mt-4">
+                                <div class="card-header bg-primary text-white">
+                                    <h5 class="card-title mb-0"><i class="bi bi-activity me-2"></i>Seguimiento de Ejercicios</h5>
+                                </div>
+                                <div class="card-body p-0">
+                                    <iframe src="Seguimiento_ejercicio.php?id=<?= (int)$paciente['id_pacientes'] ?>" style="width:100%;height:680px;border:0;" title="Seguimiento de Ejercicios"></iframe>
+                                </div>
+                            </div>
+                        <?php endif; ?>
         <?php if ($_SESSION['rol'] !== 'Paciente'): ?>
         <!-- Sección Expediente Médico -->
         <div class="card mt-4">

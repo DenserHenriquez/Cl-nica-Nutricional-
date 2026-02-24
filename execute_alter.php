@@ -23,6 +23,8 @@ ALTER TABLE ejercicios ADD CONSTRAINT fk_ejercicios_paciente FOREIGN KEY (pacien
 -- Add index
 ALTER TABLE ejercicios ADD INDEX idx_paciente_fecha (paciente_id, fecha);
 ";
+-- Agregar columna para referencia médica en tabla pacientes (si no existe)
+ALTER TABLE pacientes ADD COLUMN IF NOT EXISTS referencia_medica VARCHAR(255) NULL AFTER nombre_completo;
 
 try {
     $conexion->multi_query($sql);
