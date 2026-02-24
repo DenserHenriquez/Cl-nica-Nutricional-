@@ -51,6 +51,7 @@ $menuItems = [
     'actualizar_perfil' => ['Medico', 'Administrador', 'Paciente'],
     'estado_paciente' => ['Medico', 'Administrador'],
     'panel_evolucion' => ['Medico', 'Paciente', 'Administrador'],
+    'examenes' => ['Medico', 'Paciente', 'Administrador'],
     'busqueda_avanzada' => ['Medico', 'Administrador'],
     'citas_medicas' => ['Medico', 'Administrador'],
     'disponibilidad_citas' => ['Medico', 'Administrador', 'Paciente'],
@@ -345,6 +346,14 @@ function e($str) { return htmlspecialchars((string)$str, ENT_QUOTES, 'UTF-8'); }
                         <li class="nav-item">
                             <a class="nav-link" href="panelevolucionpaciente.php" target="main-content">
                                 <i class="bi bi-graph-up"></i> Panel de Evolucion
+                            </a>
+                        </li>
+                        <?php endif; ?>
+
+                        <?php if (hasAccess('examenes', $userRole, $menuItems)): ?>
+                        <li class="nav-item">
+                            <a class="nav-link" href="Examenes.php" target="main-content">
+                                <i class="bi bi-clipboard2-pulse"></i> Exámenes
                             </a>
                         </li>
                         <?php endif; ?>
