@@ -76,9 +76,38 @@ $ensureTableSql = "CREATE TABLE IF NOT EXISTS examenes (
     tipo VARCHAR(50) NOT NULL,
     descripcion_paciente VARCHAR(50) NOT NULL,
     tamano INT NOT NULL,
+    categoria VARCHAR(100) NOT NULL DEFAULT 'Otros / Especializados',
+    nombre_examen VARCHAR(255) NOT NULL DEFAULT '',
+    fecha_examen DATE NOT NULL DEFAULT CURRENT_DATE,
+    notas TEXT NULL,
     creado_en DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     INDEX (id_pacientes)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;";
+
+// Añadir columna categoria si no existe (verificar primero si la columna exista)
+try {
+    $resultCheck = $conexion->query("SHOW COLUMNS FROM examenes LIKE 'categoria'");
+    if ($resultCheck && $resultCheck->num_rows === 0) {
+        $conexion->query("ALTER TABLE examenes ADD COLUMN categoria VARCHAR(100) NOT NULL DEFAULT 'Otros / Especializados'");
+    }
+    // nombre_examen
+    $resultCheck = $conexion->query("SHOW COLUMNS FROM examenes LIKE 'nombre_examen'");
+    if ($resultCheck && $resultCheck->num_rows === 0) {
+        $conexion->query("ALTER TABLE examenes ADD COLUMN nombre_examen VARCHAR(255) NOT NULL DEFAULT '' AFTER categoria");
+    }
+    // fecha_examen
+    $resultCheck = $conexion->query("SHOW COLUMNS FROM examenes LIKE 'fecha_examen'");
+    if ($resultCheck && $resultCheck->num_rows === 0) {
+        $conexion->query("ALTER TABLE examenes ADD COLUMN fecha_examen DATE NOT NULL DEFAULT CURRENT_DATE AFTER nombre_examen");
+    }
+    // notas
+    $resultCheck = $conexion->query("SHOW COLUMNS FROM examenes LIKE 'notas'");
+    if ($resultCheck && $resultCheck->num_rows === 0) {
+        $conexion->query("ALTER TABLE examenes ADD COLUMN notas TEXT NULL AFTER fecha_examen");
+    }
+} catch (Exception $e) {
+    // Continuar sin abortar si ya existan las columnas
+}
 
 try {
     $conexion->query($ensureTableSql);
@@ -89,54 +118,131 @@ try {
 $errors = [];
 $success = null;
 
-// Solo pacientes pueden subir exámenes
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['examen_pdf']) && !$isStaff) {
-    $file = $_FILES['examen_pdf'];
+// Solo pacientes pueden subir o editar exámenes
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && !$isStaff) {
+    $isEditing = isset($_POST['exam_id']) && intval($_POST['exam_id']) > 0;
+    $editingId = $isEditing ? intval($_POST['exam_id']) : null;
 
-    if ($file['error'] !== UPLOAD_ERR_OK) {
-        $errors[] = 'Error en la subida del archivo. Código: ' . $file['error'];
-    } else {
-        if ($file['size'] <= 0 || $file['size'] > $MAX_SIZE_BYTES) {
-            $errors[] = 'El archivo debe ser mayor a 0 bytes y no exceder 10MB.';
-        }
+    // Validar campos comunes
+    $categoria = isset($_POST['categoria_examen']) ? trim($_POST['categoria_examen']) : '';
+    $categoriasValidas = ['Perfil Metabólico', 'Nutrientes y Sangre', 'Función Orgánica', 'Composición Corporal', 'Otros / Especializados'];
+    if (empty($categoria)) {
+        $errors[] = 'Debe seleccionar una categoría de examen.';
+    } elseif (!in_array($categoria, $categoriasValidas)) {
+        $errors[] = 'La categoría de examen seleccionada no es válida.';
+    }
 
-        // Validar tipo por extensión y por MIME
-        $originalName = $file['name'];
-        $ext = strtolower(pathinfo($originalName, PATHINFO_EXTENSION));
-        if ($ext !== 'pdf') {
-            $errors[] = 'Solo se permiten archivos PDF (.pdf).';
-        }
+    $nombreExamen = isset($_POST['nombre_examen']) ? trim($_POST['nombre_examen']) : '';
+    if (empty($nombreExamen)) {
+        $errors[] = 'Debe ingresar un nombre para el examen.';
+    }
 
-        $finfo = new finfo(FILEINFO_MIME_TYPE);
-        $mime = $finfo->file($file['tmp_name']);
-        $allowedMimes = ['application/pdf'];
-        if (!in_array($mime, $allowedMimes, true)) {
-            $fh = fopen($file['tmp_name'], 'rb');
-            $magic = $fh ? fread($fh, 4) : '';
-            if ($fh) fclose($fh);
-            if ($magic !== '%PDF') {
-                $errors[] = 'El archivo no parece ser un PDF válido.';
+    $fechaExamen = isset($_POST['fecha_examen']) ? trim($_POST['fecha_examen']) : '';
+    if (empty($fechaExamen)) {
+        $errors[] = 'Debe seleccionar la fecha del examen.';
+    } elseif (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $fechaExamen)) {
+        $errors[] = 'La fecha del examen no tiene el formato válido (AAAA-MM-DD).';
+    }
+
+    $notas = isset($_POST['notas']) ? trim($_POST['notas']) : '';
+
+    // si estamos editando, no es obligatorio re-subir archivo
+    $file = $_FILES['examen_pdf'] ?? null;
+    $hasNewFile = $file && $file['error'] !== UPLOAD_ERR_NO_FILE;
+
+    if ($hasNewFile) {
+        if ($file['error'] !== UPLOAD_ERR_OK) {
+            $errors[] = 'Error en la subida del archivo. Código: ' . $file['error'];
+        } else {
+            if ($file['size'] <= 0 || $file['size'] > $MAX_SIZE_BYTES) {
+                $errors[] = 'El archivo debe ser mayor a 0 bytes y no exceder 10MB.';
+            }
+            $originalName = $file['name'];
+            $ext = strtolower(pathinfo($originalName, PATHINFO_EXTENSION));
+            if ($ext !== 'pdf') {
+                $errors[] = 'Solo se permiten archivos PDF (.pdf).';
+            }
+            $finfo = new finfo(FILEINFO_MIME_TYPE);
+            $mime = $finfo->file($file['tmp_name']);
+            $allowedMimes = ['application/pdf'];
+            if (!in_array($mime, $allowedMimes, true)) {
+                $fh = fopen($file['tmp_name'], 'rb');
+                $magic = $fh ? fread($fh, 4) : '';
+                if ($fh) fclose($fh);
+                if ($magic !== '%PDF') {
+                    $errors[] = 'El archivo no parece ser un PDF válido.';
+                }
             }
         }
+    }
 
-        if (empty($errors)) {
-            // Sanitizar nombre y construir destino
+    if (empty($errors)) {
+        if ($isEditing) {
+            // verificar propiedad del examen
+            $stmtCheck = $conexion->prepare('SELECT ruta, id_pacientes FROM examenes WHERE id = ? LIMIT 1');
+            $stmtCheck->bind_param('i', $editingId);
+            $stmtCheck->execute();
+            $res = $stmtCheck->get_result();
+            $row = $res->fetch_assoc();
+            $stmtCheck->close();
+            if (!$row || intval($row['id_pacientes']) !== $pacienteId) {
+                $errors[] = 'No puedes editar ese examen.';
+            } else {
+                $updateFields = 'categoria=?, nombre_examen=?, fecha_examen=?, notas=?';
+                $params = [$categoria, $nombreExamen, $fechaExamen, $notas];
+                $types = 'ssss';
+                if ($hasNewFile) {
+                    // mover archivo y actualizar ruta/tamano
+                    $safeOriginal = preg_replace('/[^A-Za-z0-9_\-\.]/', '_', $originalName);
+                    $timestamp = date('Ymd_His');
+                    $rand = substr(md5(uniqid((string)mt_rand(), true)), 0, 8);
+                    $destFileName = 'examen_' . $pacienteId . '_' . $timestamp . '_' . $rand . '.pdf';
+                    $destPath = $uploadDir . $destFileName;
+                    $relativePath = 'uploads/examenes/' . $destFileName;
+                    if (!move_uploaded_file($file['tmp_name'], $destPath)) {
+                        $errors[] = 'No se pudo mover el archivo subido.';
+                    } else {
+                        $updateFields .= ', ruta=?, tamano=?';
+                        $types .= 'si';
+                        $params[] = $relativePath;
+                        $params[] = $file['size'];
+                        // opcional: borrar archivo viejo
+                        if (!empty($row['ruta']) && is_file(__DIR__ . '/' . $row['ruta'])) {
+                            @unlink(__DIR__ . '/' . $row['ruta']);
+                        }
+                    }
+                }
+                $sql = 'UPDATE examenes SET ' . $updateFields . ' WHERE id=?';
+                $types .= 'i';
+                $params[] = $editingId;
+                $stmtUpd = $conexion->prepare($sql);
+                if ($stmtUpd) {
+                    $stmtUpd->bind_param($types, ...$params);
+                    if ($stmtUpd->execute()) {
+                        $success = 'Examen actualizado correctamente.';
+                    } else {
+                        $errors[] = 'Error al actualizar examen.';
+                    }
+                    $stmtUpd->close();
+                }
+            }
+        } else {
+            // nuevo registro: mover archivo y guardar
             $safeOriginal = preg_replace('/[^A-Za-z0-9_\-\.]/', '_', $originalName);
             $timestamp = date('Ymd_His');
             $rand = substr(md5(uniqid((string)mt_rand(), true)), 0, 8);
             $destFileName = 'examen_' . $pacienteId . '_' . $timestamp . '_' . $rand . '.pdf';
             $destPath = $uploadDir . $destFileName;
             $relativePath = 'uploads/examenes/' . $destFileName;
-
             if (!move_uploaded_file($file['tmp_name'], $destPath)) {
                 $errors[] = 'No se pudo mover el archivo subido al directorio de destino.';
             } else {
-                // Guardar registro en BD
                 try {
-                    $stmt = $conexion->prepare('INSERT INTO examenes (id_pacientes, nombre_paciente, ruta, tipo, descripcion_paciente, tamano) VALUES (?, ?, ?, ?, ?, ?)');
+                    $stmt = $conexion->prepare('INSERT INTO examenes (id_pacientes, nombre_paciente, ruta, tipo, descripcion_paciente, tamano, categoria, nombre_examen, fecha_examen, notas) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)');
                     $tipo = 'pdf';
                     $descripcion = 'Examen de laboratorio';
-                    $stmt->bind_param('issssi', $pacienteId, $safeOriginal, $relativePath, $tipo, $descripcion, $file['size']);
+                    $fileSize = $file['size'];
+                    $stmt->bind_param('issssissss', $pacienteId, $safeOriginal, $relativePath, $tipo, $descripcion, $fileSize, $categoria, $nombreExamen, $fechaExamen, $notas);
                     $stmt->execute();
                     $stmt->close();
                     $success = 'Examen subido correctamente.';
@@ -148,11 +254,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['examen_pdf']) && !$i
     }
 }
 
+// Borra examen si se solicitó
+if (isset($_GET['delete']) && $pacienteId) {
+    $delId = intval($_GET['delete']);
+    $stmtDel = $conexion->prepare('DELETE FROM examenes WHERE id = ? AND id_pacientes = ?');
+    if ($stmtDel) {
+        $stmtDel->bind_param('ii', $delId, $pacienteId);
+        $stmtDel->execute();
+        $stmtDel->close();
+    }
+    header('Location: Examenes.php?id_pacientes=' . $pacienteId);
+    exit;
+}
+
 // Listar examenes del paciente (solo si hay un paciente seleccionado)
 $examenes = [];
 if ($pacienteId) {
     try {
-        $stmt = $conexion->prepare('SELECT id, nombre_paciente, ruta, tipo, descripcion_paciente, tamano, creado_en FROM examenes WHERE id_pacientes = ? ORDER BY creado_en DESC');
+        $stmt = $conexion->prepare('SELECT id, nombre_paciente, ruta, tipo, descripcion_paciente, tamano, categoria, nombre_examen, fecha_examen, notas, creado_en FROM examenes WHERE id_pacientes = ? ORDER BY creado_en DESC');
         $stmt->bind_param('i', $pacienteId);
         $stmt->execute();
         $result = $stmt->get_result();
@@ -227,6 +346,21 @@ if ($pacienteId) {
         .table {
             margin-top: 1rem;
         }
+        /* category badges */
+        .category-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-weight: 500;
+            font-size: 0.9rem;
+        }
+        .category-perfil { background-color: #fdd835; color: #000; }
+        .category-nutrientes { background-color: #d32f2f; color: #fff; }
+        .category-funcion { background-color: #1976d2; color: #fff; }
+        .category-composicion { background-color: #6a1b9a; color: #fff; }
+        .category-otros { background-color: #616161; color: #fff; }
         .table th {
             background-color: #f8f9fa;
             font-weight: 600;
@@ -238,6 +372,12 @@ if ($pacienteId) {
         .muted {
             color: #6c757d;
             font-size: 0.875rem;
+        }
+        .upload-zone {
+            cursor: pointer;
+        }
+        .upload-zone:hover {
+            background-color: #f1f1f1;
         }
         .preview-pdf {
             width: 100%;
@@ -314,18 +454,60 @@ if ($pacienteId) {
                 <h5 class="card-title mb-0"><i class="bi bi-upload me-2"></i>Subir Nuevo Examen</h5>
             </div>
             <div class="card-body">
-                <form method="post" enctype="multipart/form-data">
-                    <div class="mb-3">
-                        <label for="examen_pdf" class="form-label">
-                            <i class="bi bi-file-earmark-pdf me-1"></i>Archivo PDF (máx 10MB)
+                <form method="post" enctype="multipart/form-data" class="row g-3" id="uploadForm">
+                    <input type="hidden" id="exam_id" name="exam_id" value="">
+                    <div class="col-md-4">
+                        <label for="categoria_examen" class="form-label">
+                            <i class="bi bi-tags me-1"></i>Categoría de Examen *
                         </label>
-                        <input type="file" class="form-control" id="examen_pdf" name="examen_pdf" accept="application/pdf" required>
-                        <span class="muted">Solo se aceptan archivos .pdf</span>
+                        <select class="form-select" id="categoria_examen" name="categoria_examen" required>
+                            <option value="">-- Seleccionar Categoría --</option>
+                            <option value="Perfil Metabólico">Perfil Metabólico</option>
+                            <option value="Nutrientes y Sangre">Nutrientes y Sangre</option>
+                            <option value="Función Orgánica">Función Orgánica</option>
+                            <option value="Composición Corporal">Composición Corporal</option>
+                            <option value="Otros / Especializados">Otros / Especializados</option>
+                        </select>
+                        <span class="muted">Seleccione la categoría del examen</span>
                     </div>
-                    <div class="d-grid">
-                        <button type="submit" class="btn btn-primary btn-lg">
-                            <i class="bi bi-upload me-2"></i>Subir Examen
+                    <div class="col-md-4">
+                        <label for="nombre_examen" class="form-label">
+                            <i class="bi bi-card-text me-1"></i>Nombre del Examen *
+                        </label>
+                        <input type="text" class="form-control" id="nombre_examen" name="nombre_examen" required>
+                    </div>
+                    <div class="col-md-2">
+                        <label for="fecha_examen" class="form-label">
+                            <i class="bi bi-calendar3 me-1"></i>Fecha *
+                        </label>
+                        <input type="date" class="form-control" id="fecha_examen" name="fecha_examen" value="<?= date('Y-m-d') ?>" required>
+                    </div>
+                    <div class="col-md-2">
+                        <label for="notas" class="form-label">
+                            <i class="bi bi-journal-text me-1"></i>Notas (opcional)
+                        </label>
+                        <textarea class="form-control" id="notas" name="notas" rows="1"></textarea>
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label">
+                            <i class="bi bi-folder2-open me-1"></i>Cargar Archivo
+                        </label>
+                        <div class="border rounded upload-zone position-relative text-center py-5" id="uploadZone">
+                            <div class="text-muted">
+                                <i class="bi bi-cloud-upload fs-1"></i>
+                                <p class="mt-2 mb-0">Arrastre y suelte su archivo o haga clic para examinar</p>
+                            </div>
+                            <input type="file" class="form-control position-absolute top-0 start-0 w-100 h-100 opacity-0" id="examen_pdf" name="examen_pdf" accept="application/pdf" required>
+                        </div>
+                        <span class="muted">Solo se aceptan archivos .pdf (máx 10MB)</span>
+                    </div>
+                    <div class="col-12 d-grid">
+                        <button type="submit" class="btn btn-primary btn-lg" id="submitBtn">
+                            <i class="bi bi-plus-circle me-2"></i>Añadir a la Lista
                         </button>
+                    </div>
+                    <div class="col-12 d-grid" id="cancelWrapper" style="display:none; margin-top:10px;">
+                        <button type="button" class="btn btn-secondary" id="cancelEdit">Cancelar edición</button>
                     </div>
                 </form>
             </div>
@@ -334,8 +516,11 @@ if ($pacienteId) {
 
         <!-- Listado de exámenes -->
         <div class="card">
-            <div class="card-header bg-primary text-white">
+            <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
                 <h5 class="card-title mb-0"><i class="bi bi-list me-2"></i>Listado de Exámenes</h5>
+                <div style="width: 300px;">
+                    <input type="text" id="searchExam" class="form-control form-control-sm" placeholder="Buscar examen..." style="background-color: rgba(255,255,255,0.9); color: #000;">
+                </div>
             </div>
             <div class="card-body">
                 <?php if (empty($examenes)): ?>
@@ -345,15 +530,47 @@ if ($pacienteId) {
                         <table class="table table-striped">
                             <thead>
                                 <tr>
+                                    <th>Categoría</th>
+                                    <th>Nombre del Examen</th>
+                                    <th>Fecha</th>
+                                    <th>Notas</th>
                                     <th>Archivo</th>
-                                    <th>Fecha de subida</th>
                                     <th>Tamaño</th>
                                     <th>Acciones</th>
                                 </tr>
                             </thead>
-                            <tbody>
+                            <tbody id="examTable">
                                 <?php foreach ($examenes as $ex): ?>
-                                    <tr>
+                                    <?php
+                                        // determine badge class (no icons)
+                                        $cat = $ex['categoria'] ?? 'Otros / Especializados';
+                                        $catClass = '';
+                                        switch ($cat) {
+                                            case 'Perfil Metabólico':
+                                                $catClass = 'category-perfil';
+                                                break;
+                                            case 'Nutrientes y Sangre':
+                                                $catClass = 'category-nutrientes';
+                                                break;
+                                            case 'Función Orgánica':
+                                                $catClass = 'category-funcion';
+                                                break;
+                                            case 'Composición Corporal':
+                                                $catClass = 'category-composicion';
+                                                break;
+                                            default:
+                                                $catClass = 'category-otros';
+                                        }
+                                    ?>
+                                    <tr data-id="<?= (int)$ex['id'] ?>" data-cat="<?= htmlspecialchars($cat, ENT_QUOTES, 'UTF-8') ?>" data-name="<?= htmlspecialchars($ex['nombre_examen'] ?? '', ENT_QUOTES, 'UTF-8') ?>" data-date="<?= htmlspecialchars($ex['fecha_examen'] ?? '', ENT_QUOTES, 'UTF-8') ?>" data-notas="<?= htmlspecialchars($ex['notas'] ?? '', ENT_QUOTES, 'UTF-8') ?>">
+                                        <td>
+                                            <span class="category-badge <?= $catClass ?>">
+                                                <?= htmlspecialchars($cat, ENT_QUOTES, 'UTF-8') ?>
+                                            </span>
+                                        </td>
+                                        <td><?= htmlspecialchars($ex['nombre_examen'] ?? '', ENT_QUOTES, 'UTF-8') ?></td>
+                                        <td><?= htmlspecialchars(date('d/m/Y', strtotime($ex['fecha_examen'] ?? $ex['creado_en'])), ENT_QUOTES, 'UTF-8') ?></td>
+                                        <td><?= nl2br(htmlspecialchars($ex['notas'] ?? '', ENT_QUOTES, 'UTF-8')) ?></td>
                                         <td>
                                             <div class="d-flex align-items-center">
                                                 <i class="bi bi-file-earmark-pdf-fill file-icon me-2"></i>
@@ -362,11 +579,16 @@ if ($pacienteId) {
                                                 </div>
                                             </div>
                                         </td>
-                                        <td><?= htmlspecialchars(date('d/m/Y H:i', strtotime($ex['creado_en'])), ENT_QUOTES, 'UTF-8') ?></td>
                                         <td><?= round(((int)$ex['tamano']) / 1024, 1) ?> KB</td>
                                         <td>
+                                            <button type="button" class="btn btn-outline-primary btn-sm btn-edit" data-id="<?= (int)$ex['id'] ?>">
+                                                <i class="bi bi-pencil"></i>
+                                            </button>
+                                            <a href="?id_pacientes=<?= $pacienteId ?>&delete=<?= (int)$ex['id'] ?>" class="btn btn-outline-danger btn-sm" onclick="return confirm('¿Eliminar este examen?');">
+                                                <i class="bi bi-trash"></i>
+                                            </a>
                                             <a class="btn btn-primary btn-sm" target="_blank" href="<?= htmlspecialchars($ex['ruta'], ENT_QUOTES, 'UTF-8') ?>">
-                                                <i class="bi bi-eye me-1"></i>Ver
+                                                <i class="bi bi-eye me-1"></i>
                                             </a>
                                             <a class="btn btn-secondary btn-sm" target="_blank" href="<?= htmlspecialchars($ex['ruta'], ENT_QUOTES, 'UTF-8') ?>" download="<?= htmlspecialchars($ex['nombre_paciente'], ENT_QUOTES, 'UTF-8') ?>">
                                                 <i class="bi bi-download me-1"></i>Descargar
@@ -393,5 +615,33 @@ if ($pacienteId) {
         </div>
         <?php endif; ?>
     </div>
+    <script>
+        // zona de arrastre para carga de archivo
+        const zone = document.getElementById('uploadZone');
+        if (zone) {
+            zone.addEventListener('dragover', e => { e.preventDefault(); zone.classList.add('bg-light'); });
+            zone.addEventListener('dragleave', e => { zone.classList.remove('bg-light'); });
+            zone.addEventListener('drop', e => { zone.classList.remove('bg-light'); });
+            // hacer clic redirige al input
+            zone.addEventListener('click', () => {
+                const inp = document.getElementById('examen_pdf');
+                if (inp) inp.click();
+            });
+        }
+
+        // búsqueda/filtrado en tabla
+        const searchInput = document.getElementById('searchExam');
+        const table = document.getElementById('examTable');
+        if (searchInput && table) {
+            searchInput.addEventListener('keyup', () => {
+                const filter = searchInput.value.toLowerCase();
+                const rows = table.querySelectorAll('tr');
+                rows.forEach(row => {
+                    const text = row.textContent.toLowerCase();
+                    row.style.display = text.includes(filter) ? '' : 'none';
+                });
+            });
+        }
+    </script>
 </body>
 </html>
