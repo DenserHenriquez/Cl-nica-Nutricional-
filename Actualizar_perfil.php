@@ -1,6 +1,18 @@
 <?php
 session_start();
 require_once __DIR__ . '/db_connection.php';
+// Migración defensiva: expediente.talla -> expediente.edad_metabolica
+if (isset($conexion) && $conexion instanceof mysqli) {
+    $chkEdad = @$conexion->query("SHOW COLUMNS FROM expediente LIKE 'edad_metabolica'");
+    if ($chkEdad && $chkEdad->num_rows === 0) {
+        $chkT = @$conexion->query("SHOW COLUMNS FROM expediente LIKE 'talla'");
+        if ($chkT && $chkT->num_rows > 0) {
+            @$conexion->query("ALTER TABLE expediente CHANGE talla edad_metabolica DECIMAL(10,2) NULL");
+        } else {
+            @$conexion->query("ALTER TABLE expediente ADD COLUMN edad_metabolica DECIMAL(10,2) NULL AFTER estatura");
+        }
+    }
+}
 
 // Este archivo implementa la actualización del perfil del usuario/paciente.
 // Asume que al autenticarse se guarda en $_SESSION['user_id'] el id del usuario
@@ -14,7 +26,7 @@ $TABLE_PATIENTS = 'pacientes';
 $FIELDS_SELECT_PATIENTS = 'id_pacientes, id_usuarios, nombre_completo, DNI, fecha_nacimiento, edad, telefono, referencia_medica';
 // Tabla expediente (registro médico del paciente)
 $TABLE_EXPEDIENTE = 'expediente';
-$FIELDS_SELECT_EXPEDIENTE = 'id_expediente, id_pacientes, talla, peso, estatura, IMC, masa_muscular, enfermedades_base, medicamentos';
+$FIELDS_SELECT_EXPEDIENTE = 'id_expediente, id_pacientes, edad_metabolica, peso, estatura, IMC, masa_muscular, enfermedades_base, medicamentos';
 // Tabla de historial de actualizaciones (crear en BD si no existe)
 $TABLE_HISTORY = 'historial_actualizaciones';
 
@@ -250,7 +262,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     } elseif ($accion === 'expediente' && $paciente && isset($paciente['id_pacientes'])) {
         // --- ACTUALIZAR / CREAR EXPEDIENTE ---
         $idPacientes = intval($paciente['id_pacientes']);
-        $talla = trim($_POST['talla'] ?? ''); // cm
+        $edad_metabolica = trim($_POST['edad_metabolica'] ?? ''); // antes 'talla'
         $peso = trim($_POST['peso'] ?? '');   // kg
         $estatura = trim($_POST['estatura'] ?? ''); // cm
         $masa_muscular = trim($_POST['masa_muscular'] ?? '');
@@ -266,12 +278,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         // Validaciones mínimas (opcional se puede permitir vacío)
     if ($peso !== '' && !is_numeric($peso)) { $errores[] = 'El peso debe ser numérico.'; }
     if ($estatura !== '' && !is_numeric($estatura)) { $errores[] = 'La estatura debe ser numérica.'; }
-    if ($talla !== '' && !is_numeric($talla)) { $errores[] = 'La talla debe ser numérica.'; }
+    if ($edad_metabolica !== '' && !is_numeric($edad_metabolica)) { $errores[] = 'La edad metabólica debe ser numérica.'; }
     if ($masa_muscular !== '' && !is_numeric($masa_muscular)) { $errores[] = 'La masa muscular debe ser numérica.'; }
 
         if (!$errores) {
             $nuevoExpediente = [
-                'talla' => $talla !== '' ? $talla : null,
+                'edad_metabolica' => $edad_metabolica !== '' ? $edad_metabolica : null,
                 'peso' => $peso !== '' ? $peso : null,
                 'estatura' => $estatura !== '' ? $estatura : null,
                 'IMC' => $IMC !== null ? $IMC : null,
@@ -340,6 +352,7 @@ function cargarHistorial(mysqli $conexion, string $tablaHist, int $idUsuarios): 
         'telefono' => 'Teléfono',
         'referencia_medica' => 'Referencia Médica',
         // Campos expediente
+        'edad_metabolica' => 'Edad metabólica',
         'talla' => 'Talla (cm)',
         'peso' => 'Peso (kg)',
         'estatura' => 'Estatura (cm)',
@@ -613,8 +626,8 @@ $historial = cargarHistorial($conexion, $TABLE_HISTORY, $userId);
                     <input type="hidden" name="accion" value="expediente">
                     <div class="row mb-3">
                         <div class="col-md-3">
-                            <label class="form-label" for="talla">Talla (cm)</label>
-                            <input type="number" step="0.01" class="form-control" id="talla" name="talla" value="<?= htmlspecialchars($expediente['talla'] ?? '', ENT_QUOTES, 'UTF-8') ?>">
+                            <label class="form-label" for="edad_metabolica">Edad metabólica</label>
+                            <input type="number" step="0.01" class="form-control" id="edad_metabolica" name="edad_metabolica" value="<?= htmlspecialchars($expediente['edad_metabolica'] ?? '', ENT_QUOTES, 'UTF-8') ?>">
                         </div>
                         <div class="col-md-3">
                             <label class="form-label" for="peso">Peso (kg)</label>
