@@ -4,6 +4,18 @@
 
 require_once __DIR__ . '/db_connection.php';
 session_start();
+// Migración: asegurar edad_metabolica en expediente
+if (isset($conexion) && $conexion instanceof mysqli) {
+    $chkEdad = @$conexion->query("SHOW COLUMNS FROM expediente LIKE 'edad_metabolica'");
+    if ($chkEdad && $chkEdad->num_rows === 0) {
+        $chkT = @$conexion->query("SHOW COLUMNS FROM expediente LIKE 'talla'");
+        if ($chkT && $chkT->num_rows > 0) {
+            @$conexion->query("ALTER TABLE expediente CHANGE talla edad_metabolica DECIMAL(10,2) NULL");
+        } else {
+            @$conexion->query("ALTER TABLE expediente ADD COLUMN edad_metabolica DECIMAL(10,2) NULL AFTER estatura");
+        }
+    }
+}
 
 // Verificar sesión de usuario
 if (!isset($_SESSION['id_usuarios'])) {
@@ -93,7 +105,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $fecha_nacimiento = isset($_POST['fecha_nacimiento']) ? trim($_POST['fecha_nacimiento']) : '';
     $telefono = isset($_POST['telefono']) ? trim($_POST['telefono']) : '';
     $referencia_medica = isset($_POST['referencia_medica']) ? trim($_POST['referencia_medica']) : '';
-    $talla = isset($_POST['talla']) ? trim($_POST['talla']) : '';
+    $edad_metabolica = isset($_POST['edad_metabolica']) ? trim($_POST['edad_metabolica']) : '';
     $peso = isset($_POST['peso']) ? trim($_POST['peso']) : '';
     $estatura = isset($_POST['estatura']) ? trim($_POST['estatura']) : '';
     $masa_muscular = isset($_POST['masa_muscular']) ? trim($_POST['masa_muscular']) : '';
@@ -129,8 +141,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     // Validaciones para nuevos campos
-    if (!empty($talla) && !is_numeric($talla)) {
-        $errores[] = 'Talla debe ser un número válido.';
+    if (!empty($edad_metabolica) && !is_numeric($edad_metabolica)) {
+        $errores[] = 'Edad metabólica debe ser un número válido.';
     }
 
     if (!empty($peso) && !is_numeric($peso)) {
@@ -177,19 +189,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $nuevoPacienteId = $stmt->insert_id;
                 $exito = 'Paciente registrado correctamente.';
                 // Insertar registro inicial de expediente si hay al menos un dato clínico
-                $hayClinicos = ($talla !== '' || $peso !== '' || $estatura !== '' || $masa_muscular !== '' || $enfermedades_base !== '' || $medicamentos !== '' || $imc !== null);
+                $hayClinicos = ($edad_metabolica !== '' || $peso !== '' || $estatura !== '' || $masa_muscular !== '' || $enfermedades_base !== '' || $medicamentos !== '' || $imc !== null);
                 if ($hayClinicos) {
-                    $sqlExp = "INSERT INTO expediente (id_pacientes, talla, peso, estatura, IMC, masa_muscular, enfermedades_base, medicamentos) VALUES (?,?,?,?,?,?,?,?)";
+                    $sqlExp = "INSERT INTO expediente (id_pacientes, edad_metabolica, peso, estatura, IMC, masa_muscular, enfermedades_base, medicamentos) VALUES (?,?,?,?,?,?,?,?)";
                     if ($stmtExp = $conexion->prepare($sqlExp)) {
                         // Usamos valores NULL cuando estén vacíos para claridad
-                        $valTalla = ($talla !== '') ? $talla : null;
+                        $valEdadM = ($edad_metabolica !== '') ? $edad_metabolica : null;
                         $valPeso = ($peso !== '') ? $peso : null;
                         $valEst = ($estatura !== '') ? $estatura : null;
                         $valIMC = ($imc !== null) ? $imc : null;
                         $valMasa = ($masa_muscular !== '') ? $masa_muscular : null;
                         $valEnf = ($enfermedades_base !== '') ? $enfermedades_base : null;
                         $valMed = ($medicamentos !== '') ? $medicamentos : null;
-                        $stmtExp->bind_param('isssssss', $nuevoPacienteId, $valTalla, $valPeso, $valEst, $valIMC, $valMasa, $valEnf, $valMed);
+                        $stmtExp->bind_param('isssssss', $nuevoPacienteId, $valEdadM, $valPeso, $valEst, $valIMC, $valMasa, $valEnf, $valMed);
                         if ($stmtExp->execute()) {
                             $exito .= ' Se creó expediente inicial.';
                         } else {
@@ -549,10 +561,10 @@ if (isset($_SESSION['flash_success'])) {
 
                     <div class="row mb-3">
                         <div class="col-md-6">
-                            <label for="talla" class="form-label">
-                                <i class="bi bi-rulers me-1"></i>Talla (cm)
+                            <label for="edad_metabolica" class="form-label">
+                                <i class="bi bi-rulers me-1"></i>Edad metabólica
                             </label>
-                            <input type="number" step="0.01" class="form-control" id="talla" name="talla" placeholder="170.5">
+                            <input type="number" step="0.01" class="form-control" id="edad_metabolica" name="edad_metabolica" placeholder="35.0">
                         </div>
                         <div class="col-md-6">
                             <label for="peso" class="form-label">
