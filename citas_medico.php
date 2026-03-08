@@ -581,6 +581,85 @@ if ($action === 'add_availability') {
         $stmt->bind_param('sii', $nuevo_estado, $cita_id, $medico_id);
         $stmt->execute();
         $response_msg = 'Estado de la cita actualizado.';
+
+        // Enviar correo al paciente si se confirma la cita
+        if ($nuevo_estado === 'confirmada') {
+            // Obtener datos de la cita, incluyendo paciente y correo si existe
+            $q = $conn->prepare("SELECT c.id, c.fecha, c.hora, c.nombre_completo, c.paciente_id, u.Correo_electronico AS email
+                                 FROM citas c
+                                 LEFT JOIN usuarios u ON u.id_usuarios = c.paciente_id
+                                 WHERE c.id=? AND c.medico_id=? LIMIT 1");
+            if ($q) {
+                $q->bind_param('ii', $cita_id, $medico_id);
+                $q->execute();
+                $resC = $q->get_result();
+                if ($rowC = $resC->fetch_assoc()) {
+                    $pacienteNombre = $rowC['nombre_completo'] ?: 'Paciente';
+                    $pacienteEmail  = $rowC['email'] ?? '';
+
+                    // Fallback: si no hay paciente_id o email por join, intentar resolver por nombre
+                    if (empty($pacienteEmail)) {
+                        $tmp = $conn->prepare("SELECT id_usuarios, Correo_electronico FROM usuarios WHERE Nombre_completo = ? LIMIT 1");
+                        if ($tmp) {
+                            $tmp->bind_param('s', $pacienteNombre);
+                            $tmp->execute();
+                            $rs = $tmp->get_result();
+                            if ($urow = $rs->fetch_assoc()) {
+                                $pacienteEmail = $urow['Correo_electronico'] ?? '';
+                                // Si la cita no tiene paciente_id, actualízalo para futuras operaciones
+                                if (empty($rowC['paciente_id']) && !empty($urow['id_usuarios'])) {
+                                    $upd = $conn->prepare("UPDATE citas SET paciente_id=? WHERE id=? AND medico_id=?");
+                                    if ($upd) { $upd->bind_param('iii', $urow['id_usuarios'], $cita_id, $medico_id); $upd->execute(); $upd->close(); }
+                                }
+                            }
+                            $tmp->close();
+                        }
+                    }
+
+                    $fechaTxt = '';
+                    try {
+                        $dt = new DateTime($rowC['fecha'] . ' ' . $rowC['hora'], new DateTimeZone('America/Mexico_City'));
+                        $fechaTxt = $dt->format('d/m/Y H:i');
+                    } catch (Exception $e) {
+                        $fechaTxt = ($rowC['fecha'] . ' ' . substr($rowC['hora'],0,5));
+                    }
+
+                    // Si no hay email en usuarios, intentar buscar por texto en nombre_completo no es viable.
+                    if (!empty($pacienteEmail)) {
+                        $fromName = 'Clínica Nutricional';
+                        $subject = 'Confirmación de cita médica';
+                        $bodyText = "Hola {$pacienteNombre},\n\nSu cita ha sido aceptada.\n\nFecha y hora: {$fechaTxt}\nMédico: " . ($medicos[$medico_id]['nombre'] ?? 'Médico de la clínica') . "\n\nPor favor llegue 10 minutos antes de su cita.\n\nEste es un mensaje automático, no responda a este correo.";
+
+                        // Cabeceras básicas para mail()
+                        $headers   = "MIME-Version: 1.0\r\n";
+                        $headers  .= "Content-type: text/plain; charset=UTF-8\r\n";
+                        $headers  .= 'From: ' . $fromName . " <no-reply@localhost>\r\n";
+
+                        // Intentar enviar
+                        // Nota: en XAMPP/Windows es posible que mail() requiera configuración adicional de SMTP.
+                        // Se intenta igualmente y se informa en la interfaz.
+                        $sent = false;
+                        // Intentar enviar usando PHPMailer
+                        require_once __DIR__ . '/email_config.php';
+                        $resultado = enviarCorreoConfirmacionCita(
+                            $pacienteEmail,
+                            $pacienteNombre,
+                            $fechaTxt,
+                            $medicos[$medico_id]['nombre'] ?? 'Médico de la clínica'
+                        );
+                        if ($resultado['success']) {
+                            $sent = true;
+                            $response_msg .= ' Correo de confirmación enviado a ' . htmlspecialchars($pacienteEmail) . '.';
+                        } else {
+                            $response_msg .= ' Error al enviar correo: ' . htmlspecialchars($resultado['error']);
+                        }
+                    } else {
+                        $response_msg .= ' El paciente no tiene correo registrado, no se envió notificación.';
+                    }
+                }
+                $q->close();
+            }
+        }
     }
 }
 
