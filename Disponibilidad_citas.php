@@ -214,9 +214,10 @@ if ($action === 'schedule_appointment') {
         if ($res->num_rows === 0 || $res->fetch_assoc()['estado'] !== 'libre') {
             throw new Exception('El horario seleccionado no está disponible.');
         }
-        // Insertar cita
-        $stmt = $conn->prepare("INSERT INTO citas (medico_id, nombre_completo, fecha, hora, motivo, estado) VALUES (?, ?, ?, ?, ?, 'pendiente')");
-        $stmt->bind_param('issss', $medico_id, $nombre_completo, $fecha, $hora, $motivo);
+        // Insertar cita (guardar también paciente_id si está logueado)
+        $pacienteId = isset($_SESSION['id_usuarios']) ? intval($_SESSION['id_usuarios']) : null;
+        $stmt = $conn->prepare("INSERT INTO citas (medico_id, paciente_id, nombre_completo, fecha, hora, motivo, estado) VALUES (?, ?, ?, ?, ?, ?, 'pendiente')");
+        $stmt->bind_param('iissss', $medico_id, $pacienteId, $nombre_completo, $fecha, $hora, $motivo);
         if (!$stmt->execute()) {
             throw new Exception('Error al agendar la cita: ' . $stmt->error);
         }
