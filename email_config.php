@@ -6,7 +6,7 @@
  * Para Outlook: usar contraseña de app
  * Para otros servicios: configurar según documentación
  * 
- * @author Clínica Nutricional
+ * @author Clínica Nutricional Nutrivida
  */
 
 define('EMAIL_CONFIG', [
