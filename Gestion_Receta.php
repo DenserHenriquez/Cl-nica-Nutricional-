@@ -116,30 +116,68 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
 $search = isset($_GET['search']) ? trim($_GET['search']) : '';
 $recetas = [];
 if (!($noRegistrado && !$isPrivileged)) {
-    $sql = "SELECT id, nombre, ingredientes, porciones, instrucciones, nota_nutricional, foto_path, created_at FROM recetas WHERE 1=1";
-    $params = [];
-    $types = '';
-    if (!$isPrivileged) {
-        $sql .= " AND id_pacientes = ?";
-        $params[] = $paciente_id;
-        $types .= 'i';
-    }
-    if (!empty($search)) {
-        $sql .= " AND (nombre LIKE ? OR ingredientes LIKE ?)";
-        $params[] = '%' . $search . '%';
-        $params[] = '%' . $search . '%';
-        $types .= 'ss';
-    }
-    $sql .= " ORDER BY created_at DESC";
-    $stmt = $conexion->prepare($sql);
-    if ($stmt) {
-        if ($types !== '') { $stmt->bind_param($types, ...$params); }
-        $stmt->execute();
-        $result = $stmt->get_result();
-        while ($row = $result->fetch_assoc()) {
-            $recetas[] = $row;
+    if ($isPrivileged) {
+        // Privilegiados: JOIN con pacientes y deduplicar por nombre+ingredientes en PHP
+        $sql = "SELECT r.id, r.nombre, r.ingredientes, r.porciones, r.instrucciones,
+                       r.nota_nutricional, r.foto_path, r.created_at,
+                       r.id_pacientes, COALESCE(p.nombre_completo,'—') AS paciente_nombre
+                FROM recetas r
+                LEFT JOIN pacientes p ON r.id_pacientes = p.id_pacientes
+                WHERE 1=1";
+        $params = [];
+        $types  = '';
+        if (!empty($search)) {
+            $sql .= " AND (r.nombre LIKE ? OR r.ingredientes LIKE ?)";
+            $params[] = '%' . $search . '%';
+            $params[] = '%' . $search . '%';
+            $types   .= 'ss';
         }
-        $stmt->close();
+        $sql .= " ORDER BY r.nombre, r.created_at ASC";
+        $stmt = $conexion->prepare($sql);
+        if ($stmt) {
+            if ($types !== '') { $stmt->bind_param($types, ...$params); }
+            $stmt->execute();
+            $result = $stmt->get_result();
+            $recetasMap = [];
+            while ($row = $result->fetch_assoc()) {
+                // Clave de deduplicación: mismo nombre + mismos ingredientes = misma receta
+                $key = $row['nombre'] . "\x00" . $row['ingredientes'];
+                if (!isset($recetasMap[$key])) {
+                    $recetasMap[$key] = $row;
+                    $recetasMap[$key]['pacientes'] = [];
+                }
+                $recetasMap[$key]['pacientes'][] = [
+                    'id'     => (int)$row['id_pacientes'],
+                    'nombre' => $row['paciente_nombre'],
+                ];
+            }
+            $stmt->close();
+            $recetas = array_values($recetasMap);
+            usort($recetas, function ($a, $b) { return strcmp($b['created_at'], $a['created_at']); });
+        }
+    } else {
+        $sql = "SELECT id, nombre, ingredientes, porciones, instrucciones,
+                       nota_nutricional, foto_path, created_at
+                FROM recetas WHERE id_pacientes = ?";
+        $params = [$paciente_id];
+        $types  = 'i';
+        if (!empty($search)) {
+            $sql .= " AND (nombre LIKE ? OR ingredientes LIKE ?)";
+            $params[] = '%' . $search . '%';
+            $params[] = '%' . $search . '%';
+            $types   .= 'ss';
+        }
+        $sql .= " ORDER BY created_at DESC";
+        $stmt = $conexion->prepare($sql);
+        if ($stmt) {
+            $stmt->bind_param($types, ...$params);
+            $stmt->execute();
+            $result = $stmt->get_result();
+            while ($row = $result->fetch_assoc()) {
+                $recetas[] = $row;
+            }
+            $stmt->close();
+        }
     }
 }
 
@@ -158,19 +196,104 @@ if (!($noRegistrado && !$isPrivileged)) {
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <style>
-        body { background-color: #f8f9fa; }
-        .card { border: none; box-shadow: 0 0.125rem 0.25rem rgba(0,0,0,0.075); }
-        .btn-primary { background-color: #198754; border-color: #198754; }
-        .btn-primary:hover { background-color: #146c43; border-color: #13653f; }
-        .form-label { font-weight: 600; color: #198754; }
-        .alert { border-radius: 0.375rem; }
-        /* Header styles matched to Actualizar_perfil.php for consistent look */
-        .header-section { background: linear-gradient(135deg, #198754 0%, #146c43 100%); color: white; padding: 0.8rem 0; margin-bottom: 1rem; }
+        body { background-color: #f0f4f2; font-family:'Segoe UI',system-ui,sans-serif; }
+        .header-section { background: linear-gradient(135deg, #198754 0%, #146c43 100%); color: white; padding: 0.8rem 0; margin-bottom: 1.5rem; }
         .header-section h1 { font-size: 2.2rem; font-weight: 700; margin: 0.15rem 0 0.25rem; }
         .header-section p { font-size: 1.05rem; opacity: 0.95; margin: 0; }
         .medical-icon { font-size: 1.9rem; margin-bottom: 0.35rem; color: #ffffff; }
         .muted { color: #6c757d; font-size: 0.875rem; }
-        .preview { max-height: 150px; border-radius: 6px; border: 1px solid #dee2e6; }
+
+        /* === RECIPE CARD === */
+        .receta-card {
+            background: #fff;
+            border-radius: 18px;
+            overflow: hidden;
+            box-shadow: 0 6px 24px rgba(0,0,0,0.10);
+            margin-bottom: 32px;
+        }
+        /* Top: photo left + title right */
+        .receta-hero {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            min-height: 170px;
+        }
+        .receta-hero-img {
+            width: 100%;
+            height: 100%;
+            min-height: 170px;
+            object-fit: cover;
+        }
+        .receta-hero-title {
+            background: #3a9e78;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 28px 24px;
+        }
+        .receta-hero-title h2 {
+            color: #fff;
+            font-size: 2rem;
+            font-weight: 800;
+            text-align: center;
+            line-height: 1.2;
+            margin: 0;
+        }
+        /* Action bar */
+        .receta-actions {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            padding: 14px 20px;
+            border-bottom: 1px solid #e9ecef;
+            background: #f8faf9;
+            border-radius: 18px 18px 0 0;
+        }
+        /* Body: two columns */
+        .receta-body {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0;
+        }
+        .receta-col {
+            padding: 24px 28px;
+        }
+        .receta-col + .receta-col {
+            border-left: 1px solid #e9ecef;
+        }
+        .receta-col-header {
+            background: #198754;
+            color: #fff;
+            font-size: 1rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: .5px;
+            padding: 10px 18px;
+            border-radius: 8px;
+            margin-bottom: 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .receta-col-header.teal { background: #0f9690; }
+        .receta-col p, .receta-col ul { color: #333; font-size: .95rem; line-height: 1.7; margin: 0; }
+        /* Extra info row */
+        .receta-meta {
+            display: flex;
+            gap: 0;
+            border-top: 1px solid #e9ecef;
+        }
+        .receta-meta-item {
+            flex: 1;
+            padding: 16px 24px;
+            font-size: .9rem;
+        }
+        .receta-meta-item + .receta-meta-item { border-left: 1px solid #e9ecef; }
+        .receta-meta-item strong { display: block; font-size:.75rem; text-transform:uppercase; letter-spacing:.5px; color:#198754; margin-bottom:4px; }
+        @media (max-width:640px){
+            .receta-hero, .receta-body, .receta-meta { grid-template-columns:1fr; }
+            .receta-col + .receta-col { border-left:none; border-top:1px solid #e9ecef; }
+            .receta-hero-img { min-height:180px; }
+        }
     </style>
 </head>
 <body>
@@ -231,61 +354,78 @@ if (!($noRegistrado && !$isPrivileged)) {
                 <i class="bi bi-info-circle me-2"></i>No hay recetas guardadas.
             </div>
         <?php else: ?>
-            <?php foreach ($recetas as $receta): ?>
-                <div class="card mb-3">
-                    <div class="card-header d-flex justify-content-between align-items-center">
-                        <h5 class="card-title mb-0">
-                            <i class="bi bi-journal-text me-2"></i><?= htmlspecialchars($receta['nombre'], ENT_QUOTES, 'UTF-8') ?>
-                        </h5>
-                        <div class="btn-group" role="group">
-                            <?php if ($isPrivileged): ?>
-                            <a href="Editar_Receta.php?id=<?= (int)$receta['id'] ?>" class="btn btn-outline-primary btn-sm">
-                                <i class="bi bi-pencil me-1"></i>Editar
-                            </a>
-                            <a href="Crear_Receta.php?duplicar=<?= (int)$receta['id'] ?>" class="btn btn-outline-info btn-sm">
-                                <i class="bi bi-copy me-1"></i>Duplicar
-                            </a>
-                            <form method="post" class="delete-receta-form" style="display:inline;" data-nombre="<?= htmlspecialchars($receta['nombre'], ENT_QUOTES, 'UTF-8') ?>">
-                                <input type="hidden" name="csrf" value="<?= htmlspecialchars($csrf, ENT_QUOTES, 'UTF-8') ?>">
-                                <input type="hidden" name="action" value="delete">
-                                <input type="hidden" name="receta_id" value="<?= (int)$receta['id'] ?>">
-                                <button type="submit" class="btn btn-outline-danger btn-sm">
-                                    <i class="bi bi-trash me-1"></i>Eliminar
-                                </button>
-                            </form>
-                            <?php endif; ?>
-                            <a href="Exportar_Receta.php?id=<?= (int)$receta['id'] ?>" target="_blank" class="btn btn-outline-secondary btn-sm">
-                                <i class="bi bi-file-earmark-pdf me-1"></i>Exportar PDF
-                            </a>
-                        </div>
-                    </div>
-                    <div class="card-body">
-                        <div class="row">
-                            <div class="col-md-6">
-                                <strong>Ingredientes:</strong>
-                                <p class="mb-2"><?= nl2br(htmlspecialchars($receta['ingredientes'], ENT_QUOTES, 'UTF-8')) ?></p>
-                            </div>
-                            <div class="col-md-6">
-                                <strong>Porciones:</strong>
-                                <p class="mb-2"><?= $receta['porciones'] ? htmlspecialchars($receta['porciones'], ENT_QUOTES, 'UTF-8') : 'N/A' ?></p>
-                            </div>
-                            <div class="col-md-6">
-                                <strong>Instrucciones:</strong>
-                                <p class="mb-2"><?= nl2br(htmlspecialchars($receta['instrucciones'], ENT_QUOTES, 'UTF-8')) ?: 'N/A' ?></p>
-                            </div>
-                            <div class="col-md-6">
-                                <strong>Nota Nutricional:</strong>
-                                <p class="mb-2"><?= nl2br(htmlspecialchars($receta['nota_nutricional'], ENT_QUOTES, 'UTF-8')) ?: 'N/A' ?></p>
-                            </div>
-                            <?php if (!empty($receta['foto_path'])): ?>
-                                <div class="col-12">
-                                    <strong>Foto:</strong>
-                                    <img src="<?= htmlspecialchars($receta['foto_path'], ENT_QUOTES, 'UTF-8') ?>" alt="Foto de receta" class="img-fluid mt-2" style="max-width: 200px;" />
-                                </div>
-                            <?php endif; ?>
-                        </div>
+        <?php foreach ($recetas as $receta): ?>
+                <div class="receta-card">
 
+                    <!-- BOTONES -->
+                    <div class="receta-actions">
+                        <?php if ($isPrivileged): ?>
+                        <a href="Editar_Receta.php?id=<?= (int)$receta['id'] ?>" class="btn btn-outline-success btn-sm">
+                            <i class="bi bi-pencil me-1"></i>Editar
+                        </a>
+                        <a href="Crear_Receta.php?duplicar=<?= (int)$receta['id'] ?>" class="btn btn-outline-info btn-sm">
+                            <i class="bi bi-copy me-1"></i>Duplicar
+                        </a>
+                        <form method="post" class="delete-receta-form d-inline" data-nombre="<?= htmlspecialchars($receta['nombre'], ENT_QUOTES, 'UTF-8') ?>">
+                            <input type="hidden" name="csrf" value="<?= htmlspecialchars($csrf, ENT_QUOTES, 'UTF-8') ?>">
+                            <input type="hidden" name="action" value="delete">
+                            <input type="hidden" name="receta_id" value="<?= (int)$receta['id'] ?>">
+                            <button type="submit" class="btn btn-outline-danger btn-sm">
+                                <i class="bi bi-trash me-1"></i>Eliminar
+                            </button>
+                        </form>
+                        <?php endif; ?>
+                        <a href="Exportar_Receta.php?id=<?= (int)$receta['id'] ?>" target="_blank" class="btn btn-outline-secondary btn-sm">
+                            <i class="bi bi-file-earmark-pdf me-1"></i>Exportar PDF
+                        </a>
+                        <?php if ($isPrivileged && !empty($receta['pacientes'])): ?>
+                        <?php $numPac = count($receta['pacientes']); ?>
+                        <button type="button"
+                                class="btn <?= $numPac > 1 ? 'btn-outline-primary' : 'btn-outline-secondary' ?> btn-sm ms-auto pac-popover"
+                                data-pac-names="<?= htmlspecialchars(json_encode(array_column($receta['pacientes'], 'nombre'), JSON_UNESCAPED_UNICODE), ENT_QUOTES, 'UTF-8') ?>"
+                                data-pac-count="<?= $numPac ?>">
+                            <i class="bi bi-people-fill me-1"></i><?= $numPac ?>
+                        </button>
+                        <?php endif; ?>
                     </div>
+
+                    <!-- HERO: foto + título -->
+                    <div class="receta-hero">
+                        <?php
+                        $imgSrc = !empty($receta['foto_path']) && file_exists($receta['foto_path'])
+                            ? htmlspecialchars($receta['foto_path'], ENT_QUOTES, 'UTF-8')
+                            : 'https://images.unsplash.com/photo-1543339308-43e59d6b73a6?w=800&q=80';
+                        ?>
+                        <img src="<?= $imgSrc ?>" alt="foto receta" class="receta-hero-img" />
+                        <div class="receta-hero-title">
+                            <h2><?= htmlspecialchars($receta['nombre'], ENT_QUOTES, 'UTF-8') ?></h2>
+                        </div>
+                    </div>
+
+                    <!-- CUERPO: Ingredientes | Instrucciones -->
+                    <div class="receta-body">
+                        <div class="receta-col">
+                            <div class="receta-col-header"><i class="bi bi-list-ul"></i> Ingredientes</div>
+                            <p><?= nl2br(htmlspecialchars($receta['ingredientes'], ENT_QUOTES, 'UTF-8')) ?></p>
+                        </div>
+                        <div class="receta-col">
+                            <div class="receta-col-header teal"><i class="bi bi-card-checklist"></i> Pasos</div>
+                            <p><?= nl2br(htmlspecialchars($receta['instrucciones'] ?? '', ENT_QUOTES, 'UTF-8')) ?: '<span style="color:#adb5bd">Sin instrucciones</span>' ?></p>
+                        </div>
+                    </div>
+
+                    <!-- META: porciones + nota -->
+                    <div class="receta-meta">
+                        <div class="receta-meta-item">
+                            <strong><i class="bi bi-people me-1"></i>Porciones</strong>
+                            <?= $receta['porciones'] ? (int)$receta['porciones'] : 'N/A' ?>
+                        </div>
+                        <div class="receta-meta-item">
+                            <strong><i class="bi bi-heart-pulse me-1"></i>Nota Nutricional</strong>
+                            <?= htmlspecialchars($receta['nota_nutricional'] ?? '', ENT_QUOTES, 'UTF-8') ?: '<span style="color:#adb5bd">—</span>' ?>
+                        </div>
+                    </div>
+
                 </div>
             <?php endforeach; ?>
         <?php endif; ?>
@@ -317,6 +457,30 @@ if (!($noRegistrado && !$isPrivileged)) {
 
 <script>
 document.addEventListener('DOMContentLoaded', function(){
+        // Inicializar popovers de pacientes asignados
+        document.querySelectorAll('.pac-popover').forEach(function(el){
+            var names = [];
+            try { names = JSON.parse(el.getAttribute('data-pac-names') || '[]'); } catch(e){}
+            var count = parseInt(el.getAttribute('data-pac-count') || '1', 10);
+            var html  = names.map(function(n){ return '• ' + n; }).join('<br>');
+            new bootstrap.Popover(el, {
+                container: 'body',
+                html: true,
+                trigger: 'click',
+                title: 'Enviada a ' + count + ' paciente' + (count !== 1 ? 's' : ''),
+                content: html || '—'
+            });
+        });
+        // Cerrar popovers al hacer clic fuera
+        document.addEventListener('click', function(e){
+            if (!e.target.closest('.pac-popover') && !e.target.closest('.popover')) {
+                document.querySelectorAll('.pac-popover').forEach(function(el){
+                    var p = bootstrap.Popover.getInstance(el);
+                    if (p) p.hide();
+                });
+            }
+        });
+
         var pendingForm = null;
         var modalEl = document.getElementById('confirmDeleteModal');
         var bsModal = new bootstrap.Modal(modalEl);

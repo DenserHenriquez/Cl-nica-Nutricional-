@@ -112,6 +112,21 @@ if ($role === null) {
 }
 $isPrivileged = ($role === 'Medico' || $role === 'Administrador');
 
+// Permite a Médico/Admin ver y editar el perfil de otro usuario vía ?id=<id_usuarios>
+$targetUserId = $userId;
+$viewingOther = false;
+if ($isPrivileged) {
+    $reqId = 0;
+    if (!empty($_GET['id']))                   { $reqId = (int)$_GET['id']; }
+    elseif (!empty($_POST['target_user_id']))  { $reqId = (int)$_POST['target_user_id']; }
+    if ($reqId > 0 && $reqId !== $userId) {
+        $targetUserId = $reqId;
+        $viewingOther = true;
+        $usuario  = cargarUsuario($conexion, $TABLE_USERS, $targetUserId, $FIELDS_SELECT_USERS);
+        $paciente = cargarPaciente($conexion, $TABLE_PATIENTS, $targetUserId, $FIELDS_SELECT_PATIENTS);
+    }
+}
+
 // Si NO es privilegiado, validar registro de paciente — bloquear UI y mostrar mensaje si no existe registro
 $noRegistrado = false;
 if (!$isPrivileged) {
@@ -219,14 +234,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     foreach ($cambiosUsuario as $campo => [$anterior, $nuevo]) {
                         $sets[] = "$campo = ?"; $types .= 's'; $values[] = $nuevo;
                     }
-                    $types .= 'i'; $values[] = $userId;
+                    $types .= 'i'; $values[] = $targetUserId;
                     $sql = "UPDATE $TABLE_USERS SET " . implode(', ', $sets) . " WHERE id_usuarios = ?";
                     $stmt = $conexion->prepare($sql);
                     if ($stmt) {
                         $stmt->bind_param($types, ...$values);
                         if ($stmt->execute()) {
                             $actualizacionesExitosas++;
-                            registrar_historial($conexion, $TABLE_HISTORY, $userId, $cambiosUsuario, $userId);
+                            registrar_historial($conexion, $TABLE_HISTORY, $targetUserId, $cambiosUsuario, $userId);
                         } else { $errores[] = 'No se pudo actualizar la información del usuario.'; }
                         $stmt->close();
                     } else { $errores[] = 'Error al preparar la consulta de actualización del usuario.'; }
@@ -239,14 +254,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         if ($campo === 'edad') { $types .= 'i'; $values[] = (int)$nuevo; }
                         else { $types .= 's'; $values[] = $nuevo; }
                     }
-                    $types .= 'i'; $values[] = $userId;
+                    $types .= 'i'; $values[] = $targetUserId;
                     $sql = "UPDATE $TABLE_PATIENTS SET " . implode(', ', $sets) . " WHERE id_usuarios = ?";
                     $stmt = $conexion->prepare($sql);
                     if ($stmt) {
                         $stmt->bind_param($types, ...$values);
                         if ($stmt->execute()) {
                             $actualizacionesExitosas++;
-                            registrar_historial($conexion, $TABLE_HISTORY, $userId, $cambiosPaciente, $userId);
+                            registrar_historial($conexion, $TABLE_HISTORY, $targetUserId, $cambiosPaciente, $userId);
                         } else { $errores[] = 'No se pudo actualizar la información del paciente.'; }
                         $stmt->close();
                     } else { $errores[] = 'Error al preparar la consulta de actualización del paciente.'; }
@@ -254,8 +269,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                 if ($actualizacionesExitosas > 0) {
                     $exito = 'Perfil actualizado correctamente (' . $totalCambios . ' cambio(s)).';
-                    $usuario = cargarUsuario($conexion, $TABLE_USERS, $userId, $FIELDS_SELECT_USERS);
-                    $paciente = cargarPaciente($conexion, $TABLE_PATIENTS, $userId, $FIELDS_SELECT_PATIENTS);
+                    $usuario = cargarUsuario($conexion, $TABLE_USERS, $targetUserId, $FIELDS_SELECT_USERS);
+                    $paciente = cargarPaciente($conexion, $TABLE_PATIENTS, $targetUserId, $FIELDS_SELECT_PATIENTS);
                 }
             }
         }
@@ -310,7 +325,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     if ($stmtI->execute()) {
                         $logCambios = [];
                         foreach ($nuevoExpediente as $c => $v) { $logCambios[$c] = [null, $v]; }
-                        registrar_historial($conexion, $TABLE_HISTORY, $userId, $logCambios, $userId);
+                        registrar_historial($conexion, $TABLE_HISTORY, $targetUserId, $logCambios, $userId);
                         $exito = 'Nuevo registro de expediente añadido.';
                         $expediente = cargarExpediente($conexion, $TABLE_EXPEDIENTE, $idPacientes, $FIELDS_SELECT_EXPEDIENTE);
                     } else { $errores[] = 'No se pudo registrar la evolución del expediente.'; }
@@ -368,7 +383,7 @@ function cargarHistorial(mysqli $conexion, string $tablaHist, int $idUsuarios): 
     return $historial;
 }
 
-$historial = cargarHistorial($conexion, $TABLE_HISTORY, $userId);
+$historial = cargarHistorial($conexion, $TABLE_HISTORY, $targetUserId);
 
 ?>
 <!DOCTYPE html>
@@ -458,7 +473,11 @@ $historial = cargarHistorial($conexion, $TABLE_HISTORY, $userId);
                 <i class="bi bi-person-gear"></i>
             </div>
             <h1>Actualizar Perfil</h1>
+            <?php if ($viewingOther && $usuario): ?>
+            <p>Editando perfil de: <strong><?= htmlspecialchars($usuario['Nombre_completo'] ?? '', ENT_QUOTES, 'UTF-8') ?></strong></p>
+            <?php else: ?>
             <p>Actualice su información personal y de paciente en la clínica nutricional.</p>
+            <?php endif; ?>
         </div>
     </div>
 
@@ -509,6 +528,7 @@ $historial = cargarHistorial($conexion, $TABLE_HISTORY, $userId);
                 </div>
                 <div class="card-body">
                     <form method="post" enctype="multipart/form-data">
+                        <input type="hidden" name="target_user_id" value="<?= (int)$targetUserId ?>">
 
                         <div class="mb-3">
                             <label for="Correo_electronico" class="form-label">
@@ -624,6 +644,7 @@ $historial = cargarHistorial($conexion, $TABLE_HISTORY, $userId);
             <div class="card-body">
                 <form method="post">
                     <input type="hidden" name="accion" value="expediente">
+                    <input type="hidden" name="target_user_id" value="<?= (int)$targetUserId ?>">
                     <div class="row mb-3">
                         <div class="col-md-3">
                             <label class="form-label" for="edad_metabolica">Edad metabólica</label>
