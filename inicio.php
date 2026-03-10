@@ -103,19 +103,32 @@ try {
             }
             $misAlimentos = $alimentosMes;
         }
-        // Citas: buscar por nombre_completo (siempre confiable) y opcionalmente por paciente_id
+        // Citas: siempre buscar por nombre_completo (así se guardan) y por paciente_id si está disponible
         if (!empty($userName) && $userName !== 'Usuario') {
+            $citaWhere = $idPaciente > 0
+                ? "(c.paciente_id=? OR (c.paciente_id IS NULL AND c.nombre_completo=?))"
+                : "c.nombre_completo=?";
+            $citaTypes = $idPaciente > 0 ? 'is' : 's';
             // Próxima cita
-            if ($stmt = $conexion->prepare("SELECT c.fecha, c.hora, c.motivo, c.estado, COALESCE(u.Nombre_completo,'Médico') AS medico FROM citas c LEFT JOIN usuarios u ON c.medico_id=u.id_usuarios WHERE c.nombre_completo=? AND c.fecha>=? AND c.estado IN ('confirmada','pendiente') ORDER BY c.fecha ASC, c.hora ASC LIMIT 1")) {
-                $stmt->bind_param('ss', $userName, $hoy); $stmt->execute(); $proximaCita = $stmt->get_result()->fetch_assoc(); $stmt->close();
+            $qProx = "SELECT c.fecha, c.hora, c.motivo, c.estado, COALESCE(u.Nombre_completo,'Médico') AS medico FROM citas c LEFT JOIN usuarios u ON c.medico_id=u.id_usuarios WHERE $citaWhere AND c.fecha>=? AND c.estado IN ('confirmada','pendiente') ORDER BY c.fecha ASC, c.hora ASC LIMIT 1";
+            if ($stmt = $conexion->prepare($qProx)) {
+                if ($idPaciente > 0) { $stmt->bind_param($citaTypes.'s', $idPaciente, $userName, $hoy); }
+                else                 { $stmt->bind_param($citaTypes.'s', $userName, $hoy); }
+                $stmt->execute(); $proximaCita = $stmt->get_result()->fetch_assoc(); $stmt->close();
             }
             // Contador citas confirmadas
-            if ($stmt = $conexion->prepare("SELECT COUNT(*) AS c FROM citas WHERE nombre_completo=? AND estado='confirmada'")) {
-                $stmt->bind_param('s', $userName); $stmt->execute(); $misCitasConfirmadas = (int)$stmt->get_result()->fetch_assoc()['c']; $stmt->close();
+            $qCount = "SELECT COUNT(*) AS c FROM citas c WHERE $citaWhere AND c.estado='confirmada'";
+            if ($stmt = $conexion->prepare($qCount)) {
+                if ($idPaciente > 0) { $stmt->bind_param($citaTypes, $idPaciente, $userName); }
+                else                 { $stmt->bind_param($citaTypes, $userName); }
+                $stmt->execute(); $misCitasConfirmadas = (int)$stmt->get_result()->fetch_assoc()['c']; $stmt->close();
             }
             // Última cita confirmada
-            if ($stmt = $conexion->prepare("SELECT c.fecha, c.hora, c.motivo, c.estado, COALESCE(u.Nombre_completo,'Médico') AS medico FROM citas c LEFT JOIN usuarios u ON c.medico_id=u.id_usuarios WHERE c.nombre_completo=? AND c.estado='confirmada' ORDER BY c.fecha DESC, c.hora DESC LIMIT 1")) {
-                $stmt->bind_param('s', $userName); $stmt->execute(); $ultimaCitaConfirmada = $stmt->get_result()->fetch_assoc(); $stmt->close();
+            $qUlt = "SELECT c.fecha, c.hora, c.motivo, c.estado, COALESCE(u.Nombre_completo,'Médico') AS medico FROM citas c LEFT JOIN usuarios u ON c.medico_id=u.id_usuarios WHERE $citaWhere AND c.estado='confirmada' ORDER BY c.fecha DESC, c.hora DESC LIMIT 1";
+            if ($stmt = $conexion->prepare($qUlt)) {
+                if ($idPaciente > 0) { $stmt->bind_param($citaTypes, $idPaciente, $userName); }
+                else                 { $stmt->bind_param($citaTypes, $userName); }
+                $stmt->execute(); $ultimaCitaConfirmada = $stmt->get_result()->fetch_assoc(); $stmt->close();
             }
         }
     }
@@ -645,7 +658,7 @@ $tipNutricional = $tips[array_rand($tips)];
                                 <div style="font-size:.9rem;font-weight:600;color:#333;"><?= e($ultimaCitaConfirmada['medico']); ?></div>
                             </div>
                             <span class="cita-badge confirmada">Confirmada</span>
-                            <div class="mt-3"><a href="Disponibilidad_citas.php" class="btn btn-success btn-sm w-100" target="main-content">Agendar cita</a></div>
+                            <div class="mt-3"><a href="Disponibilidad_citas.php" class="btn btn-success btn-sm w-100" target="main-content">Ver detalles</a></div>
                         <?php else: ?>
                             <div class="pac-big-val">0</div>
                             <div class="pac-sub">citas confirmadas</div>
