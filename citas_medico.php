@@ -624,7 +624,22 @@ if ($action === 'add_availability') {
                         $fechaTxt = ($rowC['fecha'] . ' ' . substr($rowC['hora'],0,5));
                     }
 
+                    // Si no hay email en usuarios, intentar buscar por texto en nombre_completo no es viable.
                     if (!empty($pacienteEmail)) {
+                        $fromName = 'Clínica Nutricional';
+                        $subject = 'Confirmación de cita médica';
+                        $bodyText = "Hola {$pacienteNombre},\n\nSu cita ha sido aceptada.\n\nFecha y hora: {$fechaTxt}\nMédico: " . ($medicos[$medico_id]['nombre'] ?? 'Médico de la clínica') . "\n\nPor favor llegue 10 minutos antes de su cita.\n\nEste es un mensaje automático, no responda a este correo.";
+
+                        // Cabeceras básicas para mail()
+                        $headers   = "MIME-Version: 1.0\r\n";
+                        $headers  .= "Content-type: text/plain; charset=UTF-8\r\n";
+                        $headers  .= 'From: ' . $fromName . " <no-reply@localhost>\r\n";
+
+                        // Intentar enviar
+                        // Nota: en XAMPP/Windows es posible que mail() requiera configuración adicional de SMTP.
+                        // Se intenta igualmente y se informa en la interfaz.
+                        $sent = false;
+                        // Intentar enviar usando PHPMailer
                         require_once __DIR__ . '/email_config.php';
                         $resultado = enviarCorreoConfirmacionCita(
                             $pacienteEmail,
@@ -633,6 +648,7 @@ if ($action === 'add_availability') {
                             $medicos[$medico_id]['nombre'] ?? 'Médico de la clínica'
                         );
                         if ($resultado['success']) {
+                            $sent = true;
                             $response_msg .= ' Correo de confirmación enviado a ' . htmlspecialchars($pacienteEmail) . '.';
                         } else {
                             $response_msg .= ' Error al enviar correo: ' . htmlspecialchars($resultado['error']);
