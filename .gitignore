@@ -1,0 +1,22 @@
+# Vendor dependencies (managed by Composer)
+vendor/
+
+# Composer files
+composer.phar
+
+# PHP error log
+php_errors.log
+
+# System files
+.DS_Store
+Thumbs.db
+
+# IDE files
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+
