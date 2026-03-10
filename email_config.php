@@ -9,6 +9,7 @@
  * @author Clínica Nutricional Nutrivida
  */
 
+// Configuración de correo
 define('EMAIL_CONFIG', [
     'host' => 'smtp.gmail.com',
     'port' => 587,
@@ -21,6 +22,17 @@ define('EMAIL_CONFIG', [
 ]);
 
 /**
+ * Función helper para logging de errores de correo
+ */
+function logEmailError($message, $context = []) {
+    $logFile = __DIR__ . '/email_errors.log';
+    $timestamp = date('Y-m-d H:i:s');
+    $contextStr = !empty($context) ? json_encode($context) : '';
+    $logEntry = "[$timestamp] $message $contextStr\n";
+    @file_put_contents($logFile, $logEntry, FILE_APPEND);
+}
+
+/**
  * Envía un correo electrónico usando PHPMailer
  * 
  * @param string $to Correo del destinatario
@@ -30,8 +42,23 @@ define('EMAIL_CONFIG', [
  * @return array ['success' => bool, 'error' => string|null]
  */
 function enviarCorreo($to, $subject, $body, $isHtml = false) {
+    // Verificar que el autoload existe
+    $autoloadPath = __DIR__ . '/vendor/autoload.php';
+    if (!file_exists($autoloadPath)) {
+        $error = "No se encontró el archivo autoload.php en vendor/. Ejecutar 'composer install'";
+        logEmailError("ERROR: $error", ['to' => $to, 'subject' => $subject]);
+        return ['success' => false, 'error' => $error];
+    }
+    
     // Cargar PHPMailer
-    require_once __DIR__ . '/vendor/autoload.php';
+    require_once $autoloadPath;
+    
+    // Verificar que PHPMailer está disponible
+    if (!class_exists('PHPMailer\PHPMailer\PHPMailer')) {
+        $error = "PHPMailer no está cargado. Verificar que composer install se ejecutó correctamente.";
+        logEmailError("ERROR: $error", ['to' => $to, 'subject' => $subject]);
+        return ['success' => false, 'error' => $error];
+    }
     
     $mail = new \PHPMailer\PHPMailer\PHPMailer(true);
     
@@ -51,6 +78,9 @@ function enviarCorreo($to, $subject, $body, $isHtml = false) {
         $mail->addAddress($to);
         $mail->CharSet = EMAIL_CONFIG['charset'];
         
+        // Tiempo de espera
+        $mail->Timeout = 30;
+        
         // Contenido
         $mail->isHTML($isHtml);
         $mail->Subject = $subject;
@@ -61,10 +91,24 @@ function enviarCorreo($to, $subject, $body, $isHtml = false) {
         }
         
         $mail->send();
+        
+        logEmailError("Correo enviado exitosamente", ['to' => $to, 'subject' => $subject]);
         return ['success' => true, 'error' => null];
         
-    } catch (\Exception $e) {
+    } catch (\PHPMailer\PHPMailer\Exception $e) {
+        $errorMsg = "PHPMailer Exception: " . $mail->ErrorInfo;
+        logEmailError("ERROR: $errorMsg", ['to' => $to, 'subject' => $subject]);
         return ['success' => false, 'error' => $mail->ErrorInfo];
+        
+    } catch (\Exception $e) {
+        $errorMsg = "Exception: " . $e->getMessage();
+        logEmailError("ERROR: $errorMsg", ['to' => $to, 'subject' => $subject]);
+        return ['success' => false, 'error' => $e->getMessage()];
+        
+    } catch (\Error $e) {
+        $errorMsg = "Fatal Error: " . $e->getMessage();
+        logEmailError("ERROR: $errorMsg", ['to' => $to, 'subject' => $subject]);
+        return ['success' => false, 'error' => $e->getMessage()];
     }
 }
 
