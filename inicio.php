@@ -102,13 +102,21 @@ try {
                 while($r=$resT->fetch_assoc()){ $t=strtolower($r['tipo_comida']); if(isset($tiposComida[$t])) $tiposComida[$t]=(int)$r['c']; $alimentosMes+=(int)$r['c']; } $stmt->close();
             }
             $misAlimentos = $alimentosMes;
-            // Proxima cita
-            if ($stmt = $conexion->prepare("SELECT c.fecha, c.hora, c.motivo, c.estado, COALESCE(u.Nombre_completo,'Medico') AS medico FROM citas c LEFT JOIN usuarios u ON c.medico_id=u.id_usuarios WHERE c.paciente_id=? AND c.fecha>=? AND c.estado IN ('confirmada','pendiente') ORDER BY c.fecha ASC, c.hora ASC LIMIT 1")) {
-                $stmt->bind_param('is',$idPaciente,$hoy); $stmt->execute(); $proximaCita=$stmt->get_result()->fetch_assoc(); $stmt->close();
+        }
+        // Citas: buscar por nombre_completo (siempre confiable) y opcionalmente por paciente_id
+        if (!empty($userName) && $userName !== 'Usuario') {
+            // Próxima cita
+            if ($stmt = $conexion->prepare("SELECT c.fecha, c.hora, c.motivo, c.estado, COALESCE(u.Nombre_completo,'Médico') AS medico FROM citas c LEFT JOIN usuarios u ON c.medico_id=u.id_usuarios WHERE c.nombre_completo=? AND c.fecha>=? AND c.estado IN ('confirmada','pendiente') ORDER BY c.fecha ASC, c.hora ASC LIMIT 1")) {
+                $stmt->bind_param('ss', $userName, $hoy); $stmt->execute(); $proximaCita = $stmt->get_result()->fetch_assoc(); $stmt->close();
             }
-            if ($stmt = $conexion->prepare("SELECT COUNT(*) AS c FROM citas WHERE paciente_id=? AND estado='confirmada'")) { $stmt->bind_param('i',$idPaciente); $stmt->execute(); $misCitasConfirmadas=(int)$stmt->get_result()->fetch_assoc()['c']; $stmt->close(); }
-            // Última cita confirmada (más reciente, sin importar si es pasada o futura)
-            if ($stmt = $conexion->prepare("SELECT c.fecha, c.hora, c.motivo, c.estado, COALESCE(u.Nombre_completo,'Médico') AS medico FROM citas c LEFT JOIN usuarios u ON c.medico_id=u.id_usuarios WHERE c.paciente_id=? AND c.estado='confirmada' ORDER BY c.fecha DESC, c.hora DESC LIMIT 1")) { $stmt->bind_param('i',$idPaciente); $stmt->execute(); $ultimaCitaConfirmada=$stmt->get_result()->fetch_assoc(); $stmt->close(); }
+            // Contador citas confirmadas
+            if ($stmt = $conexion->prepare("SELECT COUNT(*) AS c FROM citas WHERE nombre_completo=? AND estado='confirmada'")) {
+                $stmt->bind_param('s', $userName); $stmt->execute(); $misCitasConfirmadas = (int)$stmt->get_result()->fetch_assoc()['c']; $stmt->close();
+            }
+            // Última cita confirmada
+            if ($stmt = $conexion->prepare("SELECT c.fecha, c.hora, c.motivo, c.estado, COALESCE(u.Nombre_completo,'Médico') AS medico FROM citas c LEFT JOIN usuarios u ON c.medico_id=u.id_usuarios WHERE c.nombre_completo=? AND c.estado='confirmada' ORDER BY c.fecha DESC, c.hora DESC LIMIT 1")) {
+                $stmt->bind_param('s', $userName); $stmt->execute(); $ultimaCitaConfirmada = $stmt->get_result()->fetch_assoc(); $stmt->close();
+            }
         }
     }
 } catch (Throwable $ex) {
@@ -637,7 +645,7 @@ $tipNutricional = $tips[array_rand($tips)];
                                 <div style="font-size:.9rem;font-weight:600;color:#333;"><?= e($ultimaCitaConfirmada['medico']); ?></div>
                             </div>
                             <span class="cita-badge confirmada">Confirmada</span>
-                            <div class="mt-3"><a href="Disponibilidad_citas.php" class="btn btn-success btn-sm w-100" target="main-content">Ver detalles</a></div>
+                            <div class="mt-3"><a href="Disponibilidad_citas.php" class="btn btn-success btn-sm w-100" target="main-content">Agendar cita</a></div>
                         <?php else: ?>
                             <div class="pac-big-val">0</div>
                             <div class="pac-sub">citas confirmadas</div>
