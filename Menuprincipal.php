@@ -64,7 +64,8 @@ $menuItems = [
     'seguimiento_ejercicio' => ['Paciente'],
     'retroalimentacion' => ['Medico', 'Paciente', 'Administrador']
     ,'estadisticas_medico' => ['Administrador'],
-    'consulta_medica' => ['Medico', 'Administrador']
+    'consulta_medica' => ['Medico', 'Administrador'],
+    'edicion_inicio' => ['Administrador']
 ];
 
 // Función para verificar si el usuario tiene acceso a un item del menú
@@ -262,6 +263,7 @@ function e($str) { return htmlspecialchars((string)$str, ENT_QUOTES, 'UTF-8'); }
         /* Pie de página */
         footer { text-align: center; color: #5b7aa7; font-size: .92rem; padding: 18px 0 42px; position: fixed; bottom: 0; left: 250px; right: 0; background: rgba(248, 249, 250, 0.95); border-top: 1px solid #dee2e6; }
         @media (max-width: 768px) { footer { left: 0; } }
+
     </style>
 </head>
 <body>
@@ -388,6 +390,14 @@ function e($str) { return htmlspecialchars((string)$str, ENT_QUOTES, 'UTF-8'); }
                         <li class="nav-item">
                             <a class="nav-link" href="estadisticasmedico.php" target="main-content">
                                 <i class="bi bi-bar-chart-line"></i> Estadísticas
+                            </a>
+                        </li>
+                        <?php endif; ?>
+
+                        <?php if (hasAccess('edicion_inicio', $userRole, $menuItems)): ?>
+                        <li class="nav-item">
+                            <a class="nav-link" href="edicioninicio.php" target="main-content">
+                                <i class="bi bi-images"></i> Edición de Inicio
                             </a>
                         </li>
                         <?php endif; ?>
@@ -622,6 +632,7 @@ function e($str) { return htmlspecialchars((string)$str, ENT_QUOTES, 'UTF-8'); }
             s.defer = true;
             document.body.appendChild(s);
         })();
+
     </script>
 </body>
 </html>

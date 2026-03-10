@@ -261,18 +261,33 @@ if ($userRole !== 'Paciente') {
 			<h4 class="mb-0"><?= ($_SESSION['rol'] ?? '') === 'Paciente' ? 'Mis Registros de Comidas' : 'Actividad reciente de los pacientes'; ?></h4>
 		</div>
 		<?php if(($_SESSION['rol'] ?? '') !== 'Paciente' && !empty($inactivos)): ?>
-		<div class="alert alert-warning mt-3">
-			<i class="bi bi-bell-exclamation me-1"></i>
-			Pacientes con inactividad reciente (≥ 3 días):
-			<ul class="mb-0 mt-2">
-				<?php foreach ($inactivos as $ia): ?>
-				<li>
-					<strong><?= h($ia['nombre_completo']) ?></strong> — <?= h($ia['motivo']) ?>
-					<button class="btn btn-link btn-sm p-0 ms-2" onclick="openModal(<?= (int)$ia['id_pacientes'] ?>, '<?= h(addslashes($ia['nombre_completo'])) ?>')">ver</button>
-				</li>
-				<?php endforeach; ?>
-			</ul>
+		<div class="mt-3">
+			<button class="btn btn-warning btn-sm d-flex align-items-center gap-2" type="button" data-bs-toggle="collapse" data-bs-target="#inactivosPanel" aria-expanded="false" aria-controls="inactivosPanel">
+				<i class="bi bi-bell-exclamation"></i>
+				Pacientes con inactividad reciente (<?= count($inactivos) ?>)
+				<i class="bi bi-chevron-down ms-1" id="inactivosChevron"></i>
+			</button>
+			<div class="collapse" id="inactivosPanel">
+				<div class="alert alert-warning mb-0 mt-2">
+					<ul class="mb-0">
+						<?php foreach ($inactivos as $ia): ?>
+						<li>
+							<strong><?= h($ia['nombre_completo']) ?></strong> — <?= h($ia['motivo']) ?>
+							<button class="btn btn-link btn-sm p-0 ms-2" onclick="openModal(<?= (int)$ia['id_pacientes'] ?>, '<?= h(addslashes($ia['nombre_completo'])) ?>')">ver</button>
+						</li>
+						<?php endforeach; ?>
+					</ul>
+				</div>
+			</div>
 		</div>
+		<script>
+		document.getElementById('inactivosPanel').addEventListener('show.bs.collapse', function(){
+			document.getElementById('inactivosChevron').className = 'bi bi-chevron-up ms-1';
+		});
+		document.getElementById('inactivosPanel').addEventListener('hide.bs.collapse', function(){
+			document.getElementById('inactivosChevron').className = 'bi bi-chevron-down ms-1';
+		});
+		</script>
 		<?php endif; ?>
 		<?php endif; ?>
 
