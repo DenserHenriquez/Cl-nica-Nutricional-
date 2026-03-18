@@ -385,6 +385,12 @@ if ($pacienteId) {
             border: 1px solid #dee2e6;
             border-radius: 0.375rem;
         }
+        @media (max-width:576px) {
+            .preview-pdf { height:280px; }
+            .header-section h1 { font-size:1.4rem; }
+            .header-section p { font-size:.82rem; }
+            .medical-icon i { font-size:1.3rem !important; }
+        }
     </style>
 </head>
 <body>
@@ -518,7 +524,7 @@ if ($pacienteId) {
         <div class="card">
             <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
                 <h5 class="card-title mb-0"><i class="bi bi-list me-2"></i>Listado de Exámenes</h5>
-                <div style="width: 300px;">
+                <div style="width: 100%; max-width: 300px;">
                     <input type="text" id="searchExam" class="form-control form-control-sm" placeholder="Buscar examen..." style="background-color: rgba(255,255,255,0.9); color: #000;">
                 </div>
             </div>

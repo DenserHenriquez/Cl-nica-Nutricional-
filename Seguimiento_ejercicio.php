@@ -270,6 +270,10 @@ if ($vista === 'diaria') {
             font-size: 0.875rem;
         }
         .preview{max-height:90px;border-radius:6px;border:1px solid #dee2e6}
+        @media (max-width:576px) {
+            .header-section h1 { font-size:1.3rem !important; }
+            .header-section p { font-size:.82rem !important; }
+        }
   </style>
 </head>
 <body>

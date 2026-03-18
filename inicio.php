@@ -33,6 +33,7 @@ $diasEjercicioSemana = 0; $minutosMes = 0;
 $alimentosMes = 0; $tiposComida = ['desayuno'=>0,'almuerzo'=>0,'cena'=>0,'snack'=>0];
 $proximaCita = null;
 $ultimaCitaConfirmada = null;
+$citasConfirmadasLista = [];
 
 $hoy = date('Y-m-d');
 
@@ -103,32 +104,53 @@ try {
             }
             $misAlimentos = $alimentosMes;
         }
-        // Citas: siempre buscar por nombre_completo (así se guardan) y por paciente_id si está disponible
-        if (!empty($userName) && $userName !== 'Usuario') {
-            $citaWhere = $idPaciente > 0
-                ? "(c.paciente_id=? OR (c.paciente_id IS NULL AND c.nombre_completo=?))"
-                : "c.nombre_completo=?";
-            $citaTypes = $idPaciente > 0 ? 'is' : 's';
-            // Próxima cita
-            $qProx = "SELECT c.fecha, c.hora, c.motivo, c.estado, COALESCE(u.Nombre_completo,'Médico') AS medico FROM citas c LEFT JOIN usuarios u ON c.medico_id=u.id_usuarios WHERE $citaWhere AND c.fecha>=? AND c.estado IN ('confirmada','pendiente') ORDER BY c.fecha ASC, c.hora ASC LIMIT 1";
-            if ($stmt = $conexion->prepare($qProx)) {
-                if ($idPaciente > 0) { $stmt->bind_param($citaTypes.'s', $idPaciente, $userName, $hoy); }
-                else                 { $stmt->bind_param($citaTypes.'s', $userName, $hoy); }
-                $stmt->execute(); $proximaCita = $stmt->get_result()->fetch_assoc(); $stmt->close();
+        // Citas: buscar por múltiples criterios para máxima compatibilidad
+        // paciente_id puede contener id_pacientes ó id_usuarios según el flujo que creó la cita
+        {
+            $citaConditions = [];
+            $citaParams = [];
+            $citaParamTypes = '';
+
+            if ($idPaciente > 0) {
+                $citaConditions[] = 'c.paciente_id = ?';
+                $citaParams[] = $idPaciente;
+                $citaParamTypes .= 'i';
             }
-            // Contador citas confirmadas
-            $qCount = "SELECT COUNT(*) AS c FROM citas c WHERE $citaWhere AND c.estado='confirmada'";
-            if ($stmt = $conexion->prepare($qCount)) {
-                if ($idPaciente > 0) { $stmt->bind_param($citaTypes, $idPaciente, $userName); }
-                else                 { $stmt->bind_param($citaTypes, $userName); }
-                $stmt->execute(); $misCitasConfirmadas = (int)$stmt->get_result()->fetch_assoc()['c']; $stmt->close();
+            // También buscar por id_usuarios (api_citas_medico usa paciente_id = id_usuarios)
+            if ($userId > 0 && $userId !== $idPaciente) {
+                $citaConditions[] = 'c.paciente_id = ?';
+                $citaParams[] = $userId;
+                $citaParamTypes .= 'i';
             }
-            // Última cita confirmada
-            $qUlt = "SELECT c.fecha, c.hora, c.motivo, c.estado, COALESCE(u.Nombre_completo,'Médico') AS medico FROM citas c LEFT JOIN usuarios u ON c.medico_id=u.id_usuarios WHERE $citaWhere AND c.estado='confirmada' ORDER BY c.fecha DESC, c.hora DESC LIMIT 1";
-            if ($stmt = $conexion->prepare($qUlt)) {
-                if ($idPaciente > 0) { $stmt->bind_param($citaTypes, $idPaciente, $userName); }
-                else                 { $stmt->bind_param($citaTypes, $userName); }
-                $stmt->execute(); $ultimaCitaConfirmada = $stmt->get_result()->fetch_assoc(); $stmt->close();
+            if (!empty($userName) && $userName !== 'Usuario') {
+                $citaConditions[] = 'c.nombre_completo = ?';
+                $citaParams[] = $userName;
+                $citaParamTypes .= 's';
+            }
+
+            if (!empty($citaConditions)) {
+                $citaWhereFull = '(' . implode(' OR ', $citaConditions) . ')';
+
+                // Próxima cita (confirmada o pendiente)
+                $qProx = "SELECT c.fecha, c.hora, c.motivo, c.estado, COALESCE(u.Nombre_completo,'Médico') AS medico FROM citas c LEFT JOIN usuarios u ON c.medico_id=u.id_usuarios WHERE $citaWhereFull AND c.fecha>=? AND c.estado IN ('confirmada','pendiente') ORDER BY c.fecha ASC, c.hora ASC LIMIT 1";
+                if ($stmt = $conexion->prepare($qProx)) {
+                    $proxParams = array_merge($citaParams, [$hoy]);
+                    $proxTypes = $citaParamTypes . 's';
+                    $stmt->bind_param($proxTypes, ...$proxParams);
+                    $stmt->execute(); $proximaCita = $stmt->get_result()->fetch_assoc(); $stmt->close();
+                }
+
+                // Lista completa de citas del paciente (confirmadas + pendientes)
+                $qLista = "SELECT c.fecha, c.hora, c.motivo, c.estado, COALESCE(u.Nombre_completo,'Médico') AS medico FROM citas c LEFT JOIN usuarios u ON c.medico_id=u.id_usuarios WHERE $citaWhereFull AND c.estado IN ('confirmada','pendiente') ORDER BY CASE WHEN c.fecha >= CURDATE() THEN 0 ELSE 1 END, c.fecha ASC, c.hora ASC LIMIT 15";
+                if ($stmt = $conexion->prepare($qLista)) {
+                    $stmt->bind_param($citaParamTypes, ...$citaParams);
+                    $stmt->execute(); $resLista = $stmt->get_result();
+                    while ($rL = $resLista->fetch_assoc()) { $citasConfirmadasLista[] = $rL; }
+                    $misCitasConfirmadas = count($citasConfirmadasLista);
+                    foreach ($citasConfirmadasLista as $cl) { if ($cl['fecha'] >= $hoy) { $ultimaCitaConfirmada = $cl; break; } }
+                    if ($ultimaCitaConfirmada === null && !empty($citasConfirmadasLista)) { $ultimaCitaConfirmada = $citasConfirmadasLista[0]; }
+                    $stmt->close();
+                }
             }
         }
     }
@@ -243,8 +265,9 @@ $tipNutricional = $tips[array_rand($tips)];
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <style>
     body { background:#f8fafc; font-family:'Segoe UI',system-ui,sans-serif; padding:20px; }
+    @media (max-width:576px) { body { padding:10px; } }
     /* Metric icon badge */
-    .metric-icon { width:48px; height:48px; border-radius:14px; display:flex; align-items:center; justify-content:center; font-size:1.4rem; margin-bottom:10px; }
+    .metric-icon { width:40px; height:40px; border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:1.2rem; margin-bottom:8px; }
     .metric-icon.green  { background:#e8f5e9; color:#198754; }
     .metric-icon.blue   { background:#e3f2fd; color:#0d6efd; }
     .metric-icon.orange { background:#fff3e0; color:#fd7e14; }
@@ -253,36 +276,43 @@ $tipNutricional = $tips[array_rand($tips)];
     .metric-icon.red    { background:#ffebee; color:#e53935; }
     .metric-trend { font-size:0.78rem; color:#6c757d; margin-top:4px; }
     /* Chart containers */
-    .chart-card { background:#fff; border:1px solid #e9ecef; border-radius:18px; padding:20px 22px; box-shadow:0 4px 12px rgba(0,0,0,0.05); }
-    .chart-card h6 { font-weight:700; color:#0d5132; margin-bottom:16px; font-size:1rem; }
+    .chart-card { background:#fff; border:1px solid #e9ecef; border-radius:14px; padding:16px 18px; box-shadow:0 3px 10px rgba(0,0,0,0.04); }
+    .chart-card h6 { font-weight:700; color:#0d5132; margin-bottom:12px; font-size:.92rem; }
     .chart-wrap { position:relative; }
-    .hero-title { font-size:clamp(1.8rem,2.6vw + 1rem,2.6rem); font-weight:700; color:#0d5132; }
-    .hero-sub { font-size:1.05rem; color:#495057; }
-    .metric-card { background:#fff; border:1px solid #e9ecef; border-radius:18px; padding:24px 22px; box-shadow:0 4px 12px rgba(0,0,0,0.05); transition:.25s; }
-    .metric-card:hover { transform:translateY(-4px); box-shadow:0 10px 28px rgba(0,0,0,0.08); }
-    .metric-value { font-size:2.3rem; font-weight:700; margin:0; color:#0d5132; }
-    .metric-label { font-size:0.95rem; font-weight:600; color:#495057; text-transform:uppercase; letter-spacing:.5px; }
-    .tip-box { background:linear-gradient(135deg,#e8f5e9,#e3f2fd); border:1px solid #d8e2dc; border-radius:18px; padding:28px 24px; box-shadow:0 4px 14px rgba(25,135,84,0.10); }
-    .tip-box h3 { font-size:1.4rem; font-weight:700; color:#198754; }
-    .actions-grid { display:grid; gap:20px; grid-template-columns:repeat(auto-fill,minmax(280px,1fr)); margin-top:8px; }
+    .hero-title { font-size:clamp(1.5rem,2.2vw + .8rem,2.1rem); font-weight:700; color:#0d5132; }
+    .hero-sub { font-size:.95rem; color:#495057; }
+    .metric-card { background:#fff; border:1px solid #e9ecef; border-radius:14px; padding:18px 16px; box-shadow:0 3px 10px rgba(0,0,0,0.04); transition:.25s; }
+    .metric-card:hover { transform:translateY(-3px); box-shadow:0 8px 22px rgba(0,0,0,0.07); }
+    .metric-value { font-size:1.85rem; font-weight:700; margin:0; color:#0d5132; }
+    .metric-label { font-size:0.85rem; font-weight:600; color:#495057; text-transform:uppercase; letter-spacing:.5px; }
+    .tip-box { background:linear-gradient(135deg,#e8f5e9,#e3f2fd); border:1px solid #d8e2dc; border-radius:14px; padding:20px 18px; box-shadow:0 3px 10px rgba(25,135,84,0.08); }
+    .tip-box h3 { font-size:1.15rem; font-weight:700; color:#198754; }
+    .actions-grid { display:grid; gap:14px; grid-template-columns:repeat(auto-fill,minmax(240px,1fr)); margin-top:6px; }
+    @media (max-width:576px) {
+        .actions-grid { grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:10px; }
+        .action-btn { min-height:90px; padding:12px; }
+        .action-btn i { font-size:20px; }
+        .action-btn-title { font-size:.88rem; }
+        .action-btn-desc { font-size:.76rem; }
+    }
     .action-btn { 
         position:relative; 
         display:flex; 
         flex-direction:column; 
         align-items:flex-start; 
         justify-content:flex-start; 
-        gap:12px; 
-        padding:24px 20px; 
+        gap:10px; 
+        padding:16px 16px; 
         background:#ffffff; 
         border:1px solid #e9ecef; 
-        border-radius:16px; 
+        border-radius:12px; 
         text-decoration:none; 
         color:#0d5132; 
         font-weight:600; 
-        font-size:1rem; 
-        box-shadow:0 4px 10px rgba(0,0,0,.05); 
+        font-size:.92rem; 
+        box-shadow:0 3px 8px rgba(0,0,0,.04); 
         transition:.25s;
-        min-height:140px;
+        min-height:110px;
     }
     .action-btn-header {
         display:flex;
@@ -290,15 +320,15 @@ $tipNutricional = $tips[array_rand($tips)];
         gap:12px;
         width:100%;
     }
-    .action-btn i { font-size:32px; color:#198754; transition:.25s; }
+    .action-btn i { font-size:24px; color:#198754; transition:.25s; }
     .action-btn-title {
-        font-size:1.1rem;
+        font-size:1rem;
         font-weight:700;
         color:#0d5132;
         margin:0;
     }
     .action-btn-desc {
-        font-size:0.9rem;
+        font-size:0.82rem;
         font-weight:400;
         color:#6c757d;
         line-height:1.4;
@@ -315,21 +345,21 @@ $tipNutricional = $tips[array_rand($tips)];
     .action-btn:hover i { color:#fff; transform:scale(1.1); }
     .action-btn:hover .action-btn-title { color:#fff; }
     .action-btn:hover .action-btn-desc { color:#e8f5e9; }
-    .section-heading { font-size:1.3rem; font-weight:700; margin:28px 0 12px; color:#146c43; }
+    .section-heading { font-size:1.12rem; font-weight:700; margin:20px 0 10px; color:#146c43; }
     /* === PATIENT RICH CARDS === */
-    .pac-card { background:#fff; border:1px solid #e9ecef; border-radius:18px; padding:22px 20px; box-shadow:0 4px 12px rgba(0,0,0,0.05); height:100%; transition:.25s; }
-    .pac-card:hover { transform:translateY(-3px); box-shadow:0 10px 24px rgba(0,0,0,0.08); }
+    .pac-card { background:#fff; border:1px solid #e9ecef; border-radius:14px; padding:16px 14px; box-shadow:0 3px 10px rgba(0,0,0,0.04); height:100%; transition:.25s; }
+    .pac-card:hover { transform:translateY(-2px); box-shadow:0 8px 20px rgba(0,0,0,0.07); }
     .pac-card-label { font-size:.75rem; font-weight:700; text-transform:uppercase; letter-spacing:.6px; color:#6c757d; margin-bottom:6px; display:flex; align-items:center; gap:6px; }
     .pac-card-label::after { content:''; flex:1; height:2px; border-radius:2px; }
     .pac-card-label.green::after { background:#198754; }
     .pac-card-label.blue::after  { background:#0d6efd; }
     .pac-card-label.orange::after{ background:#fd7e14; }
     .pac-card-label.teal::after  { background:#0097a7; }
-    .pac-big-val { font-size:2.4rem; font-weight:700; color:#0d5132; line-height:1; }
+    .pac-big-val { font-size:1.9rem; font-weight:700; color:#0d5132; line-height:1; }
     .pac-sub { font-size:.82rem; color:#6c757d; margin-top:4px; }
     .pac-change-pos { color:#198754; font-weight:600; font-size:.9rem; }
     .pac-change-neg { color:#dc3545; font-weight:600; font-size:.9rem; }
-    .pac-sparkline-wrap { height:70px; margin-top:10px; }
+    .pac-sparkline-wrap { height:50px; margin-top:8px; }
     .pac-bar-row { margin-bottom:10px; }
     .pac-bar-label { font-size:.8rem; font-weight:600; color:#333; display:flex; justify-content:space-between; margin-bottom:3px; }
     .pac-progress { height:8px; border-radius:6px; background:#e9ecef; overflow:hidden; }
@@ -341,17 +371,43 @@ $tipNutricional = $tips[array_rand($tips)];
     .cita-badge.confirmada { background:#d1f0de; color:#146c43; }
     .cita-badge.pendiente  { background:#fff3e0; color:#e65100; }
     .circle-wrap { position:relative; width:110px; height:110px; margin:0 auto; }
-    @media (max-width:600px){ .metric-value { font-size:1.9rem; } .pac-big-val { font-size:1.9rem; } }
+    @media (max-width:600px){
+        .metric-value { font-size:1.5rem; }
+        .pac-big-val { font-size:1.5rem; }
+        .hero-title { font-size:1.3rem !important; }
+        .hero-sub { font-size:.82rem; }
+        .tip-box { padding:14px 12px; }
+        .tip-box h3 { font-size:1rem; }
+        .chart-card { padding:10px 12px; }
+        .chart-card h6 { font-size:.82rem; }
+        .metric-card { padding:14px 12px; }
+        .metric-label { font-size:.75rem; }
+        .section-heading { font-size:1rem; }
+        .cita-date { font-size:1.2rem; }
+        .pac-card { padding:12px 10px; }
+        .pac-card-label { font-size:.68rem; }
+        .pac-sub { font-size:.74rem; }
+        .circle-wrap { width:85px; height:85px; }
+    }
+
+    /* ── SLIDER CITAS PACIENTE ── */
+    .citas-slider { position:relative; }
+    .citas-slider-content { min-height:160px; }
+    .citas-slider-nav { display:flex; align-items:center; justify-content:center; gap:14px; margin-top:10px; }
+    .citas-arrow { width:34px; height:34px; border-radius:50%; border:1.5px solid #0097a7; background:#fff; color:#0097a7; display:flex; align-items:center; justify-content:center; font-size:1rem; cursor:pointer; transition:.2s; padding:0; }
+    .citas-arrow:hover:not(:disabled) { background:#0097a7; color:#fff; }
+    .citas-arrow:disabled { opacity:.35; cursor:default; }
+    .citas-counter { font-size:.82rem; font-weight:600; color:#495057; min-width:50px; text-align:center; }
 
     /* ── CAROUSEL DE BANNERS PACIENTE ── */
     .inicio-carousel-wrap {
-        margin: -20px -20px 28px -20px;
+        margin: -20px -20px 20px -20px;
         border-radius: 0;
         overflow: hidden;
     }
     .inicio-carousel { border-radius: 0; }
     .inicio-carousel .carousel-item {
-        height: 289px;
+        height: 230px;
     }
     .inicio-carousel .carousel-item .slide-bg {
         position: absolute; inset: 0;
@@ -365,14 +421,14 @@ $tipNutricional = $tips[array_rand($tips)];
     }
     .inicio-carousel .slide-content {
         position: relative; z-index: 2;
-        height: 289px;
+        height: 230px;
         display: flex; flex-direction: column;
         justify-content: center;
-        padding: 34px 60px;
-        max-width: 660px;
+        padding: 24px 40px;
+        max-width: 600px;
     }
     .inicio-carousel .slide-title {
-        font-size: clamp(1.5rem, 3vw, 2.4rem);
+        font-size: clamp(1.2rem, 2.4vw, 1.9rem);
         font-weight: 800;
         color: #fff;
         line-height: 1.2;
@@ -414,17 +470,26 @@ $tipNutricional = $tips[array_rand($tips)];
         background-size: 50%;
     }
     @media (max-width:600px){
-        .inicio-carousel .carousel-item { height: 187px; }
-        .inicio-carousel .slide-content { height: 187px; padding: 20px 24px; }
+        .inicio-carousel .carousel-item { height: 160px; }
+        .inicio-carousel .slide-content { height: 160px; padding: 16px 20px; }
         .inicio-carousel .slide-title { font-size: 1.2rem; }
     }
 
     /* ── Botón flotante citas pendientes ── */
-    .citas-float-btn { position: fixed; top: 16px; right: 16px; z-index: 1050; width: 52px; height: 52px; border-radius: 50%; background: linear-gradient(135deg, #198754 0%, #146c43 100%); border: none; color: #fff; box-shadow: 0 4px 18px rgba(25,135,84,.40); display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all .25s ease; font-size: 1.3rem; }
+    .citas-float-btn { position: fixed; top: 16px; right: 16px; z-index: 1050; width: 44px; height: 44px; border-radius: 50%; background: linear-gradient(135deg, #198754 0%, #146c43 100%); border: none; color: #fff; box-shadow: 0 4px 18px rgba(25,135,84,.40); display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all .25s ease; font-size: 1.3rem; }
     .citas-float-btn:hover { transform: scale(1.1); box-shadow: 0 6px 24px rgba(20,108,67,.50); }
     .citas-float-badge { position: absolute; top: -5px; right: -5px; background: #dc3545; color: #fff; border-radius: 50%; min-width: 22px; height: 22px; padding: 0 4px; font-size: .72rem; font-weight: 700; display: flex; align-items: center; justify-content: center; border: 2px solid #fff; animation: pulse-citas 1.6s ease-in-out infinite; }
     @keyframes pulse-citas { 0%,100%{transform:scale(1)} 50%{transform:scale(1.25)} }
     .citas-panel { position: fixed; top: 0; right: -420px; width: 400px; max-width: 95vw; height: 100vh; background: #fff; z-index: 1049; box-shadow: -4px 0 28px rgba(0,0,0,.15); display: flex; flex-direction: column; transition: right .3s ease; border-left: 3px solid #198754; }
+    @media (max-width:576px) {
+        .inicio-carousel-wrap { margin:-10px -10px 14px -10px; }
+        .inicio-carousel .carousel-item { height:140px; }
+        .inicio-carousel .slide-content { height:140px; padding:12px 14px; }
+        .inicio-carousel .slide-title { font-size:1rem; }
+        .inicio-carousel .slide-sub { font-size:.8rem; margin-bottom:10px; }
+        .inicio-carousel .slide-btn { padding:7px 18px; font-size:.82rem; }
+        .inicio-carousel .carousel-control-prev-icon, .inicio-carousel .carousel-control-next-icon { padding:12px; }
+    }
     .citas-panel.open { right: 0; }
     .citas-panel-header { background: linear-gradient(135deg, #198754, #146c43); color: #fff; padding: 14px 18px; display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; }
     .citas-panel-header h6 { margin: 0; font-weight: 700; font-size: 1.05rem; }
@@ -520,8 +585,8 @@ $tipNutricional = $tips[array_rand($tips)];
 <?php endif; ?>
 
     <div class="container-fluid">
-        <div class="mb-5 text-center">
-            <h1 class="hero-title mb-3"><?= e($headerTitle); ?></h1>
+        <div class="mb-4 text-center">
+            <h1 class="hero-title mb-2"><?= e($headerTitle); ?></h1>
             <p class="hero-sub mb-0"><?= e($subTitle); ?></p>
         </div>
 
@@ -607,18 +672,18 @@ $tipNutricional = $tips[array_rand($tips)];
                 <div class="col-lg-3 col-md-6">
                     <div class="pac-card d-flex flex-column align-items-center text-center">
                         <div class="pac-card-label blue w-100"><i class="bi bi-lightning-charge-fill"></i> Mis Ejercicios</div>
-                        <div style="position:relative;width:130px;height:130px;margin:12px auto 8px;">
+                        <div style="position:relative;width:100px;height:100px;margin:8px auto 6px;">
                             <canvas id="chartEjercicioDonut"></canvas>
                             <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;flex-direction:column;">
-                                <span style="font-size:2rem;font-weight:700;color:#0d5132;line-height:1;"><?= $diasEjercicioSemana; ?></span>
+                                <span style="font-size:1.6rem;font-weight:700;color:#0d5132;line-height:1;"><?= $diasEjercicioSemana; ?></span>
                                 <span style="font-size:.72rem;color:#6c757d;font-weight:600;">días</span>
                             </div>
                         </div>
                         <div style="font-size:.85rem;color:#6c757d;margin-bottom:2px;">Racha Semanal</div>
-                        <div style="font-size:1.25rem;font-weight:700;color:#0d6efd;"><?= $diasEjercicioSemana; ?>/7 <span style="font-size:1rem;font-weight:400;color:#333;">días</span></div>
-                        <hr style="width:60%;border-color:#e9ecef;margin:10px auto;">
-                        <div style="font-size:.82rem;color:#6c757d;">Total este mes</div>
-                        <div style="font-size:1.5rem;font-weight:700;color:#0d5132;"><?= $minutosMes; ?> <span style="font-size:.9rem;font-weight:400;color:#6c757d;">min</span></div>
+                        <div style="font-size:1.1rem;font-weight:700;color:#0d6efd;"><?= $diasEjercicioSemana; ?>/7 <span style="font-size:.88rem;font-weight:400;color:#333;">días</span></div>
+                        <hr style="width:60%;border-color:#e9ecef;margin:8px auto;">
+                        <div style="font-size:.78rem;color:#6c757d;">Total este mes</div>
+                        <div style="font-size:1.25rem;font-weight:700;color:#0d5132;"><?= $minutosMes; ?> <span style="font-size:.82rem;font-weight:400;color:#6c757d;">min</span></div>
                     </div>
                 </div>
                 <!-- CARD 3: ALIMENTOS -->
@@ -645,23 +710,98 @@ $tipNutricional = $tips[array_rand($tips)];
                         <div class="pac-sub mt-1">Total este mes: <strong><?= $alimentosMes; ?></strong> comidas</div>
                     </div>
                 </div>
-                <!-- CARD 4: PRÓXIMA CITA -->
+                <!-- CARD 4: CITAS CONFIRMADAS (navegable con flechas) -->
                 <div class="col-lg-3 col-md-6">
-                    <div class="pac-card">
-                        <div class="pac-card-label teal"><i class="bi bi-calendar-heart"></i> Mis Citas</div>
-                        <?php if ($ultimaCitaConfirmada): ?>
-                            <div class="pac-sub mb-1">Última cita confirmada</div>
-                            <div class="cita-date"><?= date('d \d\e M Y', strtotime($ultimaCitaConfirmada['fecha'])); ?></div>
-                            <div style="font-size:1.1rem;font-weight:600;color:#0d5132;"><?= date('h:i A', strtotime($ultimaCitaConfirmada['hora'])); ?></div>
-                            <div class="cita-doc">
-                                <div class="cita-doc-avatar"><i class="bi bi-person-fill"></i></div>
-                                <div style="font-size:.9rem;font-weight:600;color:#333;"><?= e($ultimaCitaConfirmada['medico']); ?></div>
+                    <div class="pac-card" style="overflow:hidden;">
+                        <div class="pac-card-label teal"><i class="bi bi-calendar-heart"></i> Mis Citas
+                            <?php if ($misCitasConfirmadas > 0): ?>
+                            <span style="margin-left:auto;background:#0097a7;color:#fff;border-radius:20px;padding:1px 8px;font-size:.7rem;"><?= $misCitasConfirmadas; ?> agendada<?= $misCitasConfirmadas > 1 ? 's' : ''; ?></span>
+                            <?php endif; ?>
+                        </div>
+                        <?php if (!empty($citasConfirmadasLista)): ?>
+                            <div class="citas-slider" id="citasSlider">
+                                <div class="citas-slider-content" id="citasSliderContent">
+                                    <!-- Se renderiza con JS -->
+                                </div>
+                                <?php if (count($citasConfirmadasLista) > 1): ?>
+                                <div class="citas-slider-nav">
+                                    <button type="button" class="citas-arrow citas-arrow-left" id="citasPrev" title="Cita anterior"><i class="bi bi-chevron-left"></i></button>
+                                    <span class="citas-counter" id="citasCounter">1 / <?= count($citasConfirmadasLista); ?></span>
+                                    <button type="button" class="citas-arrow citas-arrow-right" id="citasNext" title="Siguiente cita"><i class="bi bi-chevron-right"></i></button>
+                                </div>
+                                <?php endif; ?>
                             </div>
-                            <span class="cita-badge confirmada">Confirmada</span>
-                            <div class="mt-3"><a href="Disponibilidad_citas.php" class="btn btn-success btn-sm w-100" target="main-content">Ver detalles</a></div>
+                            <div class="mt-2"><a href="Disponibilidad_citas.php" class="btn btn-outline-success btn-sm w-100" target="main-content">Agendar nueva cita</a></div>
+                            <script>
+                            (function(){
+                                const hoy = '<?= $hoy; ?>';
+                                const citas = <?= json_encode(array_map(function($c) {
+                                    return [
+                                        'fecha'  => $c['fecha'],
+                                        'hora'   => $c['hora'],
+                                        'medico' => $c['medico'],
+                                        'motivo' => $c['motivo'] ?? '',
+                                        'estado' => $c['estado'] ?? 'confirmada'
+                                    ];
+                                }, $citasConfirmadasLista), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT); ?>;
+                                const total = citas.length;
+                                let idx = 0;
+
+                                function escH(s){ const d=document.createElement('div'); d.textContent=String(s); return d.innerHTML; }
+
+                                function fmtFechaLarga(ds){
+                                    const meses=['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+                                    const p=ds.split('-');
+                                    return parseInt(p[2],10)+' de '+meses[parseInt(p[1],10)-1]+' '+p[0];
+                                }
+                                function fmtHora(hs){
+                                    const p=hs.split(':');
+                                    let h=parseInt(p[0],10), m=p[1]||'00';
+                                    const ampm=h>=12?'PM':'AM';
+                                    if(h===0)h=12; else if(h>12)h-=12;
+                                    return h+':'+m+' '+ampm;
+                                }
+
+                                function render(){
+                                    const c=citas[idx];
+                                    const esFutura = c.fecha >= hoy;
+                                    const esConfirmada = c.estado === 'confirmada';
+                                    let html = '<div class="pac-sub mb-1" style="color:'+(esFutura?'#0097a7':'#6c757d')+'">';
+                                    if(esFutura && esConfirmada) html += '<i class="bi bi-check-circle-fill me-1"></i>Próxima cita confirmada';
+                                    else if(esFutura) html += '<i class="bi bi-clock-fill me-1"></i>Cita pendiente de confirmar';
+                                    else if(esConfirmada) html += '<i class="bi bi-check-circle me-1"></i>Cita confirmada';
+                                    else html += '<i class="bi bi-clock me-1"></i>Cita pendiente';
+                                    html += '</div>';
+                                    html += '<div class="cita-date">'+escH(fmtFechaLarga(c.fecha))+'</div>';
+                                    html += '<div style="font-size:1.05rem;font-weight:600;color:#0d5132;">'+escH(fmtHora(c.hora))+'</div>';
+                                    html += '<div class="cita-doc"><div class="cita-doc-avatar"><i class="bi bi-person-fill"></i></div>';
+                                    html += '<div style="font-size:.88rem;font-weight:600;color:#333;">'+escH(c.medico)+'</div></div>';
+                                    if(c.motivo){
+                                        html += '<div style="font-size:.78rem;color:#6c757d;background:#f0faf5;border-radius:6px;padding:4px 8px;margin-bottom:6px;"><i class="bi bi-chat-text me-1"></i>'+escH(c.motivo)+'</div>';
+                                    }
+                                    if(esConfirmada) html += '<span class="cita-badge confirmada"><i class="bi bi-check-circle me-1"></i>Confirmada</span>';
+                                    else html += '<span class="cita-badge pendiente"><i class="bi bi-hourglass-split me-1"></i>Pendiente</span>';
+                                    if(!esFutura) html += ' <span style="font-size:.7rem;background:#e3f2fd;color:#0d6efd;border-radius:10px;padding:1px 7px;font-weight:600;">Pasada</span>';
+                                    document.getElementById('citasSliderContent').innerHTML = html;
+                                    const counter = document.getElementById('citasCounter');
+                                    if(counter) counter.textContent = (idx+1)+' / '+total;
+                                    const prevBtn = document.getElementById('citasPrev');
+                                    const nextBtn = document.getElementById('citasNext');
+                                    if(prevBtn) prevBtn.disabled = (idx === 0);
+                                    if(nextBtn) nextBtn.disabled = (idx === total - 1);
+                                }
+
+                                render();
+
+                                const prevBtn = document.getElementById('citasPrev');
+                                const nextBtn = document.getElementById('citasNext');
+                                if(prevBtn) prevBtn.addEventListener('click', function(){ if(idx>0){ idx--; render(); } });
+                                if(nextBtn) nextBtn.addEventListener('click', function(){ if(idx<total-1){ idx++; render(); } });
+                            })();
+                            </script>
                         <?php else: ?>
                             <div class="pac-big-val">0</div>
-                            <div class="pac-sub">citas confirmadas</div>
+                            <div class="pac-sub">citas agendadas</div>
                             <div class="mt-3"><a href="Disponibilidad_citas.php" class="btn btn-outline-success btn-sm w-100" target="main-content">Agendar cita</a></div>
                         <?php endif; ?>
                     </div>
@@ -672,12 +812,12 @@ $tipNutricional = $tips[array_rand($tips)];
         <?php if ($userRole === 'Medico' || $userRole === 'Administrador'): ?>
         <!-- GRÁFICOS / ESTADÍSTICAS -->
         <h2 class="section-heading"><i class="bi bi-bar-chart-line me-2"></i>Estadísticas <?= date('Y'); ?></h2>
-        <div class="row g-4 mb-5">
+        <div class="row g-4 mb-4">
             <!-- Citas por mes -->
             <div class="col-lg-8 col-12">
                 <div class="chart-card h-100">
                     <h6><i class="bi bi-calendar2-week text-success me-2"></i>Citas por Mes</h6>
-                    <div class="chart-wrap" style="height:280px;">
+                    <div class="chart-wrap" style="height:220px;">
                         <canvas id="chartCitasMes"></canvas>
                     </div>
                 </div>
@@ -686,7 +826,7 @@ $tipNutricional = $tips[array_rand($tips)];
             <div class="col-lg-4 col-12">
                 <div class="chart-card h-100">
                     <h6><i class="bi bi-pie-chart text-primary me-2"></i>Estado de Citas</h6>
-                    <div class="chart-wrap" style="height:280px;">
+                    <div class="chart-wrap" style="height:220px;">
                         <canvas id="chartEstadoCitas"></canvas>
                     </div>
                 </div>
@@ -695,7 +835,7 @@ $tipNutricional = $tips[array_rand($tips)];
             <div class="col-lg-6 col-12">
                 <div class="chart-card h-100">
                     <h6><i class="bi bi-person-plus text-info me-2"></i>Pacientes Registrados por Mes</h6>
-                    <div class="chart-wrap" style="height:250px;">
+                    <div class="chart-wrap" style="height:200px;">
                         <canvas id="chartPacientesMes"></canvas>
                     </div>
                 </div>
@@ -704,7 +844,7 @@ $tipNutricional = $tips[array_rand($tips)];
             <div class="col-lg-6 col-12">
                 <div class="chart-card h-100">
                     <h6><i class="bi bi-activity text-warning me-2"></i>Evoluciones por Mes</h6>
-                    <div class="chart-wrap" style="height:250px;">
+                    <div class="chart-wrap" style="height:200px;">
                         <canvas id="chartEvolucionesMes"></canvas>
                     </div>
                 </div>
@@ -713,7 +853,7 @@ $tipNutricional = $tips[array_rand($tips)];
         <?php endif; ?>
 
         <!-- TIP NUTRICIONAL -->
-        <div class="tip-box mb-5">
+        <div class="tip-box mb-4">
             <div class="d-flex align-items-center justify-content-between gap-3">
                 <button id="tipPrev" onclick="changeTip(-1)" title="Tip anterior" style="background:none;border:none;cursor:pointer;color:#198754;font-size:1.3rem;padding:0 4px;flex-shrink:0;"><i class="bi bi-chevron-left"></i></button>
                 <div style="flex:1;min-width:0;">
@@ -737,7 +877,7 @@ $tipNutricional = $tips[array_rand($tips)];
 
         <!-- ACCIONES POR REALIZAR -->
         <h2 class="section-heading">Acciones por Realizar</h2>
-        <div class="actions-grid mb-5">
+        <div class="actions-grid mb-4">
             <?php foreach ($actions as $a): ?>
                 <a class="action-btn" href="<?= e($a['href']); ?>" target="main-content">
                     <div class="action-btn-header">

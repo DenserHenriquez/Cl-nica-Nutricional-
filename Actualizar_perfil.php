@@ -463,6 +463,12 @@ $historial = cargarHistorial($conexion, $TABLE_HISTORY, $targetUserId);
         .historial-table tr:hover { background-color: #d1e7dd; }
         .btn-historial { background: #198754; color: #fff; padding: 10px 16px; border: none; border-radius: 6px; cursor: pointer; margin-left: 10px; }
         .btn-historial:hover { background: #146c43; }
+        @media (max-width:576px) {
+            .modal-content { width:95%; margin:5% auto; padding:14px; }
+            .historial-table th, .historial-table td { padding:6px; font-size:.8rem; }
+            .header-section h1 { font-size:1.4rem !important; }
+            .header-section p { font-size:.82rem !important; }
+        }
     </style>
 </head>
 <body>

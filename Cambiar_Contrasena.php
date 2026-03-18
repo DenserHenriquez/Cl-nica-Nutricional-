@@ -98,6 +98,11 @@ function h($v) { return htmlspecialchars($v ?? '', ENT_QUOTES | ENT_SUBSTITUTE, 
         #floatingErrors .card { border-left: 4px solid #dc3545; }
         #floatingErrors.show { display: block; animation: slideIn 240ms ease-out; }
         @keyframes slideIn { from { transform: translateY(-8px); opacity: 0 } to { transform: translateY(0); opacity: 1 } }
+        @media (max-width:576px) {
+            .header-section h1 { font-size:1.3rem !important; }
+            .header-section p { font-size:.82rem !important; }
+            #floatingErrors { right:10px; max-width:calc(100vw - 20px); }
+        }
     </style>
 </head>
 <body>

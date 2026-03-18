@@ -98,10 +98,47 @@ function h($v){ return htmlspecialchars($v ?? '', ENT_QUOTES, 'UTF-8'); }
     <title>Editar Examen</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <style>
+        .header-section {
+            background: linear-gradient(135deg, #198754 0%, #146c43 100%);
+            color: white;
+            padding: 0.8rem 0;
+            margin-bottom: 1rem;
+        }
+        .header-section h1 {
+            font-size: 2.2rem;
+            font-weight: 700;
+            margin: 0.15rem 0 0.25rem;
+        }
+        .header-section p {
+            font-size: 1.05rem;
+            opacity: 0.95;
+            margin: 0;
+        }
+        .medical-icon {
+            font-size: 1.9rem;
+            margin-bottom: 0.35rem;
+            color: #ffffff;
+        }
+        @media (max-width:576px) {
+            .header-section h1 { font-size:1.3rem !important; }
+            .header-section p { font-size:.82rem !important; }
+        }
+    </style>
 </head>
 <body style="background:#f8f9fa;">
+    <!-- Header Section -->
+    <div class="header-section">
+        <div class="container text-center">
+            <div class="medical-icon">
+                <i class="bi bi-pencil-square"></i>
+            </div>
+            <h1>Editar Examen</h1>
+            <p>Modifica los datos del examen médico del paciente.</p>
+        </div>
+    </div>
+
     <div class="container mt-4 mb-5">
-        <h1 class="mb-3"><i class="bi bi-pencil-square"></i> Editar Examen</h1>
         <?php if (!empty($errors)): ?>
             <div class="alert alert-danger"><ul class="mb-0"><?php foreach($errors as $e) echo '<li>'.h($e).'</li>'; ?></ul></div>
         <?php endif; ?>

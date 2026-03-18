@@ -140,85 +140,104 @@ $cambio = $pesoActual - $pesoInicial;
     .header-section {
       background: linear-gradient(135deg, #198754 0%, #146c43 100%);
       color: white;
-      /* Reduce height by ~60% (from 2rem to 0.8rem) */
-      padding: 0.8rem 0;
-      margin-bottom: 1rem;
+      padding: 0.6rem 0;
+      margin-bottom: 0.8rem;
     }
     .header-section h1 {
-      font-size: 2.2rem;
+      font-size: 1.8rem;
       font-weight: 700;
-      margin: 0.15rem 0 0.25rem;
+      margin: 0.1rem 0 0.2rem;
     }
     .header-section p {
-      font-size: 1.05rem;
+      font-size: 0.92rem;
       opacity: 0.95;
       margin: 0;
     }
     .medical-icon {
-      font-size: 1.9rem;
-      margin-bottom: 0.35rem;
+      font-size: 1.5rem;
+      margin-bottom: 0.25rem;
       color: #ffffff;
     }
     .header-card{
-      background: linear-gradient(135deg, #198754 0%, #146c43 100%);
-      color:#fff; border-radius:15px; padding:2rem; margin-bottom:2rem;
+      background:#fff; border:1px solid var(--brand-border); border-left:4px solid #198754;
+      color:#333; border-radius:14px; padding:1.1rem 1.4rem; margin-bottom:1.2rem;
+      box-shadow:0 3px 10px rgba(0,0,0,0.04);
     }
+    .header-card h3 { color:#0d5132; font-size:1.15rem; }
+    .header-card small { color:var(--brand-muted); font-size:.85rem; }
     .btn-back{ 
-      background:#fff; color:#0d6efd; border:2px solid #fff;
-      border-radius:10px; padding:.5rem 1.25rem; font-weight:600; transition:.2s;
-      text-decoration:none; display:inline-block;
+      background:#198754; color:#fff; border:none;
+      border-radius:8px; padding:.4rem 1rem; font-weight:600; transition:.2s;
+      text-decoration:none; display:inline-block; font-size:.85rem;
     }
-    .btn-back:hover{ background:#0d6efd; color:#fff; border-color:#0d6efd; transform:translateX(-4px); box-shadow: 0 0 15px rgba(13, 110, 253, 0.6); }
+    .btn-back:hover{ background:#146c43; color:#fff; transform:translateX(-3px); box-shadow: 0 4px 12px rgba(25,135,84,0.35); }
     
     .stat-card{
-      background:var(--brand-surface); border-radius:15px; padding:1.5rem;
-      box-shadow:0 2px 8px rgba(0,0,0,.06); border:1px solid var(--brand-border);
-      margin-bottom:1.5rem; transition:transform 0.3s;
+      background:var(--brand-surface); border-radius:14px; padding:1.1rem 1.2rem;
+      box-shadow:0 3px 10px rgba(0,0,0,.04); border:1px solid var(--brand-border);
+      margin-bottom:1rem; transition:transform 0.25s;
     }
-    .stat-card:hover{ transform:translateY(-5px); box-shadow:0 5px 20px rgba(0,0,0,.12); }
+    .stat-card:hover{ transform:translateY(-3px); box-shadow:0 6px 18px rgba(0,0,0,.08); }
     .stat-icon{
-      width:50px; height:50px; border-radius:12px; 
+      width:42px; height:42px; border-radius:10px; 
       display:flex; align-items:center; justify-content:center;
-      font-size:1.5rem;
+      font-size:1.25rem;
     }
     .stat-icon.red{ background:linear-gradient(135deg,#ff6b6b 0%,#ee5a6f 100%); color:white; }
     .stat-icon.blue{ background:linear-gradient(135deg,#4facfe 0%,#00f2fe 100%); color:white; }
     .stat-icon.green{ background:linear-gradient(135deg,#43e97b 0%,#38f9d7 100%); color:white; }
     .stat-icon.purple{ background:linear-gradient(135deg,#a29bfe 0%,#6c5ce7 100%); color:white; }
-    .stat-value{ font-size:1.8rem; font-weight:700; margin:0.5rem 0; }
-    .stat-label{ color:var(--brand-muted); font-size:0.9rem; text-transform:uppercase; letter-spacing:0.5px; }
-    .recent-date{ font-size:0.85rem; color:var(--brand-muted); }
+    .stat-value{ font-size:1.5rem; font-weight:700; margin:0.3rem 0; }
+    .stat-label{ color:var(--brand-muted); font-size:0.8rem; text-transform:uppercase; letter-spacing:0.5px; }
+    .recent-date{ font-size:0.78rem; color:var(--brand-muted); }
     
     .chart-container{ 
-      background:var(--brand-surface); border-radius:15px; padding:1.5rem;
-      box-shadow:0 2px 8px rgba(0,0,0,.06); border:1px solid var(--brand-border); 
-      height:420px; margin-bottom:1.5rem;
+      background:var(--brand-surface); border-radius:14px; padding:1.1rem 1.2rem;
+      box-shadow:0 3px 10px rgba(0,0,0,.04); border:1px solid var(--brand-border); 
+      height:340px; margin-bottom:1rem;
     }
-    .chart-wrapper{ position:relative; height:330px; }
+    .chart-container h5 { font-size:1rem; font-weight:700; color:#0d5132; }
+    .chart-wrapper{ position:relative; height:260px; }
     .no-data{ 
       display:flex; align-items:center; justify-content:center; 
-      height:330px; color:var(--brand-muted); font-size:1.1rem;
+      height:260px; color:var(--brand-muted); font-size:1rem;
     }
     
     .alimentos-section{
-      background:var(--brand-surface); border-radius:15px; padding:1.5rem;
-      box-shadow:0 2px 8px rgba(0,0,0,.06); border:1px solid var(--brand-border);
-      margin-top:2rem;
+      background:var(--brand-surface); border-radius:14px; padding:1.1rem 1.2rem;
+      box-shadow:0 3px 10px rgba(0,0,0,.04); border:1px solid var(--brand-border);
+      margin-top:1.2rem;
     }
+    .alimentos-section h5 { font-size:1rem; font-weight:700; color:#0d5132; }
     .alimento-card{
-      background:#fff; border:1px solid var(--brand-border); border-radius:10px;
-      padding:1rem; margin-bottom:1rem; transition:transform 0.2s;
+      background:#fff; border:1px solid var(--brand-border); border-radius:8px;
+      padding:0.8rem; margin-bottom:0.7rem; transition:transform 0.2s;
     }
-    .alimento-card:hover{ transform:translateX(5px); box-shadow:0 3px 10px rgba(0,0,0,.08); }
+    .alimento-card:hover{ transform:translateX(3px); box-shadow:0 3px 8px rgba(0,0,0,.06); }
     .tipo-badge{
-      padding:0.25rem 0.75rem; border-radius:20px; font-size:0.85rem; font-weight:600;
+      padding:0.2rem 0.6rem; border-radius:20px; font-size:0.78rem; font-weight:600;
     }
     .tipo-desayuno{ background:#fff3cd; color:#856404; }
     .tipo-almuerzo{ background:#d1ecf1; color:#0c5460; }
     .tipo-cena{ background:#f8d7da; color:#721c24; }
     .tipo-snack{ background:#d4edda; color:#155724; }
     .alimento-img{
-      width:80px; height:80px; object-fit:cover; border-radius:8px; border:2px solid var(--brand-border);
+      width:60px; height:60px; object-fit:cover; border-radius:8px; border:1.5px solid var(--brand-border);
+    }
+    /* Mobile responsive */
+    @media (max-width:576px) {
+      .stat-value { font-size:1.2rem; }
+      .stat-icon { width:34px; height:34px; border-radius:10px; }
+      .stat-icon i { font-size:1rem; }
+      .chart-container { height:auto; min-height:280px; padding:0.8rem; }
+      .chart-wrapper { height:200px; }
+      .no-data { height:200px; }
+      .header-section h1 { font-size:1.3rem !important; }
+      .header-section p { font-size:.82rem !important; }
+      .header-card { flex-direction:column !important; text-align:center; gap:8px; }
+      .header-card .d-flex { flex-direction:column; align-items:center !important; }
+      .alimento-img { width:45px; height:45px; }
+      .alimento-card { padding:0.6rem; }
     }
   </style>
 </head>
@@ -235,8 +254,8 @@ $cambio = $pesoActual - $pesoInicial;
   </div>
 </div>
 
-<div class="container-fluid py-4">
-  <!-- Header -->
+<div class="container-fluid py-3 px-3">
+  <!-- Patient info -->
   <div class="header-card d-flex justify-content-between align-items-center flex-wrap">
     <div>
       <h3 class="mb-1"><?= e($paciente['nombre_completo']) ?></h3>
@@ -262,7 +281,7 @@ $cambio = $pesoActual - $pesoInicial;
 
   <?php if (!$noRegistrado): ?>
   <!-- Estadísticas principales (solo cuando registrado) -->
-  <div class="row g-4 mb-4">
+  <div class="row g-3 mb-3">
     <div class="col-md-3">
       <div class="stat-card">
         <div class="d-flex align-items-center gap-3">
@@ -271,7 +290,7 @@ $cambio = $pesoActual - $pesoInicial;
           </div>
           <div>
             <div class="stat-label">Peso Actual</div>
-            <div class="stat-value"><?= $pesoActual > 0 ? number_format($pesoActual, 1) : '--' ?> <small style="font-size:1rem;">kg</small></div>
+            <div class="stat-value"><?= $pesoActual > 0 ? number_format($pesoActual, 1) : '--' ?> <small style="font-size:.85rem;">kg</small></div>
             <?php if (count($expediente) > 0): ?>
               <div class="recent-date">Último registro: <?= date('d/m/Y', strtotime(end($expediente)['fecha_registro'])) ?></div>
             <?php endif; ?>
@@ -317,7 +336,7 @@ $cambio = $pesoActual - $pesoInicial;
               <?php 
                 if ($cambio != 0) {
                   echo ($cambio > 0 ? '+' : '') . number_format($cambio, 1);
-                  echo ' <small style="font-size:1rem;">kg</small>';
+                  echo ' <small style="font-size:.85rem;">kg</small>';
                 } else {
                   echo '--';
                 }
@@ -346,11 +365,11 @@ $cambio = $pesoActual - $pesoInicial;
   </div>
 
   <!-- Gráficas (solo cuando registrado) -->
-  <div class="row g-4">
+  <div class="row g-3">
     <!-- Gráfica Peso/IMC -->
     <div class="col-lg-6">
       <div class="chart-container">
-        <h5 class="mb-3"><i class="bi bi-graph-up text-primary me-2"></i>Evolución de Peso e IMC</h5>
+        <h5 class="mb-2"><i class="bi bi-graph-up text-primary me-2"></i>Evolución de Peso e IMC</h5>
         <?php if (count($expediente) > 0): ?>
           <div class="chart-wrapper">
             <canvas id="chartPesoIMC"></canvas>
@@ -366,7 +385,7 @@ $cambio = $pesoActual - $pesoInicial;
     <!-- Gráfica Ejercicios -->
     <div class="col-lg-6">
       <div class="chart-container">
-        <h5 class="mb-3"><i class="bi bi-activity text-success me-2"></i>Tiempo de Ejercicio (Últimos 7 registros)</h5>
+        <h5 class="mb-2"><i class="bi bi-activity text-success me-2"></i>Tiempo de Ejercicio (Últimos 7 registros)</h5>
         <?php if (count($ejercicios) > 0): ?>
           <div class="chart-wrapper">
             <canvas id="chartEjercicios"></canvas>
@@ -390,8 +409,8 @@ $cambio = $pesoActual - $pesoInicial;
     </div>
 
     <?php if (empty($alimentos)): ?>
-      <div class="text-center py-4 text-muted">
-        <i class="bi bi-inbox" style="font-size:3rem;"></i>
+      <div class="text-center py-3 text-muted">
+        <i class="bi bi-inbox" style="font-size:2.2rem;"></i>
         <p class="mt-2">No hay registros de alimentos aún</p>
       </div>
     <?php else: ?>

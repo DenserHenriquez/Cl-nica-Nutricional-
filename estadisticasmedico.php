@@ -122,54 +122,73 @@ if ($conexion) {
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <style>
-        body { background:#f8fafc; font-family:'Segoe UI',system-ui,sans-serif; padding:20px; }
+        body { background:#f8fafc; font-family:'Segoe UI',system-ui,sans-serif; }
 
         /* HEADER */
-        .header-section { background:linear-gradient(135deg,#198754 0%,#146c43 100%); color:#fff; border-radius:18px; padding:20px 28px; margin-bottom:24px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:14px; }
-        .header-section h1 { font-size:1.5rem; font-weight:700; margin:0; }
-        .header-section p  { font-size:.88rem; margin:4px 0 0; opacity:.88; }
-        .medical-icon { font-size:1.8rem; color:#fff; margin-right:12px; }
+        .header-section { background:linear-gradient(135deg,#198754 0%,#146c43 100%); color:white; padding:0.6rem 0; margin-bottom:0.8rem; }
+        .header-section h1 { font-size:1.8rem; font-weight:700; margin:0.1rem 0 0.2rem; }
+        .header-section p  { font-size:0.92rem; opacity:0.95; margin:0; }
+        .medical-icon { font-size:1.5rem; margin-bottom:0.25rem; color:#ffffff; }
+        /* PDF button row below header */
+        .btn-pdf-row { display:flex; justify-content:flex-end; margin-bottom:16px; }
 
         /* METRIC CARDS — igual que inicio.php */
-        .metric-icon { width:48px; height:48px; border-radius:14px; display:flex; align-items:center; justify-content:center; font-size:1.4rem; margin-bottom:10px; }
+        .metric-icon { width:40px; height:40px; border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:1.2rem; margin-bottom:8px; }
         .metric-icon.green  { background:#e8f5e9; color:#198754; }
         .metric-icon.blue   { background:#e3f2fd; color:#0d6efd; }
         .metric-icon.orange { background:#fff3e0; color:#fd7e14; }
         .metric-icon.purple { background:#f3e5f5; color:#9c27b0; }
         .metric-icon.teal   { background:#e0f7fa; color:#0097a7; }
         .metric-icon.red    { background:#ffebee; color:#e53935; }
-        .metric-card { background:#fff; border:1px solid #e9ecef; border-radius:18px; padding:24px 22px; box-shadow:0 4px 12px rgba(0,0,0,0.05); transition:.25s; height:100%; }
-        .metric-card:hover { transform:translateY(-4px); box-shadow:0 10px 28px rgba(0,0,0,0.08); }
-        .metric-value { font-size:2.3rem; font-weight:700; margin:0; color:#0d5132; }
-        .metric-label { font-size:0.95rem; font-weight:600; color:#495057; text-transform:uppercase; letter-spacing:.5px; }
-        .metric-trend { font-size:0.78rem; color:#6c757d; margin-top:4px; }
+        .metric-card { background:#fff; border:1px solid #e9ecef; border-radius:14px; padding:18px 16px; box-shadow:0 3px 10px rgba(0,0,0,0.04); transition:.25s; height:100%; }
+        .metric-card:hover { transform:translateY(-3px); box-shadow:0 8px 22px rgba(0,0,0,0.07); }
+        .metric-value { font-size:1.85rem; font-weight:700; margin:0; color:#0d5132; }
+        .metric-label { font-size:0.85rem; font-weight:600; color:#495057; text-transform:uppercase; letter-spacing:.5px; }
+        .metric-trend { font-size:0.72rem; color:#6c757d; margin-top:3px; }
 
         /* CHART / PANEL CARDS */
-        .chart-card { background:#fff; border:1px solid #e9ecef; border-radius:18px; padding:22px; box-shadow:0 4px 12px rgba(0,0,0,0.05); height:100%; }
-        .chart-card h6 { font-weight:700; color:#0d5132; font-size:1rem; margin-bottom:4px; }
-        .chart-card .card-sub { font-size:.78rem; color:#6c757d; margin-bottom:16px; }
+        .chart-card { background:#fff; border:1px solid #e9ecef; border-radius:14px; padding:16px 18px; box-shadow:0 3px 10px rgba(0,0,0,0.04); height:100%; }
+        .chart-card h6 { font-weight:700; color:#0d5132; font-size:.92rem; margin-bottom:3px; }
+        .chart-card .card-sub { font-size:.75rem; color:#6c757d; margin-bottom:12px; }
 
         /* FILTERS BAR */
-        .filters-bar { background:#fff; border:1px solid #e9ecef; border-radius:18px; padding:18px 22px; box-shadow:0 4px 12px rgba(0,0,0,0.05); margin-bottom:24px; }
-        .filters-bar .form-label { font-size:.8rem; font-weight:600; color:#495057; text-transform:uppercase; letter-spacing:.4px; margin-bottom:4px; }
+        .filters-bar { background:#fff; border:1px solid #e9ecef; border-radius:14px; padding:14px 18px; box-shadow:0 3px 10px rgba(0,0,0,0.04); margin-bottom:18px; }
+        .filters-bar .form-label { font-size:.75rem; font-weight:600; color:#495057; text-transform:uppercase; letter-spacing:.4px; margin-bottom:3px; }
 
         /* PROGRESS BARS */
-        .estado-row { margin-bottom:12px; }
-        .estado-row .lrow { display:flex; justify-content:space-between; font-size:.82rem; margin-bottom:4px; }
+        .estado-row { margin-bottom:10px; }
+        .estado-row .lrow { display:flex; justify-content:space-between; font-size:.78rem; margin-bottom:3px; }
         .estado-row .lrow .lname  { font-weight:600; color:#333; }
         .estado-row .lrow .lcount { color:#6c757d; }
         .progress { height:8px; border-radius:6px; }
 
         /* PDF BUTTON */
-        .btn-pdf { background:#dc3545; color:#fff; border:none; border-radius:10px; padding:10px 20px; font-size:.9rem; font-weight:600; display:inline-flex; align-items:center; gap:8px; cursor:pointer; transition:all .2s; box-shadow:0 3px 10px rgba(220,53,69,0.3); }
+        .btn-pdf { background:#dc3545; color:#fff; border:none; border-radius:8px; padding:8px 16px; font-size:.82rem; font-weight:600; display:inline-flex; align-items:center; gap:8px; cursor:pointer; transition:all .2s; box-shadow:0 3px 10px rgba(220,53,69,0.3); }
         .btn-pdf:hover { background:#b02a37; transform:translateY(-1px); color:#fff; }
 
         /* Neutralize the blue overlay from estilos.css */
-        #pdfContent.container-fluid::before { display:none !important; }
+        #pdfContent.container-fluid::before,
+        #pdfContent .container-fluid::before { display:none !important; }
+        #pdfContent .container-fluid { position:static; }
+        #pdfContent .container-fluid > * { position:relative; z-index:2; }
 
         /* PDF Loader overlay */
         #pdfLoader { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:9999; align-items:center; justify-content:center; flex-direction:column; gap:14px; color:#fff; font-size:1rem; }
         #pdfLoader.show { display:flex; }
+
+        /* Mobile responsive */
+        @media (max-width:576px) {
+            .metric-value { font-size:1.3rem; }
+            .metric-card { padding:12px 10px; }
+            .metric-icon { width:32px; height:32px; font-size:1rem; }
+            .metric-label { font-size:.72rem; }
+            .chart-card { padding:10px 12px; }
+            .chart-card h6 { font-size:.82rem; }
+            .filters-bar { padding:10px 12px; }
+            .filters-bar .form-label { font-size:.68rem; }
+            .header-section h1 { font-size:1.3rem !important; }
+            .header-section p { font-size:.82rem !important; }
+        }
     </style>
 </head>
 <body>
@@ -178,20 +197,19 @@ if ($conexion) {
     <span>Generando PDF...</span>
 </div>
 
-<div class="container-fluid" id="pdfContent">
+<div class="container-fluid" id="pdfContent" style="padding:0;">
 
     <!-- HEADER -->
     <div class="header-section">
-        <div class="d-flex align-items-center">
-            <span class="medical-icon"><i class="fas fa-chart-pie"></i></span>
-            <div>
-                <h1>Estadisticas del Medico</h1>
-                <p>Panel con metricas y reportes para seguimiento clinico</p>
-            </div>
+        <div class="container text-center">
+            <div class="medical-icon"><i class="fas fa-chart-pie"></i></div>
+            <h1>Estadísticas del Médico</h1>
+            <p>Panel con métricas y reportes para seguimiento clínico.</p>
         </div>
-        <button class="btn-pdf no-print" id="btnPDF">
-            <i class="fas fa-file-pdf"></i> Exportar PDF
-        </button>
+    </div>
+    <div class="container-fluid px-3">
+    <div class="btn-pdf-row no-print">
+        <button class="btn-pdf" id="btnPDF"><i class="fas fa-file-pdf"></i> Exportar PDF</button>
     </div>
 
     <!-- FILTERS BAR (horizontal) -->
@@ -223,7 +241,7 @@ if ($conexion) {
     </div>
 
     <!-- KPI CARDS -->
-    <div class="row g-4 mb-4">
+    <div class="row g-3 mb-3">
         <div class="col-xl-2 col-md-4 col-sm-6">
             <div class="metric-card">
                 <div class="metric-icon green"><i class="fas fa-calendar-check"></i></div>
@@ -275,24 +293,24 @@ if ($conexion) {
     </div>
 
     <!-- GRAFICO LINEA — ancho completo -->
-    <div class="row g-4 mb-4">
+    <div class="row g-3 mb-3">
         <div class="col-12">
             <div class="chart-card">
                 <h6>Evolucion Mensual de Citas y Pacientes Nuevos</h6>
                 <p class="card-sub">Seguimiento mes a mes del periodo seleccionado</p>
-                <canvas id="chartLinea" height="80"></canvas>
+                <canvas id="chartLinea" height="42"></canvas>
             </div>
         </div>
     </div>
 
     <!-- GRAFICOS INFERIORES — 3 columnas simétricas -->
-    <div class="row g-4 mb-4">
+    <div class="row g-3 mb-3">
         <!-- Barras -->
         <div class="col-lg-4 col-md-6">
             <div class="chart-card">
                 <h6>Numero de Citas por Mes</h6>
                 <p class="card-sub">Total de consultas registradas</p>
-                <canvas id="chartCitas" height="200"></canvas>
+                <canvas id="chartCitas" height="130"></canvas>
             </div>
         </div>
         <!-- Dona -->
@@ -300,8 +318,8 @@ if ($conexion) {
             <div class="chart-card">
                 <h6>Estados de Consultas</h6>
                 <p class="card-sub">Distribucion por estado</p>
-                <div class="d-flex align-items-center justify-content-center gap-3" style="height:200px;">
-                    <canvas id="chartTipos" style="max-height:200px;"></canvas>
+                <div class="d-flex align-items-center justify-content-center gap-3" style="height:130px;">
+                    <canvas id="chartTipos" style="max-height:130px;"></canvas>
                 </div>
                 <div class="d-flex flex-wrap justify-content-center gap-2 mt-2" style="font-size:.8rem;">
                     <span><span class="badge bg-success me-1">&nbsp;</span>Confirmada</span>
@@ -339,8 +357,8 @@ if ($conexion) {
                 </div>
                 <?php endforeach; ?>
 
-                <hr style="border-color:#e9ecef; margin:18px 0 14px;">
-                <div style="font-size:.85rem;">
+                <hr style="border-color:#e9ecef; margin:14px 0 10px;">
+                <div style="font-size:.8rem;">
                     <div class="d-flex justify-content-between mb-1"><span class="text-muted">Total citas</span><strong><?= $totalCitas; ?></strong></div>
                     <div class="d-flex justify-content-between mb-1"><span class="text-muted">Pac. nuevos</span><strong><?= $totalPacientesNuevos; ?></strong></div>
                     <div class="d-flex justify-content-between mb-1"><span class="text-muted">Periodo desde</span><strong><?= htmlspecialchars($fecha_desde); ?></strong></div>
@@ -350,7 +368,8 @@ if ($conexion) {
         </div>
     </div>
 
-</div><!-- /container-fluid -->
+    </div><!-- /inner container-fluid -->
+</div><!-- /pdfContent -->
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script>

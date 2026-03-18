@@ -274,6 +274,11 @@ if ($ok && !$exito) { $exito = 'Consulta guardada correctamente.'; }
         .typeahead-item:hover, .typeahead-item.active { background: #e9f7ef; }
         .typeahead-name { font-weight: 600; color: #198754; }
         .typeahead-meta { font-size: 0.86rem; color: #6c757d; }
+        @media (max-width:576px) {
+            .header-section h1 { font-size:1.3rem; }
+            .header-section p { font-size:.82rem; }
+            .typeahead-list { max-height:200px; }
+        }
     </style>
 </head>
 <body>

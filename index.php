@@ -71,10 +71,10 @@ if ($res) { while ($r = $res->fetch_assoc()) $tarjetas[] = $r; }
 
     /* ── HERO CAROUSEL ── */
     .nv-hero-carousel { margin-top:56px; position:relative; overflow:hidden; }
-    .nv-hero-carousel .carousel-item { min-height:476px; }
+    .nv-hero-carousel .carousel-item { min-height:405px; }
     .nv-slide-bg { position:absolute; inset:0; background-size:cover; background-position:center; }
     .nv-slide-overlay { position:absolute; inset:0; background:linear-gradient(105deg,rgba(13,81,50,.82) 0%,rgba(13,81,50,.45) 50%,rgba(0,0,0,.15) 100%); }
-    .nv-slide-content { position:relative; z-index:2; height:476px; display:flex; flex-direction:column; justify-content:center; padding:52px 8%; max-width:750px; }
+    .nv-slide-content { position:relative; z-index:2; height:405px; display:flex; flex-direction:column; justify-content:center; padding:52px 8%; max-width:750px; }
     .nv-slide-title { font-size:clamp(2rem,4vw,3.4rem); font-weight:800; color:#fff; line-height:1.15; text-shadow:0 3px 16px rgba(0,0,0,.25); margin-bottom:16px; }
     .nv-slide-sub { font-size:clamp(.95rem,1.5vw,1.2rem); color:rgba(255,255,255,.9); line-height:1.6; margin-bottom:28px; text-shadow:0 1px 6px rgba(0,0,0,.2); max-width:520px; }
     .nv-slide-btn { display:inline-block; background:#fff; color:var(--nv-dark); font-weight:700; border:none; border-radius:50px; padding:14px 36px; font-size:1rem; text-decoration:none; box-shadow:0 4px 18px rgba(0,0,0,.15); transition:.3s; align-self:flex-start; }
@@ -86,7 +86,7 @@ if ($res) { while ($r = $res->fetch_assoc()) $tarjetas[] = $r; }
     .nv-hero-carousel .carousel-control-next-icon { width:44px; height:44px; background-color:rgba(255,255,255,.2); border-radius:50%; background-size:50%; }
 
     /* ── DEFAULT HERO (no banners) ── */
-    .nv-hero-default { margin-top:56px; background:linear-gradient(135deg,var(--nv-light) 0%,#c8e6c9 50%,var(--nv-light) 100%); min-height:476px; display:flex; align-items:center; }
+    .nv-hero-default { margin-top:56px; background:linear-gradient(135deg,var(--nv-light) 0%,#c8e6c9 50%,var(--nv-light) 100%); min-height:405px; display:flex; align-items:center; }
     .nv-hero-title { font-size:clamp(2.2rem,4.5vw,3.8rem); font-weight:800; color:var(--nv-dark); line-height:1.12; margin-bottom:20px; }
     .nv-hero-title span { color:var(--nv-green); }
     .nv-hero-sub { font-size:1.15rem; color:#495057; max-width:480px; line-height:1.7; margin-bottom:32px; }
@@ -130,9 +130,9 @@ if ($res) { while ($r = $res->fetch_assoc()) $tarjetas[] = $r; }
 
     @media(max-width:768px){
         .nv-hero-carousel .carousel-item,
-        .nv-slide-content { min-height:357px; height:357px; }
+        .nv-slide-content { min-height:303px; height:303px; }
         .nv-slide-content { padding:34px 6%; }
-        .nv-hero-default { min-height:357px; }
+        .nv-hero-default { min-height:303px; }
         .nv-services-section { padding:50px 0 60px; }
     }
     </style>

@@ -64,7 +64,77 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmt->execute();
         $ok = $stmt->affected_rows > 0;
         $stmt->close();
-        echo json_encode(['ok' => $ok]);
+
+        $emailMsg = '';
+        if ($ok) {
+            // Obtener datos de la cita y email del paciente
+            $q = $conexion->prepare(
+                "SELECT c.fecha, c.hora, c.nombre_completo, c.paciente_id,
+                        u.Correo_electronico AS email,
+                        m.Nombre_completo AS medico_nombre
+                 FROM citas c
+                 LEFT JOIN usuarios u ON u.id_usuarios = c.paciente_id
+                 LEFT JOIN usuarios m ON m.id_usuarios = ?
+                 WHERE c.id = ? AND c.medico_id = ?
+                 LIMIT 1"
+            );
+            if ($q) {
+                $q->bind_param('iii', $medicoId, $id, $medicoId);
+                $q->execute();
+                $rowC = $q->get_result()->fetch_assoc();
+                $q->close();
+
+                if ($rowC) {
+                    $pacienteNombre = $rowC['nombre_completo'] ?: 'Paciente';
+                    $pacienteEmail  = $rowC['email'] ?? '';
+                    $medicoNombre   = $rowC['medico_nombre'] ?? 'Médico de la clínica';
+
+                    // Fallback: buscar email por nombre si no hay paciente_id
+                    if (empty($pacienteEmail)) {
+                        $tmp = $conexion->prepare(
+                            "SELECT Correo_electronico, id_usuarios FROM usuarios WHERE Nombre_completo = ? LIMIT 1"
+                        );
+                        if ($tmp) {
+                            $tmp->bind_param('s', $pacienteNombre);
+                            $tmp->execute();
+                            $urow = $tmp->get_result()->fetch_assoc();
+                            $tmp->close();
+                            if ($urow) {
+                                $pacienteEmail = $urow['Correo_electronico'] ?? '';
+                                if (empty($rowC['paciente_id']) && !empty($urow['id_usuarios'])) {
+                                    $upd = $conexion->prepare("UPDATE citas SET paciente_id=? WHERE id=? AND medico_id=?");
+                                    if ($upd) { $upd->bind_param('iii', $urow['id_usuarios'], $id, $medicoId); $upd->execute(); $upd->close(); }
+                                }
+                            }
+                        }
+                    }
+
+                    if (!empty($pacienteEmail)) {
+                        try {
+                            $dt = new DateTime($rowC['fecha'] . ' ' . $rowC['hora'], new DateTimeZone('America/Mexico_City'));
+                            $fechaTxt = $dt->format('d/m/Y H:i');
+                        } catch (Exception $e) {
+                            $fechaTxt = $rowC['fecha'] . ' ' . substr($rowC['hora'], 0, 5);
+                        }
+
+                        require_once __DIR__ . '/email_config.php';
+                        $resultado = enviarCorreoConfirmacionCita(
+                            $pacienteEmail,
+                            $pacienteNombre,
+                            $fechaTxt,
+                            $medicoNombre
+                        );
+                        $emailMsg = $resultado['success']
+                            ? 'Correo enviado a ' . $pacienteEmail
+                            : 'Error al enviar correo: ' . $resultado['error'];
+                    } else {
+                        $emailMsg = 'Paciente sin correo registrado.';
+                    }
+                }
+            }
+        }
+
+        echo json_encode(['ok' => $ok, 'email' => $emailMsg]);
         exit;
     }
 

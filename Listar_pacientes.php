@@ -20,8 +20,12 @@ $total_entradas = $resultado->num_rows;
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Lista de Pacientes</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
     <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin:0; padding-top:50px; background:#f7f7f7;}
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin:0; background:#f7f7f7;}
         .main-content { width:95%; margin:20px auto; background:white; border-radius:5px; padding:20px; box-shadow:0 2px 10px rgba(0,0,0,0.1);}
         table { width:100%; border-collapse: collapse; font-size:14px;}
         th, td { border:1px solid #ddd; padding:8px; text-align:left;}
@@ -33,12 +37,43 @@ $total_entradas = $resultado->num_rows;
         .slider { position: absolute; cursor: pointer; top:0; left:0; right:0; bottom:0; background-color:#ccc; transition:0.4s; border-radius:24px;}
         .slider:before { position:absolute; content:""; height:18px; width:18px; left:3px; bottom:3px; background:white; transition:0.4s; border-radius:50%;}
         input:checked + .slider { background-color:#28a745; }
-        input:checked + .slider:before { transform: translateX(26px); } 
+        input:checked + .slider:before { transform: translateX(26px); }
+        .header-section {
+            background: linear-gradient(135deg, #198754 0%, #146c43 100%);
+            color: white;
+            padding: 0.8rem 0;
+            margin-bottom: 1rem;
+        }
+        .header-section h1 {
+            font-size: 2.2rem;
+            font-weight: 700;
+            margin: 0.15rem 0 0.25rem;
+        }
+        .header-section p {
+            font-size: 1.05rem;
+            opacity: 0.95;
+            margin: 0;
+        }
+        .medical-icon {
+            font-size: 1.9rem;
+            margin-bottom: 0.35rem;
+            color: #ffffff;
+        }
     </style>
 </head>
 <body>
+    <!-- Header Section -->
+    <div class="header-section">
+        <div class="container text-center">
+            <div class="medical-icon">
+                <i class="bi bi-list-ul"></i>
+            </div>
+            <h1>Lista de Pacientes</h1>
+            <p>Visualiza y gestiona los pacientes registrados en la clínica.</p>
+        </div>
+    </div>
+
     <div class="main-content">
-        <h1>Lista de Pacientes</h1>
         <table>
             <thead>
                 <tr>

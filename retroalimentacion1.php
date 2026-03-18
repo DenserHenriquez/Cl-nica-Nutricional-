@@ -241,6 +241,10 @@ if ($userRole !== 'Paciente') {
 		.thumbs img{cursor:pointer;transition:.25s;}
 		.thumbs img:hover{filter:brightness(.85);} 
 		.thumbs img.active{outline:2px solid #198754;}
+		@media (max-width:576px) {
+			.header-section h1 { font-size:1.3rem !important; }
+			.header-section p { font-size:.82rem !important; }
+		}
 	</style>
 	</head>
 <body>

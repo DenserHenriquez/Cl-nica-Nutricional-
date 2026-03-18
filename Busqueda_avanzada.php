@@ -268,6 +268,10 @@ function qs(array $data): string {
             background: #fee2e2;
             color: #991b1b;
         }
+        @media (max-width:576px) {
+            .header-section h1 { font-size:1.3rem; }
+            .header-section p { font-size:.82rem; }
+        }
     </style>
 </head>
 <body>

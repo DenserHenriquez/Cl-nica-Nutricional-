@@ -365,7 +365,7 @@ if ($medico_id === 0) {
                             <p>Por favor, contacte al administrador para registrar médicos en el sistema.</p>
                         </div>
                     <?php else: ?>
-                        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:20px;">
+                        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:16px;">
                         <?php foreach ($medicos as $id => $medico): ?>
                             <?php
                                 $cardCover = $medico['imagen'] ? $medico['imagen'] : ('https://ui-avatars.com/api/?name=' . urlencode($medico['nombre']) . '&background=e8f5e9&color=198754&bold=true&size=300&font-size=0.4');
@@ -1115,6 +1115,35 @@ function monthNameEs($m) {
         #medicosList::-webkit-scrollbar-thumb:hover {
             background: rgba(25, 135, 84, 0.5);
         }
+
+        /* ── Mobile responsive ── */
+        @media (max-width:768px) {
+            #calendar { height:auto; min-height:350px; padding:8px; font-size:12px; border-width:1.5px; }
+            .fc { font-size:11px; }
+            .fc-daygrid-day { min-height:40px; }
+            .fc-daygrid-day-number { font-size:11px; }
+            .fc-col-header-cell-cushion { font-size:11px; }
+            .fc-daygrid-day-top { padding:3px; }
+            .fc-event { font-size:10px; padding:2px; }
+            .fc-toolbar { flex-wrap:wrap; gap:6px; }
+            .fc-toolbar-title { font-size:1rem !important; }
+            .fc-button { padding:4px 8px !important; font-size:.75rem !important; }
+            .weekdays { font-size:.75rem; }
+            .controls form { flex-direction:column; align-items:stretch; }
+            .controls form select, .controls form input { width:100% !important; }
+            .modal-content { width:95%; margin:5% auto; padding:14px; max-height:90vh; overflow-y:auto; }
+            #slots-list .slot-item { flex-direction:column; gap:6px; align-items:stretch; text-align:center; }
+            .header-section { padding:0.8rem 0; }
+            .header-section h1 { font-size:1.4rem; }
+            .header-section p { font-size:.85rem; }
+            .medical-icon { font-size:1.5rem; margin-bottom:0.3rem; }
+            .toast { right:10px; left:10px; max-width:none; bottom:10px; }
+        }
+        @media (max-width:480px) {
+            #calendar { padding:4px; }
+            .fc-daygrid-day { min-height:32px; }
+            .cardx img { height:110px; }
+        }
     </style>
 </head>
 <body>
@@ -1253,7 +1282,7 @@ function monthNameEs($m) {
                 </div>
             </div>
             <!-- Modal Detalles de Cita -->
-            <div id="cita-details" class="card shadow" style="position: fixed; right: 10px; top: 50%; transform: translateY(-50%); width: 300px; background: #fff; border-radius: 18px; padding: 18px; box-shadow: 0 4px 16px rgba(25,118,210,0.12); display: none; z-index: 1050;">
+            <div id="cita-details" class="card shadow" style="position: fixed; right: 10px; top: 50%; transform: translateY(-50%); width: 300px; max-width: 90vw; background: #fff; border-radius: 18px; padding: 18px; box-shadow: 0 4px 16px rgba(25,118,210,0.12); display: none; z-index: 1050;">
                 <h5 class="mb-3" style="color:#1976d2; font-weight:700;">Detalles de la Cita</h5>
                 <p><strong>Nombre:</strong> <span id="cita-nombre"></span></p>
                 <p><strong>Estado:</strong> <span id="cita-estado"></span></p>

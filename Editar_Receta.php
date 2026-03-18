@@ -152,6 +152,10 @@ function h($v){ return htmlspecialchars($v ?? '', ENT_QUOTES | ENT_SUBSTITUTE, '
         .header-section h1{ font-size:2.2rem; margin:0.15rem 0 0.25rem; }
         .medical-icon{ font-size:1.9rem; margin-bottom:0.35rem; }
         .form-label{ font-weight:600; color:#198754; }
+        @media (max-width:576px) {
+            .header-section h1 { font-size:1.3rem !important; }
+            .header-section p { font-size:.82rem !important; }
+        }
     </style>
 </head>
 <body>

@@ -373,7 +373,11 @@ if (isset($_GET['edit_pac'])) {
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 <style>
-    body { background:#f8fafc; font-family:'Segoe UI',system-ui,sans-serif; padding:24px; }
+    body { background:#f8fafc; font-family:'Segoe UI',system-ui,sans-serif; }
+    .header-section { background:linear-gradient(135deg,#198754 0%,#146c43 100%); color:white; padding:0.8rem 0; margin-bottom:1rem; }
+    .header-section h1 { font-size:2.2rem; font-weight:700; margin:0.15rem 0 0.25rem; }
+    .header-section p  { font-size:1.05rem; opacity:0.95; margin:0; }
+    .medical-icon { font-size:1.9rem; margin-bottom:0.35rem; color:#ffffff; }
     .page-header { font-size:1.7rem; font-weight:700; color:#0d5132; margin-bottom:6px; }
     .page-sub    { color:#6c757d; font-size:.97rem; margin-bottom:24px; }
     .banner-card {
@@ -432,23 +436,27 @@ if (isset($_GET['edit_pac'])) {
     .icon-picker-grid { display:grid; grid-template-columns:repeat(8,1fr); gap:6px; }
     .icon-picker-btn { width:36px; height:36px; border:1px solid #dee2e6; border-radius:8px; background:#fff; display:flex; align-items:center; justify-content:center; cursor:pointer; transition:.2s; font-size:.9rem; color:#495057; }
     .icon-picker-btn:hover, .icon-picker-btn.active { background:#e8f5e9; border-color:#198754; color:#198754; }
+    /* Tabs */
+    .admin-tabs { background:#fff; border-radius:14px; padding:8px; box-shadow:0 2px 10px rgba(0,0,0,.06); margin-bottom:24px; }
+    .admin-tabs .nav-link { border:none; border-radius:10px; padding:12px 24px; font-weight:600; font-size:.95rem; color:#6c757d; transition:.2s; }
+    .admin-tabs .nav-link:hover { background:#f0faf4; color:#0d5132; }
+    .admin-tabs .nav-link.active { background:linear-gradient(135deg,#198754 0%,#146c43 100%); color:#fff !important; box-shadow:0 4px 12px rgba(25,135,84,.3); }
+    .admin-tabs .nav-link .badge { font-size:.7rem; vertical-align:middle; }
+    .tab-section-desc { color:#6c757d; font-size:.9rem; margin-bottom:20px; padding:0 4px; }
 </style>
 </head>
 <body>
 
-<div class="container-fluid" style="max-width:1300px;">
-
-    <!-- Cabecera -->
-    <div class="d-flex align-items-center gap-3 mb-1">
-        <div class="d-flex align-items-center justify-content-center rounded-3" style="width:52px;height:52px;background:#e8f5e9;">
-            <i class="bi bi-images" style="font-size:1.6rem;color:#198754;"></i>
-        </div>
-        <div>
-            <div class="page-header mb-0">Edición de Inicio</div>
-            <div class="page-sub mb-0">Gestiona los banners del carrusel y las tarjetas de servicios de la página principal.</div>
+    <!-- Header Section -->
+    <div class="header-section">
+        <div class="container text-center">
+            <div class="medical-icon"><i class="bi bi-images"></i></div>
+            <h1>Edición de Inicio</h1>
+            <p>Gestiona los banners del carrusel y las tarjetas de servicios de la página principal.</p>
         </div>
     </div>
-    <hr class="mb-4 mt-3">
+
+<div class="container-fluid" style="max-width:1300px;padding-top:8px;">
 
     <?php if ($msg): ?>
     <div class="alert alert-<?= $msgType; ?> alert-dismissible fade show" role="alert">
@@ -457,6 +465,33 @@ if (isset($_GET['edit_pac'])) {
         <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
     </div>
     <?php endif; ?>
+
+    <!-- Tab Navigation -->
+    <ul class="nav nav-pills admin-tabs mb-0" id="adminTabs" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active" id="banners-tab" data-bs-toggle="pill" data-bs-target="#banners-pane" type="button" role="tab">
+                <i class="bi bi-images me-2"></i>Carrusel Principal
+                <span class="badge bg-success ms-1"><?= count($banners); ?></span>
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="pac-tab" data-bs-toggle="pill" data-bs-target="#pac-pane" type="button" role="tab">
+                <i class="bi bi-person-video3 me-2"></i>Carrusel Pacientes
+                <span class="badge bg-warning text-dark ms-1"><?= count($pacBanners); ?></span>
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="tarjetas-tab" data-bs-toggle="pill" data-bs-target="#tarjetas-pane" type="button" role="tab">
+                <i class="bi bi-grid-3x3-gap-fill me-2"></i>Tarjetas de Servicios
+                <span class="badge bg-primary ms-1"><?= count($tarjetas); ?></span>
+            </button>
+        </li>
+    </ul>
+
+    <div class="tab-content" id="adminTabsContent">
+        <!-- ══════ TAB 1: CARRUSEL PRINCIPAL ══════ -->
+        <div class="tab-pane fade show active" id="banners-pane" role="tabpanel">
+            <p class="tab-section-desc"><i class="bi bi-info-circle me-1"></i>Banners del carrusel que se muestra en la página de acceso público (index.php).</p>
 
     <div class="row g-4">
 
@@ -779,21 +814,11 @@ if (isset($_GET['edit_pac'])) {
         </div>
 
     </div>
+        </div><!-- end banners-pane -->
 
-    <!-- ═══════════════════════════════════════════════════════════════════════ -->
-    <!-- ═══ SECCIÓN 3: CARRUSEL DE PACIENTES (Dashboard) ═══ -->
-    <!-- ═══════════════════════════════════════════════════════════════════════ -->
-    <hr class="section-divider" id="pac">
-    <div class="d-flex align-items-center gap-3 mb-1">
-        <div class="d-flex align-items-center justify-content-center rounded-3" style="width:52px;height:52px;background:#fff3e0;">
-            <i class="bi bi-person-video3" style="font-size:1.6rem;color:#fd7e14;"></i>
-        </div>
-        <div>
-            <div class="page-header mb-0" style="font-size:1.4rem;">Carrusel del Dashboard de Pacientes</div>
-            <div class="page-sub mb-0">Banners exclusivos que ven los pacientes al entrar al sistema (independiente del carrusel de la página principal).</div>
-        </div>
-    </div>
-    <hr class="mb-4 mt-3">
+        <!-- ══════ TAB 2: CARRUSEL PACIENTES ══════ -->
+        <div class="tab-pane fade" id="pac-pane" role="tabpanel">
+            <p class="tab-section-desc"><i class="bi bi-info-circle me-1"></i>Banners exclusivos que ven los pacientes al entrar al sistema (independiente del carrusel principal).</p>
 
     <div class="row g-4">
         <!-- Vista previa + config -->
@@ -1071,21 +1096,11 @@ if (isset($_GET['edit_pac'])) {
             </div>
         </div>
     </div>
+        </div><!-- end pac-pane -->
 
-    <!-- ═══════════════════════════════════════════════════════════════════════ -->
-    <!-- ═══ SECCIÓN 2: TARJETAS DE SERVICIOS ═══ -->
-    <!-- ═══════════════════════════════════════════════════════════════════════ -->
-    <hr class="section-divider" id="tarjetas">
-    <div class="d-flex align-items-center gap-3 mb-1">
-        <div class="d-flex align-items-center justify-content-center rounded-3" style="width:52px;height:52px;background:#e3f2fd;">
-            <i class="bi bi-grid-3x3-gap-fill" style="font-size:1.6rem;color:#0d6efd;"></i>
-        </div>
-        <div>
-            <div class="page-header mb-0" style="font-size:1.4rem;">Tarjetas de Servicios</div>
-            <div class="page-sub mb-0">Gestiona las tarjetas que se muestran debajo del carrusel en la página principal.</div>
-        </div>
-    </div>
-    <hr class="mb-4 mt-3">
+        <!-- ══════ TAB 3: TARJETAS DE SERVICIOS ══════ -->
+        <div class="tab-pane fade" id="tarjetas-pane" role="tabpanel">
+            <p class="tab-section-desc"><i class="bi bi-info-circle me-1"></i>Gestiona las tarjetas que se muestran en la sección «Nuestros Servicios» de la página principal.</p>
 
     <?php
     $iconos = ['fa-utensils','fa-heartbeat','fa-weight','fa-running','fa-baby','fa-users','fa-apple-alt','fa-carrot','fa-seedling','fa-dumbbell','fa-star','fa-leaf','fa-stethoscope','fa-hand-holding-heart','fa-brain','fa-notes-medical'];
@@ -1275,6 +1290,8 @@ if (isset($_GET['edit_pac'])) {
             </div>
         </div>
     </div>
+        </div><!-- end tarjetas-pane -->
+    </div><!-- end tab-content -->
 
 </div>
 
@@ -1288,6 +1305,34 @@ function previewImg(input, previewId){
         reader.readAsDataURL(input.files[0]);
     }
 }
+// Auto-select tab based on context
+(function(){
+    <?php if ($editPac): ?>
+    var autoTab = 'pac-tab';
+    <?php elseif ($editTarjeta): ?>
+    var autoTab = 'tarjetas-tab';
+    <?php else: ?>
+    var autoTab = null;
+    <?php endif; ?>
+
+    var hash = window.location.hash.replace('#','');
+    if (hash === 'pac' || hash === 'formEditPac' || hash === 'formAddPac') autoTab = 'pac-tab';
+    else if (hash === 'tarjetas' || hash === 'formEditTarjeta' || hash === 'formAddTarjeta') autoTab = 'tarjetas-tab';
+
+    if (autoTab) {
+        var tabEl = document.getElementById(autoTab);
+        if (tabEl) new bootstrap.Tab(tabEl).show();
+    }
+
+    // Update URL hash on tab change
+    document.querySelectorAll('#adminTabs button[data-bs-toggle="pill"]').forEach(function(btn){
+        btn.addEventListener('shown.bs.tab', function(e){
+            var id = e.target.getAttribute('data-bs-target').replace('-pane','').replace('#','');
+            if (id === 'banners') history.replaceState(null,null,' ');
+            else history.replaceState(null,null,'#'+id);
+        });
+    });
+})();
 </script>
 </body>
 </html>

@@ -202,6 +202,10 @@ if ($stmtList) {
             color: #6c757d;
             font-size: 0.875rem;
         }
+        @media (max-width:576px) {
+            .header-section h1 { font-size:1.3rem !important; }
+            .header-section p { font-size:.82rem !important; }
+        }
     </style>
 </head>
 <body>
