@@ -443,8 +443,8 @@ if ($ok && !$exito) { $exito = 'Consulta guardada correctamente.'; }
                             <span class="input-group-text bg-light">Hasta</span>
                             <input type="date" class="form-control" name="fh" value="<?= h($fecha_hasta) ?>">
                         </div>
-                        <button class="btn btn-light btn-sm" type="submit"><i class="bi bi-funnel"></i> Filtrar</button>
-                        <a class="btn btn-outline-light btn-sm" href="Consulta_Medica.php?paciente_id=<?= (int)$pacienteSel['id_pacientes'] ?>"><i class="bi bi-x-circle"></i> Limpiar</a>
+                        <button class="btn btn-light btn-sm flex-shrink-0" type="submit" style="white-space:nowrap;"><i class="bi bi-funnel"></i> Filtrar</button>
+                        <a class="btn btn-outline-light btn-sm flex-shrink-0" href="Consulta_Medica.php?paciente_id=<?= (int)$pacienteSel['id_pacientes'] ?>" style="white-space:nowrap;"><i class="bi bi-x-circle"></i> Limpiar</a>
                     </form>
                 </div>
                 <div class="card-body p-0">
