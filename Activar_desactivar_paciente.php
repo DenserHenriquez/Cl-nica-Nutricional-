@@ -48,25 +48,30 @@ $total_entradas = $resultado->num_rows;
             background-color: #f8f9fa;
         }
         .header-section {
-            background: linear-gradient(135deg, #198754 0%, #146c43 100%);
-            color: white;
-            padding: 0.8rem 0;
+            background: #ffffff;
+            color: #0d5132;
+            padding: 1.1rem 1.6rem;
             margin-bottom: 1rem;
+            border-radius: 12px;
+            border: 1px solid #c8e6c9;
+            box-shadow: 0 2px 8px rgba(0,0,0,.06);
         }
         .header-section h1 {
             font-size: 2.2rem;
             font-weight: 700;
-            margin: 0.15rem 0 0.25rem;
+            margin: 0;
+            line-height: 1.3;
+            color: #0d5132;
         }
         .header-section p {
             font-size: 1.05rem;
-            opacity: 0.95;
+            opacity: 0.92;
             margin: 0;
+            color: #495057;
         }
         .medical-icon {
             font-size: 1.9rem;
-            margin-bottom: 0.35rem;
-            color: #ffffff;
+            color: #198754;
         }
         .estado-text { font-weight: bold; }
         .estado-Activo { color: #0d5132; }
@@ -150,7 +155,7 @@ $total_entradas = $resultado->num_rows;
 
         /* Responsive */
         @media (max-width: 576px) {
-            .header-section h1 { font-size: 1.8rem; }
+            .header-section h1 { font-size: 1.3rem; }
             .header-section p { font-size: 0.9rem; }
             .switch { width: 40px; height: 20px; }
             .slider:before { height: 14px; width: 14px; }
@@ -159,18 +164,16 @@ $total_entradas = $resultado->num_rows;
     </style>
 </head>
 <body>
+    <div class="container-fluid mb-5 px-4">
+
     <!-- Header Section -->
-    <div class="header-section">
-        <div class="container text-center">
-            <div class="medical-icon">
-                <i class="bi bi-people-fill"></i>
-            </div>
+    <div class="header-section d-flex align-items-center gap-3" style="margin-top:12px;">
+        <div class="medical-icon"><i class="bi bi-people-fill"></i></div>
+        <div>
             <h1>Lista de Usuarios</h1>
             <p>Administra el estado de los usuarios registrados en la clínica nutricional.</p>
         </div>
     </div>
-
-    <div class="container-fluid mb-5 px-4">
 
         <div class="card">
             <div class="card-header bg-success text-white d-flex align-items-center justify-content-between">

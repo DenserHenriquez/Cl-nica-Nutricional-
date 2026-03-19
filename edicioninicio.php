@@ -374,10 +374,10 @@ if (isset($_GET['edit_pac'])) {
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 <style>
     body { background:#f8fafc; font-family:'Segoe UI',system-ui,sans-serif; }
-    .header-section { background:linear-gradient(135deg,#198754 0%,#146c43 100%); color:white; padding:0.8rem 0; margin-bottom:1rem; }
-    .header-section h1 { font-size:2.2rem; font-weight:700; margin:0.15rem 0 0.25rem; }
-    .header-section p  { font-size:1.05rem; opacity:0.95; margin:0; }
-    .medical-icon { font-size:1.9rem; margin-bottom:0.35rem; color:#ffffff; }
+    .header-section { background:linear-gradient(135deg,#198754 0%,#146c43 100%); color:white; padding:1.1rem 1.6rem; margin-bottom:1rem; border-radius:12px; }
+    .header-section h1 { font-size:2.2rem; font-weight:700; margin:0; line-height:1.3; }
+    .header-section p  { font-size:1.05rem; opacity:0.92; margin:0; }
+    .medical-icon { font-size:1.9rem; color:#ffffff; }
     .page-header { font-size:1.7rem; font-weight:700; color:#0d5132; margin-bottom:6px; }
     .page-sub    { color:#6c757d; font-size:.97rem; margin-bottom:24px; }
     .banner-card {
@@ -387,7 +387,7 @@ if (isset($_GET['edit_pac'])) {
     }
     .banner-card:hover { box-shadow:0 8px 24px rgba(0,0,0,.10); }
     .banner-preview {
-        height:160px; position:relative; display:flex;
+        height:130px; position:relative; display:flex;
         align-items:center; justify-content:center;
         background:#e9ecef; overflow:hidden;
     }
@@ -407,25 +407,25 @@ if (isset($_GET['edit_pac'])) {
     .status-dot { width:10px; height:10px; border-radius:50%; display:inline-block; }
     .status-dot.on  { background:#198754; }
     .status-dot.off { background:#adb5bd; }
-    .form-section { background:#fff; border:1px solid #e9ecef; border-radius:16px; padding:28px; box-shadow:0 4px 14px rgba(0,0,0,.05); }
-    .form-section h5 { font-weight:700; color:#0d5132; margin-bottom:20px; font-size:1.15rem; }
+    .form-section { background:#fff; border:1px solid #e9ecef; border-radius:16px; padding:18px 20px; box-shadow:0 4px 14px rgba(0,0,0,.05); }
+    .form-section h5 { font-weight:700; color:#0d5132; margin-bottom:14px; font-size:1.05rem; }
     .color-swatch { width:36px; height:36px; border-radius:8px; border:2px solid #dee2e6; cursor:pointer; }
     .preview-img-thumb { max-height:90px; border-radius:10px; object-fit:cover; border:1px solid #dee2e6; }
     .order-badge { background:#e8f5e9; color:#0d5132; font-size:.72rem; font-weight:700; padding:2px 8px; border-radius:20px; }
-    .empty-state { text-align:center; padding:60px 20px; color:#adb5bd; }
+    .empty-state { text-align:center; padding:36px 16px; color:#adb5bd; }
     .empty-state i { font-size:3.5rem; display:block; margin-bottom:12px; }
     /* preview carousel */
     .prev-carousel-wrap { border-radius:14px; overflow:hidden; box-shadow:0 4px 18px rgba(0,0,0,.12); margin-bottom:8px; }
-    .prev-carousel .carousel-item { height:200px; }
+    .prev-carousel .carousel-item { height:170px; }
     .prev-carousel .slide-bg { position:absolute;inset:0;background-size:cover;background-position:center; }
     .prev-carousel .slide-overlay { position:absolute;inset:0;background:linear-gradient(90deg,rgba(0,0,0,.55) 0%,rgba(0,0,0,.1) 100%); }
-    .prev-carousel .slide-content { position:relative;z-index:2;height:200px;display:flex;flex-direction:column;justify-content:center;padding:24px 32px;max-width:500px; }
+    .prev-carousel .slide-content { position:relative;z-index:2;height:170px;display:flex;flex-direction:column;justify-content:center;padding:18px 28px;max-width:500px; }
     .prev-carousel .slide-title { font-size:1.3rem;font-weight:800;color:#fff;text-shadow:0 2px 8px rgba(0,0,0,.4);margin-bottom:6px;line-height:1.2; }
     .prev-carousel .slide-sub { font-size:.85rem;color:rgba(255,255,255,.88);margin-bottom:12px;text-shadow:0 1px 4px rgba(0,0,0,.3); }
     .prev-carousel .slide-btn { align-self:flex-start;background:#fff;color:#0d5132;font-weight:700;border:none;border-radius:50px;padding:6px 20px;font-size:.85rem;text-decoration:none; }
     .prev-carousel .carousel-indicators [data-bs-target] { width:20px;height:3px;border-radius:3px;background:rgba(255,255,255,.5);border:none; }
     .prev-carousel .carousel-indicators .active { background:#fff; }
-    .config-box { background:#fff;border:1px solid #e9ecef;border-radius:14px;padding:18px 20px;box-shadow:0 2px 8px rgba(0,0,0,.05); }
+    .config-box { background:#fff;border:1px solid #e9ecef;border-radius:14px;padding:14px 16px;box-shadow:0 2px 8px rgba(0,0,0,.05); }
     /* Tarjetas admin */
     .tarjeta-admin-card { background:#fff; border:1px solid #e9ecef; border-radius:14px; overflow:hidden; box-shadow:0 2px 10px rgba(0,0,0,.05); transition:.2s; }
     .tarjeta-admin-card:hover { box-shadow:0 6px 20px rgba(0,0,0,.08); }
@@ -437,26 +437,30 @@ if (isset($_GET['edit_pac'])) {
     .icon-picker-btn { width:36px; height:36px; border:1px solid #dee2e6; border-radius:8px; background:#fff; display:flex; align-items:center; justify-content:center; cursor:pointer; transition:.2s; font-size:.9rem; color:#495057; }
     .icon-picker-btn:hover, .icon-picker-btn.active { background:#e8f5e9; border-color:#198754; color:#198754; }
     /* Tabs */
-    .admin-tabs { background:#fff; border-radius:14px; padding:8px; box-shadow:0 2px 10px rgba(0,0,0,.06); margin-bottom:24px; }
-    .admin-tabs .nav-link { border:none; border-radius:10px; padding:12px 24px; font-weight:600; font-size:.95rem; color:#6c757d; transition:.2s; }
+    .admin-tabs { background:#fff; border-radius:14px; padding:6px; box-shadow:0 2px 10px rgba(0,0,0,.06); margin-bottom:12px; }
+    .admin-tabs .nav-link { border:none; border-radius:10px; padding:9px 20px; font-weight:600; font-size:.9rem; color:#6c757d; transition:.2s; }
     .admin-tabs .nav-link:hover { background:#f0faf4; color:#0d5132; }
     .admin-tabs .nav-link.active { background:linear-gradient(135deg,#198754 0%,#146c43 100%); color:#fff !important; box-shadow:0 4px 12px rgba(25,135,84,.3); }
     .admin-tabs .nav-link .badge { font-size:.7rem; vertical-align:middle; }
-    .tab-section-desc { color:#6c757d; font-size:.9rem; margin-bottom:20px; padding:0 4px; }
+    .tab-section-desc { color:#6c757d; font-size:.85rem; margin-bottom:10px; padding:0 4px; }
 </style>
 </head>
 <body>
 
+<div class="container-fluid px-4">
+
     <!-- Header Section -->
-    <div class="header-section">
-        <div class="container text-center">
-            <div class="medical-icon"><i class="bi bi-images"></i></div>
+    <div class="header-section d-flex align-items-center gap-3" style="margin-top:12px;">
+        <div class="medical-icon"><i class="bi bi-images"></i></div>
+        <div>
             <h1>Edición de Inicio</h1>
             <p>Gestiona los banners del carrusel y las tarjetas de servicios de la página principal.</p>
         </div>
     </div>
 
-<div class="container-fluid" style="max-width:1300px;padding-top:8px;">
+</div>
+
+<div class="container-fluid" style="max-width:1600px;padding:8px 20px 0;">
 
     <?php if ($msg): ?>
     <div class="alert alert-<?= $msgType; ?> alert-dismissible fade show" role="alert">
@@ -493,7 +497,7 @@ if (isset($_GET['edit_pac'])) {
         <div class="tab-pane fade show active" id="banners-pane" role="tabpanel">
             <p class="tab-section-desc"><i class="bi bi-info-circle me-1"></i>Banners del carrusel que se muestra en la página de acceso público (index.php).</p>
 
-    <div class="row g-4">
+    <div class="row g-3">
 
         <!-- ═══ PREVIEW + CONFIG ─ fila superior completa ═══ -->
         <div class="col-12">
@@ -510,7 +514,7 @@ if (isset($_GET['edit_pac'])) {
                     $prevSlides = array_values($prevSlides);
                     ?>
                     <?php if (empty($prevSlides)): ?>
-                    <div class="prev-carousel-wrap d-flex align-items-center justify-content-center" style="height:200px;background:#e9ecef;border-radius:14px;">
+                    <div class="prev-carousel-wrap d-flex align-items-center justify-content-center" style="height:170px;background:#e9ecef;border-radius:14px;">
                         <div class="text-center text-muted">
                             <i class="bi bi-image" style="font-size:2.5rem;"></i>
                             <p class="mt-2 mb-0 small">No hay banners activos para previsualizar.</p>
@@ -820,7 +824,7 @@ if (isset($_GET['edit_pac'])) {
         <div class="tab-pane fade" id="pac-pane" role="tabpanel">
             <p class="tab-section-desc"><i class="bi bi-info-circle me-1"></i>Banners exclusivos que ven los pacientes al entrar al sistema (independiente del carrusel principal).</p>
 
-    <div class="row g-4">
+    <div class="row g-3">
         <!-- Vista previa + config -->
         <div class="col-12">
             <div class="row g-3">
@@ -1106,7 +1110,7 @@ if (isset($_GET['edit_pac'])) {
     $iconos = ['fa-utensils','fa-heartbeat','fa-weight','fa-running','fa-baby','fa-users','fa-apple-alt','fa-carrot','fa-seedling','fa-dumbbell','fa-star','fa-leaf','fa-stethoscope','fa-hand-holding-heart','fa-brain','fa-notes-medical'];
     ?>
 
-    <div class="row g-4">
+    <div class="row g-3">
         <!-- Lista de tarjetas -->
         <div class="col-lg-7">
             <div class="d-flex align-items-center justify-content-between mb-3">

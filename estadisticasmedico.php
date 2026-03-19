@@ -125,10 +125,10 @@ if ($conexion) {
         body { background:#f8fafc; font-family:'Segoe UI',system-ui,sans-serif; }
 
         /* HEADER */
-        .header-section { background:linear-gradient(135deg,#198754 0%,#146c43 100%); color:white; padding:0.6rem 0; margin-bottom:0.8rem; }
-        .header-section h1 { font-size:1.8rem; font-weight:700; margin:0.1rem 0 0.2rem; }
-        .header-section p  { font-size:0.92rem; opacity:0.95; margin:0; }
-        .medical-icon { font-size:1.5rem; margin-bottom:0.25rem; color:#ffffff; }
+        .header-section { background:linear-gradient(135deg,#198754 0%,#146c43 100%); color:white; padding:1.1rem 1.6rem; margin:12px 1rem 1rem; border-radius:12px; }
+        .header-section h1 { font-size:2.2rem; font-weight:700; margin:0; line-height:1.3; }
+        .header-section p  { font-size:1.05rem; opacity:0.92; margin:0; }
+        .medical-icon { font-size:1.9rem; color:#ffffff; }
         /* PDF button row below header */
         .btn-pdf-row { display:flex; justify-content:flex-end; margin-bottom:16px; }
 
@@ -200,9 +200,9 @@ if ($conexion) {
 <div class="container-fluid" id="pdfContent" style="padding:0;">
 
     <!-- HEADER -->
-    <div class="header-section">
-        <div class="container text-center">
-            <div class="medical-icon"><i class="fas fa-chart-pie"></i></div>
+    <div class="header-section d-flex align-items-center gap-3">
+        <div class="medical-icon"><i class="fas fa-chart-pie"></i></div>
+        <div>
             <h1>Estadísticas del Médico</h1>
             <p>Panel con métricas y reportes para seguimiento clínico.</p>
         </div>

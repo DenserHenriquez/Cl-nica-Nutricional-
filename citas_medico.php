@@ -93,23 +93,23 @@ if ($medico_id === 0) {
         .header-section {
             background: linear-gradient(135deg, #198754 0%, #146c43 100%);
             color: white;
-            /* Reduced height: ~60% */
-            padding: 0.8rem 0;
-            margin-bottom: 1rem;
+            padding: 1.1rem 1.6rem;
+            margin: 12px 1rem 1rem;
+            border-radius: 12px;
         }
         .header-section h1 {
             font-size: 2.2rem;
             font-weight: 700;
-            margin: 0.15rem 0 0.25rem;
+            margin: 0;
+            line-height: 1.3;
         }
         .header-section p {
             font-size: 1.05rem;
-            opacity: 0.95;
+            opacity: 0.92;
             margin: 0;
         }
         .medical-icon {
             font-size: 1.9rem;
-            margin-bottom: 0.35rem;
             color: #ffffff;
         }
         .selection-edit-btn {
@@ -140,8 +140,32 @@ if ($medico_id === 0) {
         .cardx:hover { box-shadow: 0 8px 24px rgba(25,135,84,0.15); transform: translateY(-2px); }
         .cardx img { width: 100%; height: 161px; object-fit: cover; display: block; }
         .cardx .info { padding: 10px; }
-        .cardx .name { font-weight: 700; color: #212529; }
-        .cardx .meta { color: #6c757d; font-size: .85rem; }
+        .cardx .name { font-weight: 700; color: #212529; font-size: .95rem; }
+        .cardx .meta { color: #6c757d; font-size: .82rem; word-break: break-word; }
+        .medicos-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 14px;
+            padding: 0 4px;
+        }
+        @media (min-width: 768px) {
+            .medicos-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+        @media (min-width: 1100px) {
+            .medicos-grid {
+                grid-template-columns: repeat(4, 1fr);
+            }
+        }
+        @media (min-width: 1500px) {
+            .selection-container {
+                max-width: 1640px;
+            }
+            .medicos-grid {
+                grid-template-columns: repeat(5, 1fr);
+            }
+        }
         .header-avatar { position: relative; display:inline-block; }
         .header-edit-btn {
             position: absolute;
@@ -348,14 +372,14 @@ if ($medico_id === 0) {
     </style>
     </head>
     <body>
-        <div class="header-section text-center" style="position:relative;">
-            <div class="medical-icon">
-                <i class="bi bi-calendar-check"></i>
+        <div class="header-section d-flex align-items-center gap-3" style="position:relative;">
+            <div class="medical-icon"><i class="bi bi-calendar-check"></i></div>
+            <div>
+                <h1>Seleccionar Médico para Gestión de Citas</h1>
+                <p>Haga clic en el médico para ver su calendario de citas.</p>
             </div>
-            <h1>Seleccionar Médico para Gestión de Citas</h1>
-            <p>Haga clic en el médico para ver su calendario de citas.</p>
         </div>
-        <div class="container py-4">
+        <div class="container-fluid py-4 selection-container">
             <?php
                 $firstMedicoId = !empty($medicos) ? array_key_first($medicos) : 0;
             ?>
@@ -365,7 +389,7 @@ if ($medico_id === 0) {
                             <p>Por favor, contacte al administrador para registrar médicos en el sistema.</p>
                         </div>
                     <?php else: ?>
-                        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:16px;">
+                        <div class="medicos-grid">
                         <?php foreach ($medicos as $id => $medico): ?>
                             <?php
                                 $cardCover = $medico['imagen'] ? $medico['imagen'] : ('https://ui-avatars.com/api/?name=' . urlencode($medico['nombre']) . '&background=e8f5e9&color=198754&bold=true&size=300&font-size=0.4');
@@ -1133,16 +1157,21 @@ function monthNameEs($m) {
             .controls form select, .controls form input { width:100% !important; }
             .modal-content { width:95%; margin:5% auto; padding:14px; max-height:90vh; overflow-y:auto; }
             #slots-list .slot-item { flex-direction:column; gap:6px; align-items:stretch; text-align:center; }
-            .header-section { padding:0.8rem 0; }
+            .header-section { padding:0.7rem 1.2rem; }
             .header-section h1 { font-size:1.4rem; }
             .header-section p { font-size:.85rem; }
             .medical-icon { font-size:1.5rem; margin-bottom:0.3rem; }
+            .cardx img { height:110px; }
+            .cardx .info { padding:8px; }
+            .cardx .name { font-size:.85rem; }
+            .cardx .meta { font-size:.72rem; }
             .toast { right:10px; left:10px; max-width:none; bottom:10px; }
         }
         @media (max-width:480px) {
             #calendar { padding:4px; }
             .fc-daygrid-day { min-height:32px; }
-            .cardx img { height:110px; }
+            .medicos-grid { grid-template-columns:1fr; max-width:280px; margin:0 auto; }
+            .cardx img { height:140px; }
         }
     </style>
 </head>

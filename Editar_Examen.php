@@ -102,22 +102,23 @@ function h($v){ return htmlspecialchars($v ?? '', ENT_QUOTES, 'UTF-8'); }
         .header-section {
             background: linear-gradient(135deg, #198754 0%, #146c43 100%);
             color: white;
-            padding: 0.8rem 0;
-            margin-bottom: 1rem;
+            padding: 1.1rem 1.6rem;
+            margin: 12px 1rem 1rem;
+            border-radius: 12px;
         }
         .header-section h1 {
             font-size: 2.2rem;
             font-weight: 700;
-            margin: 0.15rem 0 0.25rem;
+            margin: 0;
+            line-height: 1.3;
         }
         .header-section p {
             font-size: 1.05rem;
-            opacity: 0.95;
+            opacity: 0.92;
             margin: 0;
         }
         .medical-icon {
             font-size: 1.9rem;
-            margin-bottom: 0.35rem;
             color: #ffffff;
         }
         @media (max-width:576px) {
@@ -128,11 +129,9 @@ function h($v){ return htmlspecialchars($v ?? '', ENT_QUOTES, 'UTF-8'); }
 </head>
 <body style="background:#f8f9fa;">
     <!-- Header Section -->
-    <div class="header-section">
-        <div class="container text-center">
-            <div class="medical-icon">
-                <i class="bi bi-pencil-square"></i>
-            </div>
+    <div class="header-section d-flex align-items-center gap-3">
+        <div class="medical-icon"><i class="bi bi-pencil-square"></i></div>
+        <div>
             <h1>Editar Examen</h1>
             <p>Modifica los datos del examen médico del paciente.</p>
         </div>

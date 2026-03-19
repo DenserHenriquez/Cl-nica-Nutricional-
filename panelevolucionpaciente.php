@@ -140,22 +140,23 @@ $cambio = $pesoActual - $pesoInicial;
     .header-section {
       background: linear-gradient(135deg, #198754 0%, #146c43 100%);
       color: white;
-      padding: 0.6rem 0;
-      margin-bottom: 0.8rem;
+      padding: 1.1rem 1.6rem;
+      margin-bottom: 1rem;
+      border-radius: 12px;
     }
     .header-section h1 {
-      font-size: 1.8rem;
+      font-size: 2.2rem;
       font-weight: 700;
-      margin: 0.1rem 0 0.2rem;
+      margin: 0;
+      line-height: 1.3;
     }
     .header-section p {
-      font-size: 0.92rem;
-      opacity: 0.95;
+      font-size: 1.05rem;
+      opacity: 0.92;
       margin: 0;
     }
     .medical-icon {
-      font-size: 1.5rem;
-      margin-bottom: 0.25rem;
+      font-size: 1.9rem;
       color: #ffffff;
     }
     .header-card{
@@ -243,18 +244,16 @@ $cambio = $pesoActual - $pesoInicial;
 </head>
 <body>
 
-<!-- Header Section -->
-<div class="header-section">
-  <div class="container text-center">
-    <div class="medical-icon">
-      <i class="bi bi-bar-chart-line"></i>
-    </div>
-    <h1>Panel de Evolución del Paciente</h1>
-    <p>Nutricionista | Monitorea el progreso y evolución de tus pacientes.</p>
-  </div>
-</div>
-
 <div class="container-fluid py-3 px-3">
+
+<!-- Header Section -->
+<div class="header-section d-flex align-items-center gap-3">
+    <div class="medical-icon"><i class="bi bi-bar-chart-line"></i></div>
+    <div>
+        <h1>Panel de Evolución del Paciente</h1>
+        <p>Nutricionista | Monitorea el progreso y evolución de tus pacientes.</p>
+    </div>
+</div>
   <!-- Patient info -->
   <div class="header-card d-flex justify-content-between align-items-center flex-wrap">
     <div>

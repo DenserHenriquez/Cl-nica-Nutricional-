@@ -87,7 +87,10 @@ function h($v) { return htmlspecialchars($v ?? '', ENT_QUOTES | ENT_SUBSTITUTE, 
         .btn-primary { background-color: #198754; border-color: #198754; }
         .btn-primary:hover { background-color: #146c43; border-color: #13653f; }
         .form-label { font-weight: 600; color: #198754; }
-        .header-section { background: linear-gradient(135deg, #198754 0%, #146c43 100%); color: white; padding: 0.8rem 0; margin-bottom: 1rem; }
+        .header-section { background: linear-gradient(135deg, #198754 0%, #146c43 100%); color: white; padding: 1.1rem 1.6rem; margin: 12px 1rem 1rem; border-radius: 12px; }
+        .header-section h1 { font-size: 2.2rem; font-weight: 700; margin: 0; line-height: 1.3; }
+        .header-section p { font-size: 1.05rem; opacity: 0.92; margin: 0; }
+        .medical-icon { font-size: 1.9rem; color: #ffffff; }
         /* Forzar colores verdes en elementos Bootstrap que usan .bg-primary */
         .bg-primary { background-color: #198754 !important; }
         .card-header.bg-primary { background-color: #198754 !important; border-color: #198754 !important; }
@@ -106,16 +109,11 @@ function h($v) { return htmlspecialchars($v ?? '', ENT_QUOTES | ENT_SUBSTITUTE, 
     </style>
 </head>
 <body>
-    <div class="header-section">
-        <div class="container text-center">
-            <div class="medical-icon"><i class="bi bi-lock"></i></div>
+    <div class="header-section d-flex align-items-center gap-3">
+        <div class="medical-icon"><i class="bi bi-lock"></i></div>
+        <div>
             <h1>Cambiar Contraseña</h1>
             <p>Actualice su contraseña de acceso de forma segura.</p>
-            <?php if (!empty($nombreUsuario) || !empty($correoUsuario)): ?>
-                <div class="user-info">
-                    <?= h($nombreUsuario ?? $_SESSION['nombre'] ?? '') ?> &nbsp;|&nbsp; <?= h($correoUsuario ?? '') ?>
-                </div>
-            <?php endif; ?>
         </div>
     </div>
 

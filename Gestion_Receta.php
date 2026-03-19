@@ -116,68 +116,30 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
 $search = isset($_GET['search']) ? trim($_GET['search']) : '';
 $recetas = [];
 if (!($noRegistrado && !$isPrivileged)) {
-    if ($isPrivileged) {
-        // Privilegiados: JOIN con pacientes y deduplicar por nombre+ingredientes en PHP
-        $sql = "SELECT r.id, r.nombre, r.ingredientes, r.porciones, r.instrucciones,
-                       r.nota_nutricional, r.foto_path, r.created_at,
-                       r.id_pacientes, COALESCE(p.nombre_completo,'—') AS paciente_nombre
-                FROM recetas r
-                LEFT JOIN pacientes p ON r.id_pacientes = p.id_pacientes
-                WHERE 1=1";
-        $params = [];
-        $types  = '';
-        if (!empty($search)) {
-            $sql .= " AND (r.nombre LIKE ? OR r.ingredientes LIKE ?)";
-            $params[] = '%' . $search . '%';
-            $params[] = '%' . $search . '%';
-            $types   .= 'ss';
+    $sql = "SELECT id, nombre, ingredientes, porciones, instrucciones, nota_nutricional, foto_path, created_at FROM recetas WHERE 1=1";
+    $params = [];
+    $types = '';
+    if (!$isPrivileged) {
+        $sql .= " AND id_pacientes = ?";
+        $params[] = $paciente_id;
+        $types .= 'i';
+    }
+    if (!empty($search)) {
+        $sql .= " AND (nombre LIKE ? OR ingredientes LIKE ?)";
+        $params[] = '%' . $search . '%';
+        $params[] = '%' . $search . '%';
+        $types .= 'ss';
+    }
+    $sql .= " ORDER BY created_at DESC";
+    $stmt = $conexion->prepare($sql);
+    if ($stmt) {
+        if ($types !== '') { $stmt->bind_param($types, ...$params); }
+        $stmt->execute();
+        $result = $stmt->get_result();
+        while ($row = $result->fetch_assoc()) {
+            $recetas[] = $row;
         }
-        $sql .= " ORDER BY r.nombre, r.created_at ASC";
-        $stmt = $conexion->prepare($sql);
-        if ($stmt) {
-            if ($types !== '') { $stmt->bind_param($types, ...$params); }
-            $stmt->execute();
-            $result = $stmt->get_result();
-            $recetasMap = [];
-            while ($row = $result->fetch_assoc()) {
-                // Clave de deduplicación: mismo nombre + mismos ingredientes = misma receta
-                $key = $row['nombre'] . "\x00" . $row['ingredientes'];
-                if (!isset($recetasMap[$key])) {
-                    $recetasMap[$key] = $row;
-                    $recetasMap[$key]['pacientes'] = [];
-                }
-                $recetasMap[$key]['pacientes'][] = [
-                    'id'     => (int)$row['id_pacientes'],
-                    'nombre' => $row['paciente_nombre'],
-                ];
-            }
-            $stmt->close();
-            $recetas = array_values($recetasMap);
-            usort($recetas, function ($a, $b) { return strcmp($b['created_at'], $a['created_at']); });
-        }
-    } else {
-        $sql = "SELECT id, nombre, ingredientes, porciones, instrucciones,
-                       nota_nutricional, foto_path, created_at
-                FROM recetas WHERE id_pacientes = ?";
-        $params = [$paciente_id];
-        $types  = 'i';
-        if (!empty($search)) {
-            $sql .= " AND (nombre LIKE ? OR ingredientes LIKE ?)";
-            $params[] = '%' . $search . '%';
-            $params[] = '%' . $search . '%';
-            $types   .= 'ss';
-        }
-        $sql .= " ORDER BY created_at DESC";
-        $stmt = $conexion->prepare($sql);
-        if ($stmt) {
-            $stmt->bind_param($types, ...$params);
-            $stmt->execute();
-            $result = $stmt->get_result();
-            while ($row = $result->fetch_assoc()) {
-                $recetas[] = $row;
-            }
-            $stmt->close();
-        }
+        $stmt->close();
     }
 }
 
@@ -197,10 +159,10 @@ if (!($noRegistrado && !$isPrivileged)) {
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <style>
         body { background-color: #f0f4f2; font-family:'Segoe UI',system-ui,sans-serif; }
-        .header-section { background: linear-gradient(135deg, #198754 0%, #146c43 100%); color: white; padding: 0.8rem 0; margin-bottom: 1.5rem; }
-        .header-section h1 { font-size: 2.2rem; font-weight: 700; margin: 0.15rem 0 0.25rem; }
-        .header-section p { font-size: 1.05rem; opacity: 0.95; margin: 0; }
-        .medical-icon { font-size: 1.9rem; margin-bottom: 0.35rem; color: #ffffff; }
+        .header-section { background:linear-gradient(135deg,#198754 0%,#146c43 100%); color:white; padding:1.1rem 1.6rem; margin-bottom:1rem; border-radius:12px; }
+        .header-section h1 { font-size:2.2rem; font-weight:700; margin:0; line-height:1.3; }
+        .header-section p { font-size:1.05rem; opacity:0.92; margin:0; }
+        .medical-icon { font-size:1.9rem; color:#ffffff; }
         .muted { color: #6c757d; font-size: 0.875rem; }
 
         /* === RECIPE CARD === */
@@ -297,12 +259,13 @@ if (!($noRegistrado && !$isPrivileged)) {
     </style>
 </head>
 <body>
+
+<div class="container-fluid px-4">
+
     <!-- Header Section -->
-    <div class="header-section">
-        <div class="container text-center">
-            <div class="medical-icon">
-                <i class="bi bi-journal-text"></i>
-            </div>
+    <div class="header-section d-flex align-items-center gap-3" style="margin-top:12px;">
+        <div class="medical-icon"><i class="bi bi-journal-text"></i></div>
+        <div>
             <h1>Gestionar Recetas</h1>
             <p>
                 <?php if ($isPrivileged): ?>
@@ -313,6 +276,10 @@ if (!($noRegistrado && !$isPrivileged)) {
             </p>
         </div>
     </div>
+
+</div>
+
+<div class="container-fluid" style="max-width:1300px;padding-top:12px;">
 
     <div class="container mb-5">
         <?php if (!empty($errores)): ?>
@@ -378,15 +345,6 @@ if (!($noRegistrado && !$isPrivileged)) {
                         <a href="Exportar_Receta.php?id=<?= (int)$receta['id'] ?>" target="_blank" class="btn btn-outline-secondary btn-sm">
                             <i class="bi bi-file-earmark-pdf me-1"></i>Exportar PDF
                         </a>
-                        <?php if ($isPrivileged && !empty($receta['pacientes'])): ?>
-                        <?php $numPac = count($receta['pacientes']); ?>
-                        <button type="button"
-                                class="btn <?= $numPac > 1 ? 'btn-outline-primary' : 'btn-outline-secondary' ?> btn-sm ms-auto pac-popover"
-                                data-pac-names="<?= htmlspecialchars(json_encode(array_column($receta['pacientes'], 'nombre'), JSON_UNESCAPED_UNICODE), ENT_QUOTES, 'UTF-8') ?>"
-                                data-pac-count="<?= $numPac ?>">
-                            <i class="bi bi-people-fill me-1"></i><?= $numPac ?>
-                        </button>
-                        <?php endif; ?>
                     </div>
 
                     <!-- HERO: foto + título -->
@@ -431,10 +389,7 @@ if (!($noRegistrado && !$isPrivileged)) {
         <?php endif; ?>
         <?php endif; ?>
     </div>
-
-
-</body>
-</html>
+</div>
 
 <!-- Confirm Delete Modal -->
 <div class="modal fade" id="confirmDeleteModal" tabindex="-1" aria-labelledby="confirmDeleteLabel" aria-hidden="true">
@@ -457,30 +412,6 @@ if (!($noRegistrado && !$isPrivileged)) {
 
 <script>
 document.addEventListener('DOMContentLoaded', function(){
-        // Inicializar popovers de pacientes asignados
-        document.querySelectorAll('.pac-popover').forEach(function(el){
-            var names = [];
-            try { names = JSON.parse(el.getAttribute('data-pac-names') || '[]'); } catch(e){}
-            var count = parseInt(el.getAttribute('data-pac-count') || '1', 10);
-            var html  = names.map(function(n){ return '• ' + n; }).join('<br>');
-            new bootstrap.Popover(el, {
-                container: 'body',
-                html: true,
-                trigger: 'click',
-                title: 'Enviada a ' + count + ' paciente' + (count !== 1 ? 's' : ''),
-                content: html || '—'
-            });
-        });
-        // Cerrar popovers al hacer clic fuera
-        document.addEventListener('click', function(e){
-            if (!e.target.closest('.pac-popover') && !e.target.closest('.popover')) {
-                document.querySelectorAll('.pac-popover').forEach(function(el){
-                    var p = bootstrap.Popover.getInstance(el);
-                    if (p) p.hide();
-                });
-            }
-        });
-
         var pendingForm = null;
         var modalEl = document.getElementById('confirmDeleteModal');
         var bsModal = new bootstrap.Modal(modalEl);
@@ -503,7 +434,6 @@ document.addEventListener('DOMContentLoaded', function(){
 
         confirmBtn.addEventListener('click', function(){
                 if (pendingForm) {
-                        // submit original form
                         pendingForm.submit();
                         pendingForm = null;
                         bsModal.hide();
@@ -511,3 +441,5 @@ document.addEventListener('DOMContentLoaded', function(){
         });
 });
 </script>
+</body>
+</html>
