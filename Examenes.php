@@ -325,22 +325,23 @@ if ($pacienteId) {
         .header-section {
             background: linear-gradient(135deg, #198754 0%, #146c43 100%);
             color: white;
-            padding: 0.8rem 0;
-            margin-bottom: 1rem;
+            padding: 1.1rem 1.6rem;
+            margin: 12px 1rem 1rem;
+            border-radius: 12px;
         }
         .header-section h1 {
             font-size: 2.2rem;
             font-weight: 700;
-            margin: 0.15rem 0 0.25rem;
+            margin: 0;
+            line-height: 1.3;
         }
         .header-section p {
             font-size: 1.05rem;
-            opacity: 0.95;
+            opacity: 0.92;
             margin: 0;
         }
         .medical-icon {
             font-size: 1.9rem;
-            margin-bottom: 0.35rem;
             color: #ffffff;
         }
         .table {
@@ -385,15 +386,19 @@ if ($pacienteId) {
             border: 1px solid #dee2e6;
             border-radius: 0.375rem;
         }
+        @media (max-width:576px) {
+            .preview-pdf { height:280px; }
+            .header-section h1 { font-size:1.4rem; }
+            .header-section p { font-size:.82rem; }
+            .medical-icon i { font-size:1.3rem !important; }
+        }
     </style>
 </head>
 <body>
     <!-- Header Section -->
-    <div class="header-section">
-        <div class="container text-center">
-            <div class="medical-icon">
-                <i class="bi bi-file-earmark-medical-fill"></i>
-            </div>
+    <div class="header-section d-flex align-items-center gap-3">
+        <div class="medical-icon"><i class="bi bi-file-earmark-medical-fill"></i></div>
+        <div>
             <h1>Exámenes del Paciente</h1>
             <p>Gestión de exámenes médicos y resultados de laboratorio</p>
         </div>
@@ -518,7 +523,7 @@ if ($pacienteId) {
         <div class="card">
             <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
                 <h5 class="card-title mb-0"><i class="bi bi-list me-2"></i>Listado de Exámenes</h5>
-                <div style="width: 300px;">
+                <div style="width: 100%; max-width: 300px;">
                     <input type="text" id="searchExam" class="form-control form-control-sm" placeholder="Buscar examen..." style="background-color: rgba(255,255,255,0.9); color: #000;">
                 </div>
             </div>

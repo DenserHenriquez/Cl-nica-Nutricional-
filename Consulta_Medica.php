@@ -251,10 +251,10 @@ if ($ok && !$exito) { $exito = 'Consulta guardada correctamente.'; }
         .btn-primary:hover { background-color: #146c43; border-color: #13653f; }
         .bg-primary { background-color: #198754 !important; }
         .form-label { font-weight: 600; color: #198754; }
-        .header-section { background: linear-gradient(135deg, #198754 0%, #146c43 100%); color: white; padding: 0.8rem 0; margin-bottom: 1rem; }
-        .header-section h1 { font-size: 2.2rem; font-weight: 700; margin: 0.15rem 0 0.25rem; }
-        .header-section p { font-size: 1.05rem; opacity: 0.95; margin: 0; }
-        .medical-icon { font-size: 1.9rem; margin-bottom: 0.35rem; color: #ffffff; }
+        .header-section { background: linear-gradient(135deg, #198754 0%, #146c43 100%); color: white; padding: 1.1rem 1.6rem; margin: 12px 1rem 1rem; border-radius: 12px; }
+        .header-section h1 { font-size: 2.2rem; font-weight: 700; margin: 0; line-height: 1.3; }
+        .header-section p { font-size: 1.05rem; opacity: 0.92; margin: 0; }
+        .medical-icon { font-size: 1.9rem; color: #ffffff; }
         .hist-card td, .hist-card th { font-size: .95rem; }
         /* Typeahead styles */
         .typeahead-wrapper { position: relative; }
@@ -274,12 +274,17 @@ if ($ok && !$exito) { $exito = 'Consulta guardada correctamente.'; }
         .typeahead-item:hover, .typeahead-item.active { background: #e9f7ef; }
         .typeahead-name { font-weight: 600; color: #198754; }
         .typeahead-meta { font-size: 0.86rem; color: #6c757d; }
+        @media (max-width:576px) {
+            .header-section h1 { font-size:1.3rem; }
+            .header-section p { font-size:.82rem; }
+            .typeahead-list { max-height:200px; }
+        }
     </style>
 </head>
 <body>
-    <div class="header-section">
-        <div class="container text-center">
-            <div class="medical-icon"><i class="bi bi-journal-medical"></i></div>
+    <div class="header-section d-flex align-items-center gap-3">
+        <div class="medical-icon"><i class="bi bi-journal-medical"></i></div>
+        <div>
             <h1>Consulta Médica</h1>
             <p>Busque un paciente y registre los datos de la consulta.</p>
         </div>
@@ -438,8 +443,8 @@ if ($ok && !$exito) { $exito = 'Consulta guardada correctamente.'; }
                             <span class="input-group-text bg-light">Hasta</span>
                             <input type="date" class="form-control" name="fh" value="<?= h($fecha_hasta) ?>">
                         </div>
-                        <button class="btn btn-light btn-sm" type="submit"><i class="bi bi-funnel"></i> Filtrar</button>
-                        <a class="btn btn-outline-light btn-sm" href="Consulta_Medica.php?paciente_id=<?= (int)$pacienteSel['id_pacientes'] ?>"><i class="bi bi-x-circle"></i> Limpiar</a>
+                        <button class="btn btn-light btn-sm flex-shrink-0" type="submit" style="white-space:nowrap;"><i class="bi bi-funnel"></i> Filtrar</button>
+                        <a class="btn btn-outline-light btn-sm flex-shrink-0" href="Consulta_Medica.php?paciente_id=<?= (int)$pacienteSel['id_pacientes'] ?>" style="white-space:nowrap;"><i class="bi bi-x-circle"></i> Limpiar</a>
                     </form>
                 </div>
                 <div class="card-body p-0">

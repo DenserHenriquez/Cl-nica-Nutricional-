@@ -430,23 +430,23 @@ $historial = cargarHistorial($conexion, $TABLE_HISTORY, $targetUserId);
         .header-section {
             background: linear-gradient(135deg, #198754 0%, #146c43 100%);
             color: white;
-            /* Reduced height: ~60% */
-            padding: 0.8rem 0;
-            margin-bottom: 1rem;
+            padding: 1.1rem 1.6rem;
+            margin: 12px 1rem 1rem;
+            border-radius: 12px;
         }
         .header-section h1 {
             font-size: 2.2rem;
             font-weight: 700;
-            margin: 0.15rem 0 0.25rem;
+            margin: 0;
+            line-height: 1.3;
         }
         .header-section p {
             font-size: 1.05rem;
-            opacity: 0.95;
+            opacity: 0.92;
             margin: 0;
         }
         .medical-icon {
             font-size: 1.9rem;
-            margin-bottom: 0.35rem;
             color: #ffffff;
         }
         /* Estilos para el modal */
@@ -463,15 +463,19 @@ $historial = cargarHistorial($conexion, $TABLE_HISTORY, $targetUserId);
         .historial-table tr:hover { background-color: #d1e7dd; }
         .btn-historial { background: #198754; color: #fff; padding: 10px 16px; border: none; border-radius: 6px; cursor: pointer; margin-left: 10px; }
         .btn-historial:hover { background: #146c43; }
+        @media (max-width:576px) {
+            .modal-content { width:95%; margin:5% auto; padding:14px; }
+            .historial-table th, .historial-table td { padding:6px; font-size:.8rem; }
+            .header-section h1 { font-size:1.4rem !important; }
+            .header-section p { font-size:.82rem !important; }
+        }
     </style>
 </head>
 <body>
     <!-- Header Section -->
-    <div class="header-section">
-        <div class="container text-center">
-            <div class="medical-icon">
-                <i class="bi bi-person-gear"></i>
-            </div>
+    <div class="header-section d-flex align-items-center gap-3">
+        <div class="medical-icon"><i class="bi bi-person-gear"></i></div>
+        <div>
             <h1>Actualizar Perfil</h1>
             <?php if ($viewingOther && $usuario): ?>
             <p>Editando perfil de: <strong><?= htmlspecialchars($usuario['Nombre_completo'] ?? '', ENT_QUOTES, 'UTF-8') ?></strong></p>

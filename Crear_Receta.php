@@ -257,10 +257,10 @@ $csrf = $_SESSION['csrf'];
             border-radius: 0.375rem;
         }
         /* Header styles matched to Actualizar_perfil.php for consistent look */
-        .header-section { background: linear-gradient(135deg, #198754 0%, #146c43 100%); color: white; padding: 0.8rem 0; margin-bottom: 1rem; }
-        .header-section h1 { font-size: 2.2rem; font-weight: 700; margin: 0.15rem 0 0.25rem; }
-        .header-section p { font-size: 1.05rem; opacity: 0.95; margin: 0; }
-        .medical-icon { font-size: 1.9rem; margin-bottom: 0.35rem; color: #ffffff; }
+        .header-section { background: linear-gradient(135deg, #198754 0%, #146c43 100%); color: white; padding: 1.1rem 1.6rem; margin: 12px 1rem 1rem; border-radius: 12px; }
+        .header-section h1 { font-size: 2.2rem; font-weight: 700; margin: 0; line-height: 1.3; }
+        .header-section p { font-size: 1.05rem; opacity: 0.92; margin: 0; }
+        .medical-icon { font-size: 1.9rem; color: #ffffff; }
         .muted {
             color: #6c757d;
             font-size: 0.875rem;
@@ -270,15 +270,17 @@ $csrf = $_SESSION['csrf'];
             border-radius: 6px;
             border: 1px solid #dee2e6;
         }
+        @media (max-width:576px) {
+            .header-section h1 { font-size:1.3rem !important; }
+            .header-section p { font-size:.82rem !important; }
+        }
     </style>
 </head>
 <body>
     <!-- Header Section -->
-    <div class="header-section">
-        <div class="container text-center">
-            <div class="medical-icon">
-                <i class="bi bi-journal-plus"></i>
-            </div>
+    <div class="header-section d-flex align-items-center gap-3">
+        <div class="medical-icon"><i class="bi bi-journal-plus"></i></div>
+        <div>
             <h1>Crear Receta</h1>
             <p>
                 <?php if ($isPrivileged): ?>

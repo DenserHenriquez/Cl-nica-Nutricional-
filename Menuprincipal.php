@@ -257,12 +257,24 @@ function e($str) { return htmlspecialchars((string)$str, ENT_QUOTES, 'UTF-8'); }
         @media (max-width: 768px) {
             .sidebar { transform: translateX(-100%); transition: transform 0.3s ease; }
             main { margin-left: 0 !important; width: 100% !important; }
-            .sidebar.show { transform: translateX(0); }
+            .sidebar.show { transform: translateX(0); z-index: 1040; }
+            .sidebar-backdrop { display:none; position:fixed; inset:0; background:rgba(0,0,0,.4); z-index:1039; }
+            .sidebar-backdrop.show { display:block; }
+            .topbar__actions a span.action-text { display:none; }
+            .topbar__actions a { padding:8px 10px; font-size:.85rem; }
+            .topbar__actions { gap:6px; }
+            .user-pill { padding:4px 8px 4px 4px; font-size:.78rem; }
+            .user-pill .user-name-text { display:none; }
+            .brand__name { font-size:1.05rem; }
+            .topbar__inner { padding:8px 10px; }
+        }
+        @media (max-width: 480px) {
+            .topbar__actions a.hide-xs { display:none; }
         }
         
         /* Pie de página */
         footer { text-align: center; color: #5b7aa7; font-size: .92rem; padding: 18px 0 42px; position: fixed; bottom: 0; left: 250px; right: 0; background: rgba(248, 249, 250, 0.95); border-top: 1px solid #dee2e6; }
-        @media (max-width: 768px) { footer { left: 0; } }
+        @media (max-width: 768px) { footer { left: 0; font-size:.8rem; padding:12px 0 30px; } }
 
     </style>
 </head>
@@ -283,21 +295,21 @@ function e($str) { return htmlspecialchars((string)$str, ENT_QUOTES, 'UTF-8'); }
                 <div class="user-pill-wrapper">
                     <span class="user-pill" id="userPill" title="Usuario actual - <?php echo e($userRole); ?>">
                         <span class="user-avatar" aria-hidden="true"><?php echo e(mb_strtoupper(mb_substr($userName, 0, 1, 'UTF-8'), 'UTF-8')); ?></span>
-                        <span><?php echo e($userName ?: 'Usuario'); ?> (<?php echo e($userRole); ?>)</span>
+                        <span class="user-name-text"><?php echo e($userName ?: 'Usuario'); ?> (<?php echo e($userRole); ?>)</span>
                     </span>
                 </div>
                 <?php if (hasAccess('actualizar_perfil', $userRole, $menuItems)): ?>
-                <a href="Actualizar_perfil.php" target="main-content">
-                    <i class="bi bi-person-gear me-1"></i> Actualizar Perfil
+                <a href="Actualizar_perfil.php" target="main-content" class="hide-xs">
+                    <i class="bi bi-person-gear me-1"></i><span class="action-text"> Actualizar Perfil</span>
                 </a>
                 <?php endif; ?>
                 <?php if (hasAccess('cambiar_contrasena', $userRole, $menuItems)): ?>
-                <a href="Cambiar_Contrasena.php" target="main-content">
-                    <i class="bi bi-key-fill me-1"></i> Cambiar Contraseña
+                <a href="Cambiar_Contrasena.php" target="main-content" class="hide-xs">
+                    <i class="bi bi-key-fill me-1"></i><span class="action-text"> Cambiar Contraseña</span>
                 </a>
                 <?php endif; ?>
                 <a href="Login.php">
-                    <i class="bi bi-box-arrow-right me-1"></i> Cerrar Sesion
+                    <i class="bi bi-box-arrow-right me-1"></i><span class="action-text"> Cerrar Sesion</span>
                 </a>
             </div>
         </div>
@@ -310,6 +322,8 @@ function e($str) { return htmlspecialchars((string)$str, ENT_QUOTES, 'UTF-8'); }
 
     <div class="container-fluid">
         <div class="row">
+            <!-- Sidebar backdrop for mobile -->
+            <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
             <!-- Sidebar -->
             <nav class="sidebar">
                 <div class="position-sticky">
@@ -545,7 +559,15 @@ function e($str) { return htmlspecialchars((string)$str, ENT_QUOTES, 'UTF-8'); }
         // Manejar toggle del sidebar en móviles
         document.getElementById('sidebarToggle').addEventListener('click', function() {
             const sidebar = document.querySelector('.sidebar');
+            const backdrop = document.getElementById('sidebarBackdrop');
             sidebar.classList.toggle('show');
+            backdrop.classList.toggle('show');
+        });
+        
+        // Cerrar sidebar al hacer clic en el backdrop (móviles)
+        document.getElementById('sidebarBackdrop').addEventListener('click', function() {
+            document.querySelector('.sidebar').classList.remove('show');
+            this.classList.remove('show');
         });
         
         // Cerrar sidebar al hacer clic en un enlace (móviles)
@@ -553,6 +575,7 @@ function e($str) { return htmlspecialchars((string)$str, ENT_QUOTES, 'UTF-8'); }
             link.addEventListener('click', function() {
                 if (window.innerWidth < 768) {
                     document.querySelector('.sidebar').classList.remove('show');
+                    document.getElementById('sidebarBackdrop').classList.remove('show');
                 }
             });
         });

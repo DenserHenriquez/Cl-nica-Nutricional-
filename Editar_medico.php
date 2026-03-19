@@ -146,14 +146,52 @@ if (!$user) {
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Editar Médico</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <style>
+        .header-section {
+            background: linear-gradient(135deg, #198754 0%, #146c43 100%);
+            color: white;
+            padding: 1.1rem 1.6rem;
+            margin: 12px 1rem 1rem;
+            border-radius: 12px;
+        }
+        .header-section h1 {
+            font-size: 2.2rem;
+            font-weight: 700;
+            margin: 0;
+            line-height: 1.3;
+        }
+        .header-section p {
+            font-size: 1.05rem;
+            opacity: 0.92;
+            margin: 0;
+        }
+        .medical-icon {
+            font-size: 1.9rem;
+            color: #ffffff;
+        }
+        @media (max-width:576px) {
+            .header-section h1 { font-size:1.3rem !important; }
+            .header-section p { font-size:.82rem !important; }
+        }
+    </style>
 </head>
 <body class="bg-light">
+<!-- Header Section -->
+<div class="header-section d-flex align-items-center gap-3">
+    <div class="medical-icon"><i class="bi bi-person-badge"></i></div>
+    <div>
+        <h1>Editar Médico</h1>
+        <p>Actualiza la información del profesional médico.</p>
+    </div>
+</div>
+
 <div class="container py-4">
     <div class="row justify-content-center">
         <div class="col-md-6">
             <div class="card shadow-sm">
                 <div class="card-body">
-                    <h5 class="card-title">Editar Médico</h5>
                     <?php if (!empty(
                         $error)): ?>
                         <div class="alert alert-danger"><?php echo e($error); ?></div>

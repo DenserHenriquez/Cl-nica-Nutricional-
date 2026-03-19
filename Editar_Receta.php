@@ -148,16 +148,20 @@ function h($v){ return htmlspecialchars($v ?? '', ENT_QUOTES | ENT_SUBSTITUTE, '
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <style>
         body{ background:#f8f9fa; }
-        .header-section{ background: linear-gradient(135deg, #198754 0%, #146c43 100%); color: white; padding: 0.8rem 0; margin-bottom: 1rem; }
-        .header-section h1{ font-size:2.2rem; margin:0.15rem 0 0.25rem; }
-        .medical-icon{ font-size:1.9rem; margin-bottom:0.35rem; }
+        .header-section{ background: linear-gradient(135deg, #198754 0%, #146c43 100%); color: white; padding: 1.1rem 1.6rem; margin: 12px 1rem 1rem; border-radius: 12px; }
+        .header-section h1{ font-size:2.2rem; font-weight:700; margin:0; line-height:1.3; }
+        .medical-icon{ font-size:1.9rem; color:#ffffff; }
         .form-label{ font-weight:600; color:#198754; }
+        @media (max-width:576px) {
+            .header-section h1 { font-size:1.3rem !important; }
+            .header-section p { font-size:.82rem !important; }
+        }
     </style>
 </head>
 <body>
-    <div class="header-section">
-        <div class="container text-center">
-            <div class="medical-icon"><i class="bi bi-journal-text"></i></div>
+    <div class="header-section d-flex align-items-center gap-3">
+        <div class="medical-icon"><i class="bi bi-journal-text"></i></div>
+        <div>
             <h1>Editar Receta</h1>
             <p>Modifica los campos de la receta y guarda los cambios.</p>
         </div>

@@ -35,52 +35,43 @@ $total_entradas = $resultado->num_rows;
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- Bootstrap Icons -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <!-- DataTables CSS -->
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/dataTables.bootstrap5.min.css">
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- jQuery + DataTables JS -->
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.7/js/dataTables.bootstrap5.min.js"></script>
     <style>
         body {
             background-color: #f8f9fa;
         }
-        .card {
-            border: none;
-            box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
-        }
-        .btn-primary {
-            background-color: #198754;
-            border-color: #198754;
-        }
-        .btn-primary:hover {
-            background-color: #146c43;
-            border-color: #13653f;
-        }
-        .form-label {
-            font-weight: 600;
-            color: #495057;
-        }
-        .alert {
-            border-radius: 0.375rem;
-        }
         .header-section {
-            background: linear-gradient(135deg, #198754 0%, #146c43 100%);
-            color: white;
-            /* Reduced height: ~60% */
-            padding: 0.8rem 0;
+            background: #ffffff;
+            color: #0d5132;
+            padding: 1.1rem 1.6rem;
             margin-bottom: 1rem;
+            border-radius: 12px;
+            border: 1px solid #c8e6c9;
+            box-shadow: 0 2px 8px rgba(0,0,0,.06);
         }
         .header-section h1 {
             font-size: 2.2rem;
             font-weight: 700;
-            margin: 0.15rem 0 0.25rem;
+            margin: 0;
+            line-height: 1.3;
+            color: #0d5132;
         }
         .header-section p {
             font-size: 1.05rem;
-            opacity: 0.95;
+            opacity: 0.92;
             margin: 0;
+            color: #495057;
         }
         .medical-icon {
             font-size: 1.9rem;
-            margin-bottom: 0.35rem;
-            color: #ffffff;
+            color: #198754;
         }
         .estado-text { font-weight: bold; }
         .estado-Activo { color: #0d5132; }
@@ -94,203 +85,142 @@ $total_entradas = $resultado->num_rows;
         input:not(:checked) + .slider { background-color: #d32f2f; }
         input:checked + .slider:before { transform: translateX(26px); }
 
-        /* Responsive table styling */
-        .table-responsive {
-            overflow-x: auto;
+        /* DataTables customization */
+        .dataTables_wrapper .dataTables_length select {
+            min-width: 70px;
         }
-        
-        /* Columnas prioritarias - siempre visibles */
-        .col-nombre, .col-acciones {
-            min-width: 150px;
-            position: sticky;
+        .dataTables_wrapper .dataTables_filter input {
+            border: 1px solid #dee2e6;
+            border-radius: 6px;
+            padding: 5px 10px;
         }
-        
-        .col-nombre {
-            left: 0;
-            background: white;
-            z-index: 2;
+        .dataTables_wrapper .dataTables_filter input:focus {
+            border-color: #198754;
+            box-shadow: 0 0 0 0.2rem rgba(25,135,84,.25);
+            outline: none;
         }
-        
-        .col-acciones {
-            right: 0;
-            background: white;
-            z-index: 2;
-            min-width: 180px;
+        .dataTables_wrapper .dataTables_info {
+            color: #6c757d;
+            font-size: 0.875rem;
+            padding-top: 0.75rem;
         }
-        
-        /* Ocultar columnas menos importantes en pantallas pequeñas */
-        @media (max-width: 1200px) {
-            .col-hide-lg {
-                display: none;
-            }
+        .dataTables_wrapper .dataTables_paginate .paginate_button.current,
+        .dataTables_wrapper .dataTables_paginate .paginate_button.current:hover {
+            background: #198754 !important;
+            border-color: #198754 !important;
+            color: #fff !important;
         }
-        
-        @media (max-width: 992px) {
-            .col-hide-md {
-                display: none;
-            }
+        .dataTables_wrapper .dataTables_paginate .paginate_button:hover {
+            background: #e8f5e9 !important;
+            border-color: #c8e6c9 !important;
+            color: #0d5132 !important;
         }
-        
-        @media (max-width: 768px) {
-            .col-hide-sm {
-                display: none;
-            }
-            
-            .col-nombre {
-                min-width: 120px;
-            }
-            
-            .col-acciones {
-                min-width: 160px;
-            }
-        }
-        
-        @media (max-width: 576px) {
-            .col-hide-xs {
-                display: none;
-            }
-            
-            .col-nombre {
-                min-width: 100px;
-            }
-            
-            .col-acciones {
-                min-width: 140px;
-            }
-            
-            .header-section h1 {
-                font-size: 1.8rem;
-            }
-            
-            .header-section p {
-                font-size: 0.9rem;
-            }
-        }
-        
-        /* Botones más compactos en móviles */
-        @media (max-width: 576px) {
-            .btn-sm {
-                padding: 0.2rem 0.4rem;
-                font-size: 0.8rem;
-            }
-            
-            .switch {
-                width: 40px;
-                height: 20px;
-            }
-            
-            .slider:before {
-                height: 14px;
-                width: 14px;
-                left: 3px;
-                bottom: 3px;
-            }
-            
-            input:checked + .slider:before {
-                transform: translateX(20px);
-            }
-        }
-
-        /* Estilos para ordenamiento de tabla */
-        .sortable {
-            cursor: pointer;
-            user-select: none;
+        table.dataTable thead th {
+            border-bottom: 2px solid #198754;
             white-space: nowrap;
         }
-        .sortable:hover {
-            background-color: #e8f5e9;
+        table.dataTable tbody td {
+            white-space: nowrap;
         }
-        .sortable::after {
-            content: ' \2195';
-            font-size: 0.8em;
-            opacity: 0.5;
-            margin-left: 4px;
+        table.dataTable {
+            width: 100% !important;
         }
-        .sortable.sort-asc::after {
-            content: ' \2191';
-            opacity: 1;
-            color: #198754;
+        table.dataTable.table-striped > tbody > tr.odd > * {
+            box-shadow: inset 0 0 0 9999px rgba(25,135,84,.04);
         }
-        .sortable.sort-desc::after {
-            content: ' \2193';
-            opacity: 1;
-            color: #198754;
+        .card {
+            border: none;
+            box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+        }
+
+        /* Filtros inline encima de la tabla */
+        .dt-custom-filters {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        .dt-custom-filters label {
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: #495057;
+            margin-right: 4px;
+        }
+        .dt-custom-filters select {
+            font-size: 0.875rem;
+            padding: 4px 8px;
+            border-radius: 6px;
+            border: 1px solid #dee2e6;
+        }
+
+        /* Responsive */
+        @media (max-width: 576px) {
+            .header-section h1 { font-size: 1.3rem; }
+            .header-section p { font-size: 0.9rem; }
+            .switch { width: 40px; height: 20px; }
+            .slider:before { height: 14px; width: 14px; }
+            input:checked + .slider:before { transform: translateX(20px); }
         }
     </style>
 </head>
 <body>
+    <div class="container-fluid mb-5 px-4">
+
     <!-- Header Section -->
-    <div class="header-section">
-        <div class="container text-center">
-            <div class="medical-icon">
-                <i class="bi bi-people-fill"></i>
-            </div>
+    <div class="header-section d-flex align-items-center gap-3" style="margin-top:12px;">
+        <div class="medical-icon"><i class="bi bi-people-fill"></i></div>
+        <div>
             <h1>Lista de Usuarios</h1>
             <p>Administra el estado de los usuarios registrados en la clínica nutricional.</p>
         </div>
     </div>
 
-    <div class="container mb-5">
-        <!-- Filtros -->
-        <div class="card mb-3" style="border: 1px solid #e0e0e0;">
-            <div class="card-header bg-success text-white">
-                <h5 class="card-title mb-0"><i class="bi bi-funnel me-2"></i>Filtros de Usuario</h5>
+        <div class="card">
+            <div class="card-header bg-success text-white d-flex align-items-center justify-content-between">
+                <h5 class="card-title mb-0"><i class="bi bi-list-check me-2"></i>Usuarios</h5>
+                <span class="badge bg-light text-success"><?= $total_entradas; ?> registros</span>
             </div>
-            <div class="card-body" style="padding: 0.75rem 1rem;">
-                <div class="row g-2" style="align-items: flex-end;">
-                    <div class="col-auto">
-                        <label class="form-label mb-2" style="font-size: 0.85rem; display: block;"><i class="bi bi-search me-1"></i>Nombre</label>
-                        <input type="text" id="filterNombre" class="form-control form-control-sm" placeholder="Buscar..." style="font-size: 0.9rem; width: 180px;">
-                    </div>
-                    <div class="col-auto">
-                        <label class="form-label mb-2" style="font-size: 0.85rem; display: block;"><i class="bi bi-bookmark-check me-1"></i>Estado</label>
-                        <select id="filterEstado" class="form-select form-select-sm" style="font-size: 0.9rem; width: 130px;">
+            <div class="card-body">
+                <!-- Filtros extra (Estado / Rol) se inyectan por JS dentro del wrapper de DataTables -->
+                <div id="customFilters" class="dt-custom-filters mb-3" style="display:none;">
+                    <div>
+                        <label><i class="bi bi-bookmark-check me-1"></i>Estado:</label>
+                        <select id="filterEstado" class="form-select form-select-sm d-inline-block" style="width:auto;">
                             <option value="">Todos</option>
                             <option value="Activo">Activo</option>
                             <option value="Inactivo">Inactivo</option>
                         </select>
                     </div>
                     <?php if($userRole === 'Administrador' || $userRole === 'Medico'): ?>
-                    <div class="col-auto">
-                        <label class="form-label mb-2" style="font-size: 0.85rem; display: block;"><i class="bi bi-shield-check me-1"></i>Rol</label>
-                        <select id="filterRol" class="form-select form-select-sm" style="font-size: 0.9rem; width: 130px;">
+                    <div>
+                        <label><i class="bi bi-shield-check me-1"></i>Rol:</label>
+                        <select id="filterRol" class="form-select form-select-sm d-inline-block" style="width:auto;">
                             <option value="">Todos</option>
-                            <option value="Paciente">👤 Paciente</option>
-                            <option value="Medico">👨‍⚕️ Medico</option>
+                            <option value="Paciente">Paciente</option>
+                            <option value="Medico">Medico</option>
                         </select>
                     </div>
                     <?php endif; ?>
-                    <div class="col-auto">
-                        <button id="btnFiltrar" class="btn btn-success btn-sm" style="font-size: 0.9rem; padding: 0.35rem 0.75rem;"><i class="bi bi-funnel me-1"></i>Filtrar</button>
-                        <button id="btnLimpiar" class="btn btn-secondary btn-sm" style="font-size: 0.9rem; padding: 0.35rem 0.75rem;"><i class="bi bi-arrow-clockwise me-1"></i>Limpiar</button>
-                    </div>
                 </div>
-            </div>
-        </div>
 
-        <div class="card">
-            <div class="card-header bg-success text-white">
-                <h5 class="card-title mb-0"><i class="bi bi-list-check me-2"></i>Usuarios</h5>
-            </div>
-            <div class="card-body">
                 <div class="table-responsive">
-                    <table class="table table-striped table-hover" id="usuariosTable">
-                        <thead class="table-success">
+                    <table class="table table-striped table-hover" id="usuariosTable" style="width:100%">
+                        <thead>
                             <tr>
-                                <th class="col-hide-sm sortable">ID Paciente</th>
-                                <th class="col-hide-md sortable">ID Usuario</th>
-                                <th class="col-nombre sortable">Nombre Completo</th>
-                                <th class="col-hide-xs sortable">DNI</th>
-                                <th class="col-hide-lg sortable">Fecha Nac.</th>
-                                <th class="col-hide-md sortable">Edad</th>
-                                <th class="col-hide-sm sortable">Teléfono</th>
-                                <th class="col-hide-lg sortable">Usuario</th>
-                                <th class="col-hide-lg sortable">Correo</th>
+                                <th>ID Pac.</th>
+                                <th>ID Usr.</th>
+                                <th>Nombre Completo</th>
+                                <th>DNI</th>
+                                <th>Fecha Nac.</th>
+                                <th>Edad</th>
+                                <th>Teléfono</th>
+                                <th>Usuario</th>
+                                <th>Correo</th>
                                 <?php if($userRole === 'Administrador' || $userRole === 'Medico'): ?>
-                                <th class="col-hide-md sortable">Rol</th>
+                                <th>Rol</th>
                                 <?php endif; ?>
-                                <th class="col-hide-xs sortable">Estado</th>
-                                <th class="col-acciones">Acción</th>
+                                <th>Estado</th>
+                                <th>Acción</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -298,36 +228,34 @@ $total_entradas = $resultado->num_rows;
                         if ($total_entradas > 0) {
                             while($fila = $resultado->fetch_assoc()) {
                                 echo "<tr>";
-                                echo "<td class='col-hide-sm'>".htmlspecialchars($fila['id_pacientes'])."</td>";
-                                echo "<td class='col-hide-md'>".htmlspecialchars($fila['id_usuarios'])."</td>";
-                                echo "<td class='col-nombre'><strong>".htmlspecialchars($fila['nombre_completo'])."</strong></td>";
-                                echo "<td class='col-hide-xs'>".htmlspecialchars($fila['DNI'])."</td>";
-                                echo "<td class='col-hide-lg'>".htmlspecialchars($fila['fecha_nacimiento'])."</td>";
-                                echo "<td class='col-hide-md'>".htmlspecialchars($fila['edad'])."</td>";
-                                echo "<td class='col-hide-sm'>".htmlspecialchars($fila['telefono'])."</td>";
-                                echo "<td class='col-hide-lg'>".htmlspecialchars($fila['usuario_nombre'])."</td>";
-                                echo "<td class='col-hide-lg'>".htmlspecialchars($fila['Correo_electronico'])."</td>";
+                                echo "<td>".htmlspecialchars($fila['id_pacientes'])."</td>";
+                                echo "<td>".htmlspecialchars($fila['id_usuarios'])."</td>";
+                                echo "<td><strong>".htmlspecialchars($fila['nombre_completo'])."</strong></td>";
+                                echo "<td>".htmlspecialchars($fila['DNI'])."</td>";
+                                echo "<td>".htmlspecialchars($fila['fecha_nacimiento'])."</td>";
+                                echo "<td>".htmlspecialchars($fila['edad'])."</td>";
+                                echo "<td>".htmlspecialchars($fila['telefono'])."</td>";
+                                echo "<td>".htmlspecialchars($fila['usuario_nombre'])."</td>";
+                                echo "<td>".htmlspecialchars($fila['Correo_electronico'])."</td>";
                                 
                                 // Columna Rol (visible para Administrador y Médico, pero solo modificable por Administrador)
                                 if($userRole === 'Administrador' || $userRole === 'Medico') {
                                     $rolActual = htmlspecialchars($fila['Rol']);
                                     if($userRole === 'Administrador') {
-                                        // Administrador puede modificar
-                                        echo "<td class='col-hide-md'>
+                                        echo "<td>
                                             <select class='form-select form-select-sm rol-select' data-usuario-id='".$fila['id_usuarios']."' style='min-width: 100px;'>
-                                                <option value='Paciente' ".($rolActual=='Paciente'?'selected':'').">👤 Paciente</option>
-                                                <option value='Medico' ".($rolActual=='Medico'?'selected':'').">👨‍⚕️ Medico</option>
+                                                <option value='Paciente' ".($rolActual=='Paciente'?'selected':'').">Paciente</option>
+                                                <option value='Medico' ".($rolActual=='Medico'?'selected':'').">Medico</option>
                                             </select>
                                         </td>";
                                     } else {
-                                        // Médico solo puede ver (lectura)
-                                        echo "<td class='col-hide-md'><span class='badge bg-info'>".$rolActual."</span></td>";
+                                        echo "<td><span class='badge bg-info'>".$rolActual."</span></td>";
                                     }
                                 }
                                 
-                                echo "<td class='estado-text estado-".htmlspecialchars($fila['estado'])." col-hide-xs'>".htmlspecialchars($fila['estado'])."</td>";
-                                echo "<td class='col-acciones'>
-                            <div class='d-flex align-items-center gap-1'>
+                                echo "<td class='estado-text estado-".htmlspecialchars($fila['estado'])."'>".htmlspecialchars($fila['estado'])."</td>";
+                                echo "<td>
+                            <div class='d-flex align-items-center gap-1 flex-nowrap'>
                                 <!-- Panel evolución -->
                                 <a href='panelevolucionpaciente.php?id=".htmlspecialchars($fila['id_pacientes'])."' class='btn btn-outline-info btn-sm' title='Panel evolución'>
                                     <i class='bi bi-bar-chart-line'></i>
@@ -364,141 +292,149 @@ $total_entradas = $resultado->num_rows;
     </div>
 
 <script>
-// Funcionalidad de filtros
-document.getElementById('btnFiltrar').addEventListener('click', function() {
-    const nombre = document.getElementById('filterNombre').value.toLowerCase();
-    const estado = document.getElementById('filterEstado').value;
-    const rolFilter = document.getElementById('filterRol') ? document.getElementById('filterRol').value : '';
-    
-    const filas = document.querySelectorAll('table tbody tr');
-    filas.forEach(fila => {
-        const nombreFila = fila.children[2].textContent.toLowerCase();
-        const estadoFila = fila.children[<?php echo $userRole === 'Administrador' || $userRole === 'Medico' ? '10' : '9'; ?>].textContent.trim();
-        
-        // Obtener el rol - puede estar en un select o en un badge
-        let rolFila = '';
-        if (<?php echo $userRole === 'Administrador' || $userRole === 'Medico' ? 'true' : 'false'; ?>) {
-            const rolCell = fila.children[9];
-            const selectEl = rolCell.querySelector('select');
-            const badgeEl = rolCell.querySelector('.badge');
-            if (selectEl) {
-                rolFila = selectEl.value; // Obtener valor del select
-            } else if (badgeEl) {
-                rolFila = badgeEl.textContent.trim(); // Obtener texto del badge
-            }
+$(document).ready(function() {
+    // Columna de Estado y Rol (índices varían según rol del usuario)
+    var hasRolCol = <?= ($userRole === 'Administrador' || $userRole === 'Medico') ? 'true' : 'false'; ?>;
+    var estadoColIdx = hasRolCol ? 10 : 9;
+    var rolColIdx = 9;
+    var accionColIdx = hasRolCol ? 11 : 10;
+
+    var table = $('#usuariosTable').DataTable({
+        language: {
+            url: "https://cdn.datatables.net/plug-ins/1.13.7/i18n/es-ES.json"
+        },
+        pageLength: 10,
+        lengthMenu: [[10, 25, 50, -1], [10, 25, 50, "Todos"]],
+        order: [[2, 'asc']], // Ordenar por nombre
+        autoWidth: true,
+        scrollX: false,
+        columnDefs: [
+            { orderable: false, targets: accionColIdx },
+            { width: '140px', targets: accionColIdx }
+        ],
+        dom: '<"row align-items-center mb-3"<"col-sm-6 col-md-auto"l><"col-sm-6 col-md"f>>rt<"row align-items-center mt-3"<"col-sm-5"i><"col-sm-7"p>>',
+        drawCallback: function() {
+            bindSwitchEvents();
+            bindRolEvents();
+            bindDeleteEvents();
         }
-        
-        let visible = true;
-        if (nombre && !nombreFila.includes(nombre)) visible = false;
-        if (estado && !estadoFila.includes(estado)) visible = false;
-        if (rolFilter && rolFila && !rolFila.includes(rolFilter)) visible = false;
-        
-        fila.style.display = visible ? '' : 'none';
     });
-});
 
-document.getElementById('btnLimpiar').addEventListener('click', function() {
-    document.getElementById('filterNombre').value = '';
-    document.getElementById('filterEstado').value = '';
-    if (document.getElementById('filterRol')) {
-        document.getElementById('filterRol').value = '';
+    // Show and insert custom filters
+    var filtersEl = $('#customFilters').detach().show();
+    $(filtersEl).insertAfter('#usuariosTable_wrapper .row:first-child');
+
+    // Filter by Estado
+    $('#filterEstado').on('change', function() {
+        table.column(estadoColIdx).search(this.value).draw();
+    });
+
+    // Filter by Rol
+    if (hasRolCol) {
+        $('#filterRol').on('change', function() {
+            table.column(rolColIdx).search(this.value).draw();
+        });
     }
-    const filas = document.querySelectorAll('table tbody tr');
-    filas.forEach(fila => {
-        fila.style.display = '';
-    });
 });
 
-// Permitir filtrar al presionar Enter en los inputs
-document.getElementById('filterNombre').addEventListener('keypress', function(e) {
-    if (e.key === 'Enter') document.getElementById('btnFiltrar').click();
-});
+// ─── Event binding functions (re-bind after DataTables redraws) ───
+function bindSwitchEvents() {
+    document.querySelectorAll('.estado-switch').forEach(function(switchEl) {
+        if (switchEl._bound) return;
+        switchEl._bound = true;
+        switchEl.addEventListener('change', function() {
+            var id = this.dataset.id;
+            var estado = this.checked ? 'Activo' : 'Inactivo';
+            var tdEstado = this.closest('tr').querySelector('.estado-text');
+            var sw = this;
 
-</script>
-
-<script>
-// Switch de estado (Activo/Inactivo)
-document.querySelectorAll('.estado-switch').forEach(function(switchEl) {
-    switchEl.addEventListener('change', function() {
-        const id = this.dataset.id;
-        const estado = this.checked ? 'Activo' : 'Inactivo';
-        const tdEstado = this.closest('tr').querySelector('.estado-text');
-
-        // AJAX POST
-        const xhr = new XMLHttpRequest();
-        xhr.open("POST", "cambiar_estado_paciente.php", true);
-        xhr.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
-        xhr.onload = function() {
-            if(xhr.status === 200) {
-                tdEstado.textContent = estado; // Actualizar columna Estado
-                tdEstado.className = 'estado-text estado-' + estado; // Actualizar clase para color
-            } else {
-                alert("Error al cambiar estado del paciente");
-                // Revertir switch si falla
-                switchEl.checked = !switchEl.checked;
-            }
-        };
-        xhr.send("id=" + id + "&estado=" + estado);
-    });
-});
-
-// Select de rol (Paciente/Medico) - Solo para Administrador
-document.querySelectorAll('.rol-select').forEach(function(selectEl) {
-    selectEl.addEventListener('change', function() {
-        const idUsuario = this.dataset.usuarioId;
-        const nuevoRol = this.value;
-        const selectOriginal = this;
-        const valorAnterior = selectOriginal.getAttribute('data-current-role') || (Array.from(selectOriginal.options).find(opt => opt.defaultSelected) || {}).value;
-
-        // Mostrar modal estético de confirmación
-        showConfirm('¿Cambiar el rol de este usuario a ' + nuevoRol + '?').then(function(confirmed) {
-            if (!confirmed) {
-                // Revertir selección si cancela
-                if (valorAnterior) selectOriginal.value = valorAnterior;
-                return;
-            }
-
-            // AJAX POST a cambiar_rol_usuario.php
-            const xhr = new XMLHttpRequest();
-            xhr.open("POST", "cambiar_rol_usuario.php", true);
+            var xhr = new XMLHttpRequest();
+            xhr.open("POST", "cambiar_estado_paciente.php", true);
             xhr.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
             xhr.onload = function() {
                 if(xhr.status === 200) {
-                    try {
-                        const response = JSON.parse(xhr.responseText);
-                        if(response.success) {
-                            // Actualizar data-current-role para futuras reversiones
-                            selectOriginal.setAttribute('data-current-role', nuevoRol);
-                            showToast('Rol actualizado exitosamente a ' + nuevoRol, 'success');
-                        } else {
-                            showToast('Error: ' + response.message, 'danger');
-                            if(valorAnterior) selectOriginal.value = valorAnterior;
-                        }
-                    } catch(e) {
-                        showToast('Error al procesar respuesta del servidor', 'danger');
-                        if(valorAnterior) selectOriginal.value = valorAnterior;
-                    }
+                    tdEstado.textContent = estado;
+                    tdEstado.className = 'estado-text estado-' + estado;
                 } else {
-                    showToast('Error al cambiar el rol del usuario', 'danger');
-                    if(valorAnterior) selectOriginal.value = valorAnterior;
+                    alert("Error al cambiar estado del paciente");
+                    sw.checked = !sw.checked;
                 }
             };
-            xhr.onerror = function() {
-                showToast('Error de conexión', 'danger');
-                if(valorAnterior) selectOriginal.value = valorAnterior;
-            };
-            xhr.send("id_usuarios=" + encodeURIComponent(idUsuario) + "&rol=" + encodeURIComponent(nuevoRol));
+            xhr.send("id=" + id + "&estado=" + estado);
         });
     });
-});
+}
 
-// --- Custom confirmation modal and helpers ---
+function bindRolEvents() {
+    document.querySelectorAll('.rol-select').forEach(function(selectEl) {
+        if (selectEl._bound) return;
+        selectEl._bound = true;
+        selectEl.addEventListener('change', function() {
+            var idUsuario = this.dataset.usuarioId;
+            var nuevoRol = this.value;
+            var selectOriginal = this;
+            var valorAnterior = selectOriginal.getAttribute('data-current-role') || (Array.from(selectOriginal.options).find(function(opt){ return opt.defaultSelected; }) || {}).value;
+
+            showConfirm('¿Cambiar el rol de este usuario a ' + nuevoRol + '?').then(function(confirmed) {
+                if (!confirmed) {
+                    if (valorAnterior) selectOriginal.value = valorAnterior;
+                    return;
+                }
+                var xhr = new XMLHttpRequest();
+                xhr.open("POST", "cambiar_rol_usuario.php", true);
+                xhr.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+                xhr.onload = function() {
+                    if(xhr.status === 200) {
+                        try {
+                            var response = JSON.parse(xhr.responseText);
+                            if(response.success) {
+                                selectOriginal.setAttribute('data-current-role', nuevoRol);
+                                showToast('Rol actualizado exitosamente a ' + nuevoRol, 'success');
+                            } else {
+                                showToast('Error: ' + response.message, 'danger');
+                                if(valorAnterior) selectOriginal.value = valorAnterior;
+                            }
+                        } catch(e) {
+                            showToast('Error al procesar respuesta del servidor', 'danger');
+                            if(valorAnterior) selectOriginal.value = valorAnterior;
+                        }
+                    } else {
+                        showToast('Error al cambiar el rol del usuario', 'danger');
+                        if(valorAnterior) selectOriginal.value = valorAnterior;
+                    }
+                };
+                xhr.onerror = function() {
+                    showToast('Error de conexión', 'danger');
+                    if(valorAnterior) selectOriginal.value = valorAnterior;
+                };
+                xhr.send("id_usuarios=" + encodeURIComponent(idUsuario) + "&rol=" + encodeURIComponent(nuevoRol));
+            });
+        });
+    });
+}
+
+function bindDeleteEvents() {
+    document.querySelectorAll('.btn-delete-paciente').forEach(function(btn) {
+        if (btn._bound) return;
+        btn._bound = true;
+        btn.addEventListener('click', function() {
+            var id = this.getAttribute('data-id');
+            showConfirm('¿Eliminar paciente?').then(function(ok) {
+                if (ok) {
+                    window.location.href = 'eliminar_paciente.php?id=' + encodeURIComponent(id);
+                }
+            });
+        });
+    });
+}
+
+// ─── Confirm modal & toast helpers ───
 function showConfirm(message) {
     return new Promise(function(resolve) {
-        const modal = document.getElementById('confirmModal');
-        const msg = document.getElementById('confirmModalMessage');
-        const btnConfirm = document.getElementById('confirmModalOk');
-        const btnCancel = document.getElementById('confirmModalCancel');
+        var modal = document.getElementById('confirmModal');
+        var msg = document.getElementById('confirmModalMessage');
+        var btnConfirm = document.getElementById('confirmModalOk');
+        var btnCancel = document.getElementById('confirmModalCancel');
 
         msg.textContent = message;
         modal.classList.add('show');
@@ -508,7 +444,6 @@ function showConfirm(message) {
             btnConfirm.removeEventListener('click', onOk);
             btnCancel.removeEventListener('click', onCancel);
         }
-
         function onOk() { cleanup(); resolve(true); }
         function onCancel() { cleanup(); resolve(false); }
 
@@ -518,124 +453,13 @@ function showConfirm(message) {
 }
 
 function showToast(message, type) {
-    // Simple temporary toast in top-right corner
-    const toast = document.createElement('div');
+    var toast = document.createElement('div');
     toast.className = 'custom-toast bg-' + (type === 'success' ? 'success' : 'danger');
     toast.textContent = message;
     document.body.appendChild(toast);
-    setTimeout(() => { toast.classList.add('visible'); }, 10);
-    setTimeout(() => { toast.classList.remove('visible'); setTimeout(() => toast.remove(), 300); }, 3500);
+    setTimeout(function(){ toast.classList.add('visible'); }, 10);
+    setTimeout(function(){ toast.classList.remove('visible'); setTimeout(function(){ toast.remove(); }, 300); }, 3500);
 }
-
-// Attach delete handlers that use modal
-document.querySelectorAll('.btn-delete-paciente').forEach(function(btn) {
-    btn.addEventListener('click', function() {
-        const id = this.getAttribute('data-id');
-        showConfirm('¿Eliminar paciente?').then(function(ok) {
-            if (ok) {
-                window.location.href = 'eliminar_paciente.php?id=' + encodeURIComponent(id);
-            }
-        });
-    });
-});
-
-// Función para ordenamiento de tablas
-function setupTableSorting(tableSelector) {
-    const table = document.querySelector(tableSelector);
-    if (!table) {
-        console.error('Tabla no encontrada:', tableSelector);
-        return;
-    }
-
-    const headers = table.querySelectorAll('th.sortable');
-    if (headers.length === 0) {
-        console.error('No se encontraron encabezados ordenables');
-        return;
-    }
-
-    let sortStates = {};
-
-    headers.forEach((header, headerIndex) => {
-        sortStates[headerIndex] = null; // null, 'asc', o 'desc'
-        
-        header.addEventListener('click', function(e) {
-            e.preventDefault();
-            
-            const tbody = table.querySelector('tbody');
-            if (!tbody) return;
-
-            const rows = Array.from(tbody.querySelectorAll('tr'));
-            if (rows.length === 0) return;
-
-            // Calcular índice de columna real
-            const headerRow = table.querySelector('thead tr');
-            const allHeaders = headerRow.querySelectorAll('th');
-            let columnIndex = 0;
-            for (let i = 0; i < allHeaders.length; i++) {
-                if (allHeaders[i] === header) {
-                    columnIndex = i;
-                    break;
-                }
-            }
-
-            // Determinar dirección
-            let newSort = 'asc';
-            if (sortStates[headerIndex] === 'asc') {
-                newSort = 'desc';
-            } else if (sortStates[headerIndex] === 'desc') {
-                newSort = 'asc';
-            }
-
-            // Limpiar todas las clases de sort
-            headers.forEach(h => {
-                h.classList.remove('sort-asc', 'sort-desc');
-            });
-
-            // Aplicar nueva clase
-            header.classList.add(newSort === 'asc' ? 'sort-asc' : 'sort-desc');
-            sortStates[headerIndex] = newSort;
-
-            // Ordenar
-            rows.sort((rowA, rowB) => {
-                const cellA = rowA.children[columnIndex];
-                const cellB = rowB.children[columnIndex];
-
-                if (!cellA || !cellB) return 0;
-
-                let valueA = cellA.textContent.trim();
-                let valueB = cellB.textContent.trim();
-
-                // Intentar como número
-                const numA = parseFloat(valueA);
-                const numB = parseFloat(valueB);
-
-                if (!isNaN(numA) && !isNaN(numB)) {
-                    return newSort === 'asc' ? numA - numB : numB - numA;
-                }
-
-                // Como texto
-                if (newSort === 'asc') {
-                    return valueA.localeCompare(valueB, 'es', {numeric: true});
-                } else {
-                    return valueB.localeCompare(valueA, 'es', {numeric: true});
-                }
-            });
-
-            // Re-insertar filas
-            rows.forEach(row => {
-                tbody.appendChild(row);
-            });
-        });
-    });
-
-    console.log('Ordenamiento inicializado para:', tableSelector);
-}
-
-// Inicializar ordenamiento cuando el documento carga
-document.addEventListener('DOMContentLoaded', function() {
-    setupTableSorting('#usuariosTable');
-});
-
 </script>
 
 <!-- Confirm modal markup (floating box) -->
