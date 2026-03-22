@@ -453,6 +453,16 @@ if ($res) { while ($r = $res->fetch_assoc()) $tarjetas[] = $r; }
                                     <input type="text" class="form-control" id="registerName" name="nombre_completo" placeholder="Tu nombre completo" required>
                                 </div>
                                 <div class="mb-3">
+                                    <label for="registerSexo" class="form-label fw-semibold">
+                                        <i class="fas fa-venus-mars me-2 text-success"></i>Sexo
+                                    </label>
+                                    <select class="form-select" id="registerSexo" name="sexo" required>
+                                        <option value="">Seleccionar</option>
+<option value="M">Hombre</option>
+<option value="F">Mujer</option>
+                                    </select>
+                                </div>
+                                <div class="mb-3">
                                     <label for="registerEmail" class="form-label fw-semibold">
                                         <i class="fas fa-envelope me-2 text-success"></i>Correo Electrónico
                                     </label>
