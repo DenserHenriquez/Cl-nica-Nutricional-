@@ -165,21 +165,10 @@ if (!$isSearchMode && !$noRegistrado && $idPaciente > 0) {
     }
 $stmtAli->close();
 
-  // Grasa Visceral latest
-  $grasaVisceralData = null;
+  // Grasa Visceral: table consultas_medicas not found in schema - using defaults
+  $grasaVisceralActual = 0;
   $fechaGrasaVisceral = '';
-  if ($stmtGV = $conexion->prepare('SELECT grasa_visceral, fecha FROM consultas_medicas WHERE id_pacientes = ? ORDER BY fecha DESC LIMIT 1')) {
-    $stmtGV->bind_param('i', $idPaciente);
-    $stmtGV->execute();
-    $resGV = $stmtGV->get_result();
-    $grasaVisceralData = $resGV->fetch_assoc();
-    if ($grasaVisceralData) {
-      $fechaGrasaVisceral = $grasaVisceralData['fecha'] ?? '';
-    }
-    $stmtGV->close();
-  }
-  $grasaVisceralActual = $grasaVisceralData ? floatval($grasaVisceralData['grasa_visceral'] ?? 0) : 0;
-  $grasaResultado = $grasaVisceralActual > 0 ? EvaluadorNutricional::clasificarGrasaVisceral($grasaVisceralActual) : ['label' => 'Sin datos', 'color' => '#6c757d'];
+  $grasaResultado = ['label' => 'Sin datos (tabla faltante)', 'color' => '#6c757d', 'nivel' => 0];
   }
 }
 

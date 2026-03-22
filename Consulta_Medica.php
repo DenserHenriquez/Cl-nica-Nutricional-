@@ -385,8 +385,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && post('accion') === 'guardar_consult
     }
 
     if (!$errores) {
-$sqlI = "INSERT INTO consultas_medicas (medico_id, paciente_id, peso, estatura, edad_metabolica, imc, masa_muscular, grasa_visceral, grasa_corporal, musculo_esqueletico, motivo, notas)
-                 VALUES (?,?,?,?,?,?,?,?,?,?,?,?)";
+// $sqlI = "INSERT INTO consultas_medicas ..."; // DISABLED: table does not exist in schema
         if ($st = $conexion->prepare($sqlI)) {
             $pPeso = ($peso === '' ? null : $peso);
             $pEst = ($estatura === '' ? null : $estatura);

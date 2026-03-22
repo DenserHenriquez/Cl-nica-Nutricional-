@@ -193,6 +193,7 @@ if ($userRole === 'Administrador') {
         ['href'=>'Actualizar_perfil.php','icon'=>'bi-person-circle','text'=>'Actualizar Perfil','desc'=>'Modifica tu información personal y credenciales de acceso'],
         ['href'=>'Activar_desactivar_paciente.php','icon'=>'bi-toggle-on','text'=>'Usuario','desc'=>'Activa o desactiva el acceso de pacientes al sistema'],
         ['href'=>'panelevolucionpaciente.php','icon'=>'bi-graph-up','text'=>'Panel de Evolución','desc'=>'Visualiza el progreso y evolución de los pacientes'],
+        ['href'=>'RangosCorporales.php','icon'=>'bi-rulers','text'=>'Rangos Corporales','desc'=>'Tablas de referencia IMC, grasa y músculo'],
         ['href'=>'Busqueda_avanzada.php','icon'=>'bi-search','text'=>'Búsqueda Avanzada','desc'=>'Busca pacientes por múltiples criterios y filtros'],
         ['href'=>'citas_medico.php','icon'=>'bi-calendar-event','text'=>'Citas Médicas','desc'=>'Gestiona y programa citas con los pacientes'],
         ['href'=>'Disponibilidad_citas.php','icon'=>'bi-clock','text'=>'Disponibilidad de Citas','desc'=>'Configura horarios disponibles para consultas'],
