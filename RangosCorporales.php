@@ -58,26 +58,71 @@ class EvaluadorRangos {
     <title>Rangos Corporales | NUTRIVIDA</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
-    <link rel="stylesheet" href="assets/css/estilos.css">
+    <style>
+        body { background-color: #f8f9fa; }
+        .header-section {
+            background: #ffffff;
+            color: #0d5132;
+            padding: 1.1rem 1.6rem;
+            margin-bottom: 1rem;
+            border-radius: 12px;
+            border: 1px solid #c8e6c9;
+            box-shadow: 0 2px 8px rgba(0,0,0,.06);
+        }
+        .header-section h1 {
+            font-size: 2.2rem;
+            font-weight: 700;
+            margin: 0;
+            line-height: 1.3;
+            color: #0d5132;
+        }
+        .header-section p {
+            font-size: 1.05rem;
+            opacity: 0.92;
+            margin: 0;
+            color: #495057;
+        }
+        .medical-icon {
+            font-size: 1.9rem;
+            color: #198754;
+        }
+        .stat-card, .card {
+            border: none;
+            box-shadow: 0 0.125rem 0.25rem rgba(0,0,0,0.075);
+            border-radius: 12px;
+        }
+        table.table thead th {
+            border-bottom: 2px solid #198754;
+            white-space: nowrap;
+        }
+        @media (max-width: 576px) {
+            .header-section h1 { font-size: 1.3rem; }
+            .header-section p { font-size: 0.9rem; }
+        }
+    </style>
 </head>
-<body class="bg-light">
-    <div class="container py-4 py-lg-5">
+<body>
+    <div class="container-fluid mb-5 px-4">
         <!-- Header Section -->
-        <div class="header-section mb-4 text-center">
-            <div class="medical-icon mb-2"><i class="bi bi-rulers"></i></div>
-            <h1 class="fw-bold">Rangos de Referencia</h1>
-            <p class="lead mb-0">Tablas estándar para IMC, Grasa Visceral, %Grasa Corporal y %Músculo Esquelético</p>
+        <div class="header-section d-flex align-items-center gap-3" style="margin-top:12px;">
+            <div class="medical-icon"><i class="bi bi-rulers"></i></div>
+            <div>
+                <h1>Rangos de Referencia</h1>
+                <p>Tablas estándar para IMC, Grasa Visceral, %Grasa Corporal y %Músculo Esquelético</p>
+            </div>
         </div>
 
-        <div class="row g-4">
+        <div class="row g-3">
             <!-- 1. IMC -->
             <div class="col-lg-6">
-                <div class="card h-100 stat-card">
+                <div class="card h-100">
+                    <div class="card-header bg-success text-white d-flex align-items-center">
+                        <h5 class="card-title mb-0"><i class="bi bi-activity me-2"></i>Índice de Masa Corporal (OMS)</h5>
+                    </div>
                     <div class="card-body">
-                        <h5 class="card-title mb-3"><i class="bi bi-activity text-primary me-2"></i>Índice de Masa Corporal (OMS)</h5>
                         <div class="table-responsive">
-                            <table class="table table-hover">
-                                <thead class="table-light">
+                            <table class="table table-striped table-hover mb-0">
+                                <thead>
                                     <tr><th>Rango</th><th>Clasificación</th><th>Color</th></tr>
                                 </thead>
                                 <tbody>
@@ -97,17 +142,18 @@ class EvaluadorRangos {
 
             <!-- 2. Grasa Visceral -->
             <div class="col-lg-6">
-                <div class="card h-100 stat-card">
+                <div class="card h-100">
+                    <div class="card-header bg-success text-white d-flex align-items-center">
+                        <h5 class="card-title mb-0"><i class="bi bi-fire me-2"></i>Grasa Visceral</h5>
+                    </div>
                     <div class="card-body">
-                        <h5 class="card-title mb-3"><i class="bi bi-fire text-danger me-2"></i>Grasa Visceral</h5>
                         <div class="table-responsive">
-                            <table class="table table-hover">
-                                <thead class="table-light">
+                            <table class="table table-striped table-hover mb-0">
+                                <thead>
                                     <tr><th>Nivel</th><th>Rango</th><th>Clasificación</th><th>Color</th></tr>
                                 </thead>
                                 <tbody>
                                     <?php
-                                    $gvEjemplos = [5, 12, 16];
                                     $gvRangos = [
                                         [1,9,'Saludable (Verde)','#28a745'],
                                         [10,14,'Alerta (Amarillo)','#ffc107'],
@@ -126,17 +172,19 @@ class EvaluadorRangos {
 
             <!-- 3. %Grasa Corporal -->
             <div class="col-12">
-                <div class="card stat-card">
+                <div class="card">
+                    <div class="card-header bg-success text-white d-flex align-items-center">
+                        <h5 class="card-title mb-0"><i class="bi bi-droplet-half me-2"></i>% Grasa Corporal (ACSM)</h5>
+                    </div>
                     <div class="card-body">
-                        <h5 class="card-title mb-4"><i class="bi bi-droplet-half text-warning me-2"></i>% Grasa Corporal (ACSM)</h5>
                         <?php $tablasGC = EvaluadorRangos::getTablaGrasaCorporal(); ?>
                         <div class="row text-center">
                             <?php foreach (['Hombres', 'Mujeres'] as $sexo): ?>
                             <div class="col-md-6 mb-3">
                                 <h6 class="fw-bold mb-2"><?= $sexo ?></h6>
                                 <div class="table-responsive">
-                                    <table class="table table-sm table-bordered">
-                                        <thead class="table-light">
+                                    <table class="table table-sm table-bordered table-striped mb-0">
+                                        <thead>
                                             <tr><th>Edad</th><th class="bg-info text-white">Bajo</th><th class="bg-success text-white">Recomendado</th><th class="bg-warning text-dark">Alto</th><th class="bg-danger text-white">Muy Alto</th></tr>
                                         </thead>
                                         <tbody>
@@ -161,9 +209,11 @@ class EvaluadorRangos {
 
             <!-- 4. %Músculo Esquelético -->
             <div class="col-12">
-                <div class="card stat-card">
+                <div class="card">
+                    <div class="card-header bg-success text-white d-flex align-items-center">
+                        <h5 class="card-title mb-0"><i class="bi bi-lightning me-2"></i>% Músculo Esquelético</h5>
+                    </div>
                     <div class="card-body">
-                        <h5 class="card-title mb-4"><i class="bi bi-flexible text-info me-2"></i>% Músculo Esquelético</h5>
                         <?php $musculoData = EvaluadorRangos::getMusculoEsqueletico(); ?>
                         <div class="row g-3">
                             <?php foreach ($musculoData as $sexo => $rangos): ?>
@@ -188,8 +238,8 @@ class EvaluadorRangos {
         </div>
 
         <!-- Footer Actions -->
-        <div class="text-center mt-5 pt-4 border-top">
-            <a href="Menuprincipal.php" class="btn btn-outline-success btn-lg">
+        <div class="text-center mt-4 pt-3 border-top">
+            <a href="Menuprincipal.php" class="btn btn-outline-success">
                 <i class="bi bi-arrow-left me-2"></i>Volver al Menú Principal
             </a>
         </div>

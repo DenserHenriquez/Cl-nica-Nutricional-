@@ -252,61 +252,66 @@ $resultado = $imcActual > 0 ? EvaluadorNutricional::clasificarIMC($imcActual) : 
       box-shadow: 0 4px 12px rgba(25,135,84,0.3);
     }
     
-    /* ========== NUEVOS ESTILOS PARA BUSCADOR ========= */
-.search-section {
+    /* ========== ESTILOS BUSCADOR COMPACTO ========= */
+    .search-section {
       background: var(--brand-surface);
       border: 1px solid var(--brand-border);
-      border-radius: 12px;
-      padding: 1.5rem 1.2rem;
-      margin-bottom: 1rem;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+      border-radius: 10px;
+      padding: .75rem 1rem;
+      margin-bottom: .75rem;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.035);
     }
-    .search-section h5 {
+    .search-section .search-title {
       color: #0d5132;
-      font-weight: 700;
-      margin-bottom: 1rem;
+      font-weight: 600;
+      font-size: .9rem;
+      margin-bottom: .5rem;
     }
     .search-results {
-      max-height: 400px;
+      max-height: 320px;
       overflow-y: auto;
     }
     .search-result-item {
-      padding: 1rem;
+      display: flex;
+      align-items: center;
+      gap: .75rem;
+      padding: .55rem .85rem;
       border: 1px solid #e9ecef;
-      border-radius: 10px;
-      margin-bottom: 0.75rem;
+      border-left: 3px solid #198754;
+      border-radius: 8px;
+      margin-bottom: .5rem;
       transition: all 0.2s;
       background: #fff;
+      color: inherit;
     }
     .search-result-item:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 4px 12px rgba(25,135,84,0.15);
+      transform: translateY(-1px);
+      box-shadow: 0 3px 10px rgba(25,135,84,0.12);
       border-color: #198754;
     }
     .search-result-name {
-      font-weight: 700;
+      font-weight: 600;
       color: #0d5132;
-      font-size: 1.1rem;
+      font-size: .95rem;
     }
-    .search-result-dni {
+    .search-result-detail {
       color: #6c757d;
-      font-size: 0.95rem;
+      font-size: .82rem;
     }
     .no-results {
       text-align: center;
-      padding: 2rem;
+      padding: 1.5rem;
       color: var(--brand-muted);
     }
     .no-results i {
-      font-size: 3rem;
+      font-size: 2.2rem;
       opacity: 0.5;
       display: block;
-      margin-bottom: 1rem;
+      margin-bottom: .5rem;
     }
-    /* Mobile */
     @media (max-width: 576px) {
-      .search-section { padding: 1rem; }
-      .search-result-item { padding: 0.75rem; }
+      .search-section { padding: .6rem .75rem; }
+      .search-result-item { padding: .45rem .65rem; }
     }
     
     .stat-card{
@@ -394,16 +399,12 @@ $resultado = $imcActual > 0 ? EvaluadorNutricional::clasificarIMC($imcActual) : 
 <?php if ($userRole === 'Administrador' || $userRole === 'Medico'): ?>
 <!-- ========== FORMULARIO DE BÚSQUEDA ========= -->
 <div class="search-section">
-    <h5><i class="bi bi-search text-primary me-2"></i>Buscar Paciente</h5>
-    <form method="GET" class="row g-2">
-        <div class="col-md-10">
-            <input type="text" class="form-control form-control-lg" name="q" value="<?= e($searchQuery) ?>" placeholder="Ingrese nombre completo o DNI del paciente..." autofocus>
-        </div>
-        <div class="col-md-2">
-            <button type="submit" class="btn btn-green btn-lg w-100">
-                <i class="bi bi-search me-2"></i>Buscar
-            </button>
-        </div>
+    <div class="search-title"><i class="bi bi-search me-1"></i>Buscar Paciente</div>
+    <form method="GET" class="d-flex gap-2 align-items-center">
+        <input type="text" class="form-control" name="q" value="<?= e($searchQuery) ?>" placeholder="Nombre completo o DNI del paciente..." autofocus>
+        <button type="submit" class="btn btn-green flex-shrink-0" style="white-space:nowrap;">
+            <i class="bi bi-search me-1"></i>Buscar
+        </button>
         <?php if (isset($_GET['id'])): ?>
             <input type="hidden" name="id" value="<?= e($_GET['id']) ?>">
         <?php endif; ?>
@@ -415,12 +416,15 @@ $resultado = $imcActual > 0 ? EvaluadorNutricional::clasificarIMC($imcActual) : 
 <!-- ========== RESULTADOS DE BÚSQUEDA ========= -->
 <?php if (count($searchResults) > 0): ?>
     <div class="search-section">
-        <h5><i class="bi bi-list-ul me-2"></i>Resultados encontrados (<?= count($searchResults) ?>)</h5>
+        <div class="search-title"><i class="bi bi-list-ul me-1"></i>Resultados (<?= count($searchResults) ?>)</div>
         <div class="search-results">
             <?php foreach ($searchResults as $result): ?>
                 <a href="panelevolucionpaciente.php?id=<?= $result['id_pacientes'] ?>" class="search-result-item text-decoration-none">
-                    <div class="search-result-name"><?= e($result['nombre_completo']) ?></div>
-                    <div class="search-result-dni"><?= e($result['DNI']) ?></div>
+                    <i class="bi bi-person-circle" style="font-size:1.3rem;color:#198754;"></i>
+                    <div>
+                        <div class="search-result-name"><?= e($result['nombre_completo']) ?></div>
+                        <div class="search-result-detail">DNI: <?= e($result['DNI']) ?></div>
+                    </div>
                 </a>
             <?php endforeach; ?>
         </div>
@@ -429,9 +433,9 @@ $resultado = $imcActual > 0 ? EvaluadorNutricional::clasificarIMC($imcActual) : 
     <div class="search-section">
         <div class="no-results">
             <i class="bi bi-search-x"></i>
-            <h5>No se encontraron pacientes</h5>
-            <p>Intenta con otro nombre o DNI. La búsqueda no es sensible a mayúsculas.</p>
-            <a href="panelevolucionpaciente.php" class="btn btn-green btn-outline">Nueva Búsqueda</a>
+            <p class="mb-1"><strong>No se encontraron pacientes</strong></p>
+            <p class="mb-2" style="font-size:.85rem;">Intenta con otro nombre o DNI.</p>
+            <a href="panelevolucionpaciente.php" class="btn btn-green btn-sm">Nueva Búsqueda</a>
         </div>
     </div>
 <?php endif; ?>
