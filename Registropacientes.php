@@ -107,7 +107,7 @@ $effectiveUserName = '';
     $fecha_nacimiento = isset($_POST['fecha_nacimiento']) ? trim($_POST['fecha_nacimiento']) : '';
     $telefono = isset($_POST['telefono']) ? trim($_POST['telefono']) : '';
 $referencia_medica = isset($_POST['referencia_medica']) ? trim($_POST['referencia_medica']) : '';
-    $sexo_paciente = 'M';
+
     $edad_metabolica = isset($_POST['edad_metabolica']) ? trim($_POST['edad_metabolica']) : '';
     $peso = isset($_POST['peso']) ? trim($_POST['peso']) : '';
     $estatura = isset($_POST['estatura']) ? trim($_POST['estatura']) : '';
@@ -184,10 +184,10 @@ $referencia_medica = isset($_POST['referencia_medica']) ? trim($_POST['referenci
         }
 
         // Insertar paciente (NOTA: la tabla pacientes no incluye campos clínicos como talla/peso/IMC)
-        $sql = "INSERT INTO pacientes (id_usuarios, nombre_completo, sexo, DNI, fecha_nacimiento, edad, telefono, referencia_medica) VALUES (?,?,?,?,?,?,?,?)";
+        $sql = "INSERT INTO pacientes (id_usuarios, nombre_completo, DNI, fecha_nacimiento, edad, telefono, referencia_medica) VALUES (?,?,?,?,?,?,?)";
         $stmt = $conexion->prepare($sql);
         if ($stmt) {
-            $stmt->bind_param('isssisss', $effectiveUserId, $effectiveUserName, $sexo_paciente, $dni, $fecha_nacimiento, $edad, $telefono, $referencia_medica);
+            $stmt->bind_param('isssiss', $effectiveUserId, $effectiveUserName, $dni, $fecha_nacimiento, $edad, $telefono, $referencia_medica);
             if ($stmt->execute()) {
                 $nuevoPacienteId = $stmt->insert_id;
                 $exito = 'Paciente registrado correctamente.';
@@ -522,13 +522,7 @@ if (isset($_SESSION['flash_success'])) {
                         <input type="text" class="form-control" id="nombre_completo" value="<?= htmlspecialchars($targetUserName, ENT_QUOTES, 'UTF-8') ?>" readonly>
                     </div>
 
-                    <div class="mb-3">
-                        <label for="sexo" class="form-label">
-                            <i class="bi bi-gender-ambiguous me-1"></i>Sexo
-                        </label>
-                        <select class="form-select" id="sexo" name="sexo" required>
-<option value="M" <?= ($effectiveUserSexo === 'M') ? 'selected' : '' ?>>Hombre</option>
-<option value="F" <?= ($effectiveUserSexo === 'F') ? 'selected' : '' ?>>Mujer</option>
+
 </xai:function_call}
 
 <xai:function_call name="edit_file">
