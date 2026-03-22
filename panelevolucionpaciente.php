@@ -225,6 +225,14 @@ $cambio = $pesoActual - $pesoInicial;
     .alimento-img{
       width:60px; height:60px; object-fit:cover; border-radius:8px; border:1.5px solid var(--brand-border);
     }
+    .search-section{
+      background:var(--brand-surface); border-radius:14px; padding:0.75rem 1.2rem;
+      box-shadow:0 3px 10px rgba(0,0,0,.04); border:1px solid var(--brand-border);
+      margin-bottom:1rem;
+    }
+    .search-section h6{ font-size:0.9rem; font-weight:700; color:#0d5132; margin-bottom:0.5rem; }
+    .search-section .form-control{ font-size:0.88rem; padding:0.35rem 0.75rem; border-radius:8px; }
+    .search-section .btn{ font-size:0.85rem; padding:0.35rem 1rem; border-radius:8px; }
     /* Mobile responsive */
     @media (max-width:576px) {
       .stat-value { font-size:1.2rem; }
@@ -254,6 +262,53 @@ $cambio = $pesoActual - $pesoInicial;
         <p>Nutricionista | Monitorea el progreso y evolución de tus pacientes.</p>
     </div>
 </div>
+<<<<<<< Updated upstream
+=======
+
+  <?php if ($userRole !== 'Paciente'): ?>
+  <!-- Buscar Paciente -->
+  <div class="search-section">
+    <h6><i class="bi bi-search me-1"></i>Buscar Paciente</h6>
+    <form method="get" class="d-flex gap-2 align-items-center">
+      <input type="text" name="q" class="form-control" placeholder="Ingrese nombre completo o DNI del paciente..." value="<?= e($_GET['q'] ?? '') ?>">
+      <button type="submit" class="btn btn-success" style="padding:.4rem 1rem; font-size:.85rem; font-weight:600; border-radius:8px; white-space:nowrap;"><i class="bi bi-search me-1"></i>Buscar</button>
+    </form>
+    <?php
+      $qBuscar = isset($_GET['q']) ? trim($_GET['q']) : '';
+      if ($qBuscar !== '') {
+        $qParam = '%' . $qBuscar . '%';
+        $stmtBuscar = $conexion->prepare('SELECT id_pacientes, nombre_completo, DNI, telefono FROM pacientes WHERE nombre_completo LIKE ? OR DNI LIKE ? LIMIT 10');
+        $stmtBuscar->bind_param('ss', $qParam, $qParam);
+        $stmtBuscar->execute();
+        $resBuscar = $stmtBuscar->get_result();
+        $resultados = [];
+        while ($r = $resBuscar->fetch_assoc()) { $resultados[] = $r; }
+        $stmtBuscar->close();
+        if (count($resultados) > 0): ?>
+          <div class="table-responsive mt-2">
+            <table class="table table-sm table-hover mb-0" style="font-size:0.88rem;">
+              <thead><tr><th>Nombre</th><th>DNI</th><th>Teléfono</th><th></th></tr></thead>
+              <tbody>
+                <?php foreach ($resultados as $r): ?>
+                <tr>
+                  <td><?= e($r['nombre_completo']) ?></td>
+                  <td><?= e($r['DNI']) ?></td>
+                  <td><?= e($r['telefono']) ?></td>
+                  <td><a href="panelevolucionpaciente.php?id=<?= (int)$r['id_pacientes'] ?>" class="btn btn-sm btn-outline-success py-0 px-2"><i class="bi bi-eye me-1"></i>Ver</a></td>
+                </tr>
+                <?php endforeach; ?>
+              </tbody>
+            </table>
+          </div>
+        <?php else: ?>
+          <p class="text-muted mt-2 mb-0" style="font-size:0.85rem;"><i class="bi bi-info-circle me-1"></i>No se encontraron pacientes.</p>
+        <?php endif;
+      }
+    ?>
+  </div>
+  <?php endif; ?>
+
+>>>>>>> Stashed changes
   <!-- Patient info -->
   <div class="header-card d-flex justify-content-between align-items-center flex-wrap">
     <div>
