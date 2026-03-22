@@ -161,12 +161,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && post('accion') === 'guardar_consult
     $estatura = post('estatura');
     $edad_metabolica = post('edad_metabolica');
     $masa_muscular = post('masa_muscular');
-<<<<<<< Updated upstream
-=======
     $grasa_corporal = post('grasa_corporal');
     $musculo_esqueletico = post('musculo_esqueletico');
     $grasa_visceral = post('grasa_visceral');
->>>>>>> Stashed changes
     $motivo = post('motivo');
     $notas = post('notas');
 
@@ -176,12 +173,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && post('accion') === 'guardar_consult
     if ($estatura !== '' && !is_numeric($estatura)) $errores[] = 'La estatura debe ser numérica (cm).';
     if ($edad_metabolica !== '' && !is_numeric($edad_metabolica)) $errores[] = 'La edad metabólica debe ser numérica.';
     if ($masa_muscular !== '' && !is_numeric($masa_muscular)) $errores[] = 'La masa muscular debe ser numérica (kg).';
-<<<<<<< Updated upstream
-=======
     if ($grasa_corporal !== '' && !is_numeric($grasa_corporal)) $errores[] = 'La grasa corporal debe ser numérica (%).';
     if ($musculo_esqueletico !== '' && !is_numeric($musculo_esqueletico)) $errores[] = 'El músculo esquelético debe ser numérico (%).';
     if ($grasa_visceral !== '' && !is_numeric($grasa_visceral)) $errores[] = 'La grasa visceral debe ser numérica.';
->>>>>>> Stashed changes
 
     // Calcular IMC si procede
     $imc = null;
@@ -190,27 +184,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && post('accion') === 'guardar_consult
     }
 
     if (!$errores) {
-<<<<<<< Updated upstream
-        $sqlI = "INSERT INTO consultas_medicas (medico_id, paciente_id, peso, estatura, edad_metabolica, imc, masa_muscular, motivo, notas)
-                 VALUES (?,?,?,?,?,?,?,?,?)";
-=======
         $sqlI = "INSERT INTO consultas_medicas (medico_id, paciente_id, peso, estatura, edad_metabolica, imc, masa_muscular, grasa_corporal, musculo_esqueletico, grasa_visceral, motivo, notas)
                  VALUES (?,?,?,?,?,?,?,?,?,?,?,?)";
->>>>>>> Stashed changes
         if ($st = $conexion->prepare($sqlI)) {
             $pPeso = ($peso === '' ? null : $peso);
             $pEst = ($estatura === '' ? null : $estatura);
             $pEdad = ($edad_metabolica === '' ? null : $edad_metabolica);
             $pIMC = ($imc === null ? null : $imc);
             $pMM  = ($masa_muscular === '' ? null : $masa_muscular);
-<<<<<<< Updated upstream
-            $st->bind_param('iidddddss', $userId, $paciente_id, $pPeso, $pEst, $pEdad, $pIMC, $pMM, $motivo, $notas);
-=======
             $pGC  = ($grasa_corporal === '' ? null : $grasa_corporal);
             $pME  = ($musculo_esqueletico === '' ? null : $musculo_esqueletico);
             $pGV  = ($grasa_visceral === '' ? null : $grasa_visceral);
             $st->bind_param('iiddddddddss', $userId, $paciente_id, $pPeso, $pEst, $pEdad, $pIMC, $pMM, $pGC, $pME, $pGV, $motivo, $notas);
->>>>>>> Stashed changes
             if ($st->execute()) {
                 $exito = 'Consulta guardada correctamente.';
                 // Cargar paciente seleccionado para volver a mostrar formulario limpio
@@ -246,11 +231,7 @@ if ($pacienteSel) {
         $types .= 's';
         $params[] = $fecha_hasta . ' 23:59:59';
     }
-<<<<<<< Updated upstream
-    $sqlList = "SELECT id, fecha, peso, estatura, edad_metabolica, imc, masa_muscular, motivo, notas
-=======
     $sqlList = "SELECT id, fecha, peso, estatura, edad_metabolica, imc, masa_muscular, grasa_corporal, musculo_esqueletico, grasa_visceral, motivo, notas
->>>>>>> Stashed changes
                 FROM consultas_medicas
                 WHERE $where
                 ORDER BY fecha DESC
@@ -444,13 +425,6 @@ if ($ok && !$exito) { $exito = 'Consulta guardada correctamente.'; }
                             </div>
                         </div>
                         <div class="row mb-3">
-<<<<<<< Updated upstream
-                            <div class="col-md-4">
-                                <label class="form-label" for="masa_muscular">Masa Muscular (kg)</label>
-                                <input type="number" step="0.01" class="form-control" id="masa_muscular" name="masa_muscular">
-                            </div>
-                            <div class="col-md-8">
-=======
                             <div class="col-md-3">
                                 <label class="form-label" for="masa_muscular">Masa Muscular (kg)</label>
                                 <input type="number" step="0.01" class="form-control" id="masa_muscular" name="masa_muscular">
@@ -470,7 +444,6 @@ if ($ok && !$exito) { $exito = 'Consulta guardada correctamente.'; }
                         </div>
                         <div class="row mb-3">
                             <div class="col-md-12">
->>>>>>> Stashed changes
                                 <label class="form-label" for="motivo">Motivo de la consulta</label>
                                 <input type="text" class="form-control" id="motivo" name="motivo" maxlength="255">
                             </div>
@@ -541,19 +514,14 @@ if ($ok && !$exito) { $exito = 'Consulta guardada correctamente.'; }
                                                     data-edad="<?= h($c['edad_metabolica'] !== null ? number_format((float)$c['edad_metabolica'], 2) : '') ?>"
                                                     data-imc="<?= h($c['imc'] !== null ? number_format((float)$c['imc'], 2) : '') ?>"
                                                     data-mm="<?= h($c['masa_muscular'] !== null ? number_format((float)$c['masa_muscular'], 2) : '') ?>"
-<<<<<<< Updated upstream
-=======
                                                     data-gc="<?= h($c['grasa_corporal'] !== null ? number_format((float)$c['grasa_corporal'], 2) : '') ?>"
                                                     data-me="<?= h($c['musculo_esqueletico'] !== null ? number_format((float)$c['musculo_esqueletico'], 2) : '') ?>"
                                                     data-gv="<?= h($c['grasa_visceral'] !== null ? number_format((float)$c['grasa_visceral'], 2) : '') ?>"
->>>>>>> Stashed changes
                                                     data-motivo="<?= h($c['motivo'] ?? '') ?>"
                                                     data-notas="<?= h($c['notas'] ?? '') ?>"
                                                     title="Ver detalles">
                                                     <i class="bi bi-eye"></i>
                                                 </button>
-<<<<<<< Updated upstream
-=======
                                                 <?php
                                                   $tieneRC = ($c['imc'] !== null || $c['grasa_corporal'] !== null || $c['musculo_esqueletico'] !== null || $c['grasa_visceral'] !== null);
                                                 ?>
@@ -567,7 +535,6 @@ if ($ok && !$exito) { $exito = 'Consulta guardada correctamente.'; }
                                                     <i class="bi bi-bar-chart-line"></i>
                                                 </button>
                                                 <?php endif; ?>
->>>>>>> Stashed changes
                                             </td>
                                         </tr>
                                     <?php endforeach; ?>
@@ -580,8 +547,6 @@ if ($ok && !$exito) { $exito = 'Consulta guardada correctamente.'; }
         <?php endif; ?>
     </div>
 
-<<<<<<< Updated upstream
-=======
     <!-- Modal Resultados Corporales Completos -->
     <div class="modal fade" id="modalResultadosCorporales" tabindex="-1" aria-hidden="true">
       <div class="modal-dialog modal-dialog-centered" style="max-width:520px;">
@@ -627,7 +592,6 @@ if ($ok && !$exito) { $exito = 'Consulta guardada correctamente.'; }
       </div>
     </div>
 
->>>>>>> Stashed changes
     <!-- Modal Ver Consulta (reusable) -->
     <div class="modal fade" id="modalVerConsulta" tabindex="-1" aria-hidden="true">
       <div class="modal-dialog modal-lg modal-dialog-centered">
@@ -644,14 +608,10 @@ if ($ok && !$exito) { $exito = 'Consulta guardada correctamente.'; }
               <div class="col-md-3"><strong>Edad metabólica:</strong> <span id="vc-edad"></span></div>
               <div class="col-md-3"><strong>IMC:</strong> <span id="vc-imc"></span></div>
               <div class="col-md-3"><strong>Masa muscular:</strong> <span id="vc-mm"></span> kg</div>
-<<<<<<< Updated upstream
-              <div class="col-md-6"><strong>Motivo:</strong> <span id="vc-motivo"></span></div>
-=======
               <div class="col-md-3"><strong>% Grasa corporal:</strong> <span id="vc-gc"></span></div>
               <div class="col-md-3"><strong>% Músculo esq.:</strong> <span id="vc-me"></span></div>
               <div class="col-md-3"><strong>Grasa visceral:</strong> <span id="vc-gv"></span></div>
               <div class="col-md-3"><strong>Motivo:</strong> <span id="vc-motivo"></span></div>
->>>>>>> Stashed changes
               <div class="col-12">
                 <strong>Observaciones/Receta:</strong>
                 <div id="vc-notas" class="mt-1" style="white-space:pre-wrap;border:1px solid #e9ecef;border-radius:8px;padding:10px;background:#fafafa;"></div>
@@ -834,8 +794,6 @@ if ($ok && !$exito) { $exito = 'Consulta guardada correctamente.'; }
       var notasEl = document.getElementById('vc-notas');
       if (notasEl){ notasEl.textContent = notas || ''; }
     });
-<<<<<<< Updated upstream
-=======
   })();
 </script>
 <script>
@@ -901,9 +859,10 @@ if ($ok && !$exito) { $exito = 'Consulta guardada correctamente.'; }
         setText('rc-me-valor',me.toFixed(1)+' %');
         var cm=clasificarME(me);
         setBadge('rc-me-badge',cm.label,cm.color);
-        var meTexto=cm.label+' ('+me.toFixed(1)+'%)';
-        if(cm.sug) meTexto+='\n'+cm.sug;
-        setText('rc-me-texto',meTexto);
+        var meHtml=cm.label+' ('+me.toFixed(1)+'%)';
+        if(cm.sug) meHtml+='<br><em>'+cm.sug+'</em>';
+        var meEl=document.getElementById('rc-me-texto');
+        if(meEl) meEl.innerHTML=meHtml;
       } else { hide('rc-me-section'); hide('rc-hr3'); }
 
       // Grasa Visceral
@@ -918,7 +877,6 @@ if ($ok && !$exito) { $exito = 'Consulta guardada correctamente.'; }
       var modal=new bootstrap.Modal(document.getElementById('modalResultadosCorporales'));
       modal.show();
     });
->>>>>>> Stashed changes
   })();
 </script>
 </body>

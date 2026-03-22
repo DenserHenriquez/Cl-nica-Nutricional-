@@ -86,9 +86,10 @@ class EvaluadorRangos {
             font-size: 1.9rem;
             color: #198754;
         }
-        .card {
+        .stat-card, .card {
             border: none;
-            box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+            box-shadow: 0 0.125rem 0.25rem rgba(0,0,0,0.075);
+            border-radius: 12px;
         }
         table.table thead th {
             border-bottom: 2px solid #198754;
@@ -102,7 +103,6 @@ class EvaluadorRangos {
 </head>
 <body>
     <div class="container-fluid mb-5 px-4">
-
         <!-- Header Section -->
         <div class="header-section d-flex align-items-center gap-3" style="margin-top:12px;">
             <div class="medical-icon"><i class="bi bi-rulers"></i></div>
@@ -235,6 +235,13 @@ class EvaluadorRangos {
                     </div>
                 </div>
             </div>
+        </div>
+
+        <!-- Footer Actions -->
+        <div class="text-center mt-4 pt-3 border-top">
+            <a href="Menuprincipal.php" class="btn btn-outline-success">
+                <i class="bi bi-arrow-left me-2"></i>Volver al Menú Principal
+            </a>
         </div>
     </div>
 

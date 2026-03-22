@@ -2,55 +2,124 @@
 session_start();
 if (!isset($_SESSION['id_usuarios'])) { header('Location: index.php'); exit; }
 require_once __DIR__ . '/db_connection.php';
+
+$userRole = $_SESSION['rol'] ?? 'Paciente';
+
+// ========== NUEVA LÓGICA DE BÚSQUEDA (solo Admin/Medico) ==========
+$searchResults = [];
+$searchQuery = '';
+$isSearchMode = false;
+
+if (($userRole === 'Administrador' || $userRole === 'Medico') && isset($_GET['q']) && !empty(trim($_GET['q']))) {
+    $searchQuery = trim($_GET['q']);
+    $isSearchMode = true;
+    
+    $stmt = $conexion->prepare('SELECT id_pacientes, nombre_completo, DNI FROM pacientes WHERE nombre_completo LIKE ? OR DNI LIKE ? ORDER BY nombre_completo ASC LIMIT 10');
+    $likeTerm = '%' . $searchQuery . '%';
+    $stmt->bind_param('ss', $likeTerm, $likeTerm);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    
+    while ($row = $result->fetch_assoc()) {
+        $searchResults[] = $row;
+    }
+    $stmt->close();
+    
+    // Si solo 1 resultado, redirect directo
+    if (count($searchResults) === 1) {
+        header('Location: panelevolucionpaciente.php?id=' . $searchResults[0]['id_pacientes']);
+        exit;
+    }
+}
+
+class EvaluadorNutricional {
+    
+    public static function clasificarIMC($imc) {
+        if ($imc < 18.5) return ['label' => 'Delgadez I', 'color' => '#orange'];
+        if ($imc < 25.0) return ['label' => 'Normal', 'color' => '#28a745']; // Verde
+        if ($imc < 30.0) return ['label' => 'Sobrepeso', 'color' => '#ffc107']; // Amarillo
+        if ($imc < 35.0) return ['label' => 'Obesidad I', 'color' => '#dc3545']; // Rojo claro
+        if ($imc < 40.0) return ['label' => 'Obesidad II', 'color' => '#c82333']; // Rojo
+        return ['label' => 'Obesidad III', 'color' => '#721c24']; // Rojo oscuro
+    }
+
+    public static function clasificarGrasaVisceral($valor) {
+        if ($valor <= 9) return ['label' => 'En forma', 'color' => '#28a745', 'nivel' => 1];
+        if ($valor <= 14) return ['label' => 'Alerta', 'color' => '#ffc107', 'nivel' => 2];
+        return ['label' => 'Peligro', 'color' => '#dc3545', 'nivel' => 3];
+    }
+
+    public static function clasificarPorcentajeGrasa($sexo, $edad, $grasa) {
+        // Lógica simplificada basada en la tabla de la imagen
+        // $sexo: 'M' o 'H'
+        if ($sexo == 'M') {
+            if ($grasa < 21) return 'Bajo';
+            if ($grasa <= 33) return 'Recomendado';
+            if ($grasa <= 38) return 'Alto';
+            return 'Muy Alto';
+        } else {
+            if ($grasa < 8) return 'Bajo';
+            if ($grasa <= 20) return 'Recomendado';
+            if ($grasa <= 25) return 'Alto';
+            return 'Muy Alto';
+        }
+    }
+}
+
 function e($s){ return htmlspecialchars((string)$s, ENT_QUOTES, 'UTF-8'); }
 
-// Identificar paciente según parámetro o sesión
+// Identificar paciente según parámetro o sesión (solo si no search mode con multiple)
 $idPaciente = isset($_GET['id']) ? (int)$_GET['id'] : 0;
-$userRole = $_SESSION['rol'] ?? 'Paciente';
 $noRegistrado = false;
-if ($idPaciente <= 0) {
-  if ($stmtPid = $conexion->prepare('SELECT id_pacientes FROM pacientes WHERE id_usuarios = ? LIMIT 1')) {
-    $stmtPid->bind_param('i', $_SESSION['id_usuarios']);
-    $stmtPid->execute();
-    $resPid = $stmtPid->get_result();
-    if ($rowPid = $resPid->fetch_assoc()) { $idPaciente = (int)$rowPid['id_pacientes']; }
-    $stmtPid->close();
-  }
+if (!$isSearchMode || count($searchResults) === 0) {
   if ($idPaciente <= 0) {
-    if ($userRole === 'Paciente') {
-      $noRegistrado = true; // Paciente logueado pero aún sin registro en tabla pacientes
-    } else {
-      die('Paciente no encontrado.');
+    if ($stmtPid = $conexion->prepare('SELECT id_pacientes FROM pacientes WHERE id_usuarios = ? LIMIT 1')) {
+      $stmtPid->bind_param('i', $_SESSION['id_usuarios']);
+      $stmtPid->execute();
+      $resPid = $stmtPid->get_result();
+      if ($rowPid = $resPid->fetch_assoc()) { $idPaciente = (int)$rowPid['id_pacientes']; }
+      $stmtPid->close();
+    }
+    if ($idPaciente <= 0) {
+      if ($userRole === 'Paciente') {
+        $noRegistrado = true; // Paciente logueado pero aún sin registro en tabla pacientes
+      } else {
+        $idPaciente = 0; // Para admin/medico sin ID, mostrar search vacío
+      }
     }
   }
 }
 
-// Datos del paciente
-// Datos del paciente (solo si registrado)
+// Datos del paciente (solo si registrado y no multiple search)
 $paciente = null;
-if (!$noRegistrado) {
-  if ($stmt = $conexion->prepare('SELECT nombre_completo, edad, telefono, DNI, referencia_medica FROM pacientes WHERE id_pacientes = ? LIMIT 1')) {
-    $stmt->bind_param('i', $idPaciente);
-    $stmt->execute();
-    $res = $stmt->get_result();
-    $paciente = $res->fetch_assoc();
-    $stmt->close();
+if (!$isSearchMode || count($searchResults) === 0) {
+  if (!$noRegistrado && $idPaciente > 0) {
+    if ($stmt = $conexion->prepare('SELECT nombre_completo, edad, telefono, DNI, referencia_medica FROM pacientes WHERE id_pacientes = ? LIMIT 1')) {
+      $stmt->bind_param('i', $idPaciente);
+      $stmt->execute();
+      $res = $stmt->get_result();
+      $paciente = $res->fetch_assoc();
+      $stmt->close();
+    }
+    if (!$paciente) { 
+      if ($userRole === 'Paciente') $noRegistrado = true;
+      else $paciente = ['nombre_completo' => 'Paciente no encontrado'];
+    }
+  } else if ($userRole === 'Paciente') {
+    // Construir datos básicos para mostrar nombre desde sesión sin provocar errores
+    $paciente = [
+      'nombre_completo' => $_SESSION['nombre'] ?? 'Paciente',
+      'edad' => '--',
+      'telefono' => '--',
+      'DNI' => '--'
+    ];
   }
-  if (!$paciente) { die('Paciente no encontrado.'); }
-} else {
-  // Construir datos básicos para mostrar nombre desde sesión sin provocar errores
-  $paciente = [
-    'nombre_completo' => $_SESSION['nombre'] ?? 'Paciente',
-    'edad' => '--',
-    'telefono' => '--',
-    'DNI' => '--'
-  ];
 }
 
-// Expediente
-// Expediente (cuando registrado)
-$expediente = [];
-if (!$noRegistrado) {
+// Resto de datos solo si paciente específico cargado
+$expediente = []; $ejercicios = []; $alimentos = [];
+if (!$isSearchMode && !$noRegistrado && $idPaciente > 0) {
+  // Expediente
   if ($stmt = $conexion->prepare('SELECT fecha_registro, peso, IMC FROM expediente WHERE id_pacientes = ? ORDER BY fecha_registro ASC')) {
     $stmt->bind_param('i', $idPaciente);
     $stmt->execute();
@@ -64,12 +133,8 @@ if (!$noRegistrado) {
     }
     $stmt->close();
   }
-}
 
-// Ejercicios
-// Ejercicios (cuando registrado)
-$ejercicios = [];
-if (!$noRegistrado) {
+  // Ejercicios
   $sqlEje = 'SELECT fecha, tiempo FROM ejercicios WHERE paciente_id = ? ORDER BY fecha ASC';
   if (!($stmt = @$conexion->prepare($sqlEje))) {
     $sqlEje = 'SELECT fecha, tiempo FROM ejercicios WHERE id_pacientes = ? ORDER BY fecha ASC';
@@ -87,12 +152,8 @@ if (!$noRegistrado) {
     }
     $stmt->close();
   }
-}
 
-// Alimentos registrados (últimos 15 registros)
-// Alimentos (cuando registrado)
-$alimentos = [];
-if (!$noRegistrado) {
+  // Alimentos
   $sqlAli = 'SELECT fecha, tipo_comida, descripcion, hora, foto_path FROM alimentos_registro WHERE id_pacientes = ? ORDER BY fecha DESC, hora DESC LIMIT 15';
   $stmtAli = $conexion->prepare($sqlAli);
   if ($stmtAli) {
@@ -102,7 +163,12 @@ if (!$noRegistrado) {
     while ($rowAli = $resAli->fetch_assoc()) {
       $alimentos[] = $rowAli;
     }
-    $stmtAli->close();
+$stmtAli->close();
+
+  // Grasa Visceral: table consultas_medicas not found in schema - using defaults
+  $grasaVisceralActual = 0;
+  $fechaGrasaVisceral = '';
+  $grasaResultado = ['label' => 'Sin datos (tabla faltante)', 'color' => '#6c757d', 'nivel' => 0];
   }
 }
 
@@ -113,13 +179,16 @@ $imcActual = count($expediente) > 0 ? end($expediente)['IMC'] : 0;
 $totalEjercicios = count($ejercicios);
 $tiempoTotalEjercicio = array_sum(array_column($ejercicios, 'tiempo'));
 $cambio = $pesoActual - $pesoInicial;
+
+$resultado = $imcActual > 0 ? EvaluadorNutricional::clasificarIMC($imcActual) : ['label' => 'Sin datos', 'color' => '#6c757d'];
 ?>
+
 <!doctype html>
 <html lang="es">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Panel de Evolución - <?= e($paciente['nombre_completo']) ?></title>
+  <title>Panel de Evolución - <?= $isSearchMode ? 'Buscar Paciente' : e($paciente['nombre_completo'] ?? '') ?></title>
 
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
@@ -166,12 +235,84 @@ $cambio = $pesoActual - $pesoInicial;
     }
     .header-card h3 { color:#0d5132; font-size:1.15rem; }
     .header-card small { color:var(--brand-muted); font-size:.85rem; }
-    .btn-back{ 
-      background:#198754; color:#fff; border:none;
-      border-radius:8px; padding:.4rem 1rem; font-weight:600; transition:.2s;
-      text-decoration:none; display:inline-block; font-size:.85rem;
+    .btn-green {
+      background: #198754 !important;
+      color: #fff !important;
+      border: 1px solid #198754 !important;
+      border-radius: 8px;
+      padding: .5rem 1.2rem;
+      font-weight: 600;
+      transition: .2s;
+      text-decoration: none;
     }
-    .btn-back:hover{ background:#146c43; color:#fff; transform:translateX(-3px); box-shadow: 0 4px 12px rgba(25,135,84,0.35); }
+    .btn-green:hover {
+      background: #146c43 !important;
+      color: #fff !important;
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(25,135,84,0.3);
+    }
+    
+    /* ========== ESTILOS BUSCADOR COMPACTO ========= */
+    .search-section {
+      background: var(--brand-surface);
+      border: 1px solid var(--brand-border);
+      border-radius: 10px;
+      padding: .75rem 1rem;
+      margin-bottom: .75rem;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.035);
+    }
+    .search-section .search-title {
+      color: #0d5132;
+      font-weight: 600;
+      font-size: .9rem;
+      margin-bottom: .5rem;
+    }
+    .search-results {
+      max-height: 320px;
+      overflow-y: auto;
+    }
+    .search-result-item {
+      display: flex;
+      align-items: center;
+      gap: .75rem;
+      padding: .55rem .85rem;
+      border: 1px solid #e9ecef;
+      border-left: 3px solid #198754;
+      border-radius: 8px;
+      margin-bottom: .5rem;
+      transition: all 0.2s;
+      background: #fff;
+      color: inherit;
+    }
+    .search-result-item:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 3px 10px rgba(25,135,84,0.12);
+      border-color: #198754;
+    }
+    .search-result-name {
+      font-weight: 600;
+      color: #0d5132;
+      font-size: .95rem;
+    }
+    .search-result-detail {
+      color: #6c757d;
+      font-size: .82rem;
+    }
+    .no-results {
+      text-align: center;
+      padding: 1.5rem;
+      color: var(--brand-muted);
+    }
+    .no-results i {
+      font-size: 2.2rem;
+      opacity: 0.5;
+      display: block;
+      margin-bottom: .5rem;
+    }
+    @media (max-width: 576px) {
+      .search-section { padding: .6rem .75rem; }
+      .search-result-item { padding: .45rem .65rem; }
+    }
     
     .stat-card{
       background:var(--brand-surface); border-radius:14px; padding:1.1rem 1.2rem;
@@ -225,14 +366,6 @@ $cambio = $pesoActual - $pesoInicial;
     .alimento-img{
       width:60px; height:60px; object-fit:cover; border-radius:8px; border:1.5px solid var(--brand-border);
     }
-    .search-section{
-      background:var(--brand-surface); border-radius:14px; padding:0.75rem 1.2rem;
-      box-shadow:0 3px 10px rgba(0,0,0,.04); border:1px solid var(--brand-border);
-      margin-bottom:1rem;
-    }
-    .search-section h6{ font-size:0.9rem; font-weight:700; color:#0d5132; margin-bottom:0.5rem; }
-    .search-section .form-control{ font-size:0.88rem; padding:0.35rem 0.75rem; border-radius:8px; }
-    .search-section .btn{ font-size:0.85rem; padding:0.35rem 1rem; border-radius:8px; }
     /* Mobile responsive */
     @media (max-width:576px) {
       .stat-value { font-size:1.2rem; }
@@ -258,59 +391,66 @@ $cambio = $pesoActual - $pesoInicial;
 <div class="header-section d-flex align-items-center gap-3">
     <div class="medical-icon"><i class="bi bi-bar-chart-line"></i></div>
     <div>
-        <h1>Panel de Evolución del Paciente</h1>
-        <p>Nutricionista | Monitorea el progreso y evolución de tus pacientes.</p>
+        <h1>Panel de Evolución <?= $isSearchMode ? 'del Paciente' : '' ?></h1>
+        <p><?= $isSearchMode ? 'Busca pacientes por nombre o DNI' : 'Nutricionista \| Monitorea el progreso y evolución de tus pacientes.' ?></p>
     </div>
 </div>
-<<<<<<< Updated upstream
-=======
 
-  <?php if ($userRole !== 'Paciente'): ?>
-  <!-- Buscar Paciente -->
-  <div class="search-section">
-    <h6><i class="bi bi-search me-1"></i>Buscar Paciente</h6>
-    <form method="get" class="d-flex gap-2 align-items-center">
-      <input type="text" name="q" class="form-control" placeholder="Ingrese nombre completo o DNI del paciente..." value="<?= e($_GET['q'] ?? '') ?>">
-      <button type="submit" class="btn btn-success" style="padding:.4rem 1rem; font-size:.85rem; font-weight:600; border-radius:8px; white-space:nowrap;"><i class="bi bi-search me-1"></i>Buscar</button>
+<?php if ($userRole === 'Administrador' || $userRole === 'Medico'): ?>
+<!-- ========== FORMULARIO DE BÚSQUEDA ========= -->
+<div class="search-section">
+    <div class="search-title"><i class="bi bi-search me-1"></i>Buscar Paciente</div>
+    <form method="GET" class="d-flex gap-2 align-items-center">
+        <input type="text" class="form-control" name="q" value="<?= e($searchQuery) ?>" placeholder="Nombre completo o DNI del paciente..." autofocus>
+        <button type="submit" class="btn btn-green flex-shrink-0" style="white-space:nowrap;">
+            <i class="bi bi-search me-1"></i>Buscar
+        </button>
+        <?php if (isset($_GET['id'])): ?>
+            <input type="hidden" name="id" value="<?= e($_GET['id']) ?>">
+        <?php endif; ?>
     </form>
-    <?php
-      $qBuscar = isset($_GET['q']) ? trim($_GET['q']) : '';
-      if ($qBuscar !== '') {
-        $qParam = '%' . $qBuscar . '%';
-        $stmtBuscar = $conexion->prepare('SELECT id_pacientes, nombre_completo, DNI, telefono FROM pacientes WHERE nombre_completo LIKE ? OR DNI LIKE ? LIMIT 10');
-        $stmtBuscar->bind_param('ss', $qParam, $qParam);
-        $stmtBuscar->execute();
-        $resBuscar = $stmtBuscar->get_result();
-        $resultados = [];
-        while ($r = $resBuscar->fetch_assoc()) { $resultados[] = $r; }
-        $stmtBuscar->close();
-        if (count($resultados) > 0): ?>
-          <div class="table-responsive mt-2">
-            <table class="table table-sm table-hover mb-0" style="font-size:0.88rem;">
-              <thead><tr><th>Nombre</th><th>DNI</th><th>Teléfono</th><th></th></tr></thead>
-              <tbody>
-                <?php foreach ($resultados as $r): ?>
-                <tr>
-                  <td><?= e($r['nombre_completo']) ?></td>
-                  <td><?= e($r['DNI']) ?></td>
-                  <td><?= e($r['telefono']) ?></td>
-                  <td><a href="panelevolucionpaciente.php?id=<?= (int)$r['id_pacientes'] ?>" class="btn btn-sm btn-outline-success py-0 px-2"><i class="bi bi-eye me-1"></i>Ver</a></td>
-                </tr>
-                <?php endforeach; ?>
-              </tbody>
-            </table>
-          </div>
-        <?php else: ?>
-          <p class="text-muted mt-2 mb-0" style="font-size:0.85rem;"><i class="bi bi-info-circle me-1"></i>No se encontraron pacientes.</p>
-        <?php endif;
-      }
-    ?>
-  </div>
-  <?php endif; ?>
+</div>
+<?php endif; ?>
 
->>>>>>> Stashed changes
-  <!-- Patient info -->
-  <div class="header-card d-flex justify-content-between align-items-center flex-wrap">
+<?php if ($isSearchMode): ?>
+<!-- ========== RESULTADOS DE BÚSQUEDA ========= -->
+<?php if (count($searchResults) > 0): ?>
+    <div class="search-section">
+        <div class="search-title"><i class="bi bi-list-ul me-1"></i>Resultados (<?= count($searchResults) ?>)</div>
+        <div class="search-results">
+            <?php foreach ($searchResults as $result): ?>
+                <a href="panelevolucionpaciente.php?id=<?= $result['id_pacientes'] ?>" class="search-result-item text-decoration-none">
+                    <i class="bi bi-person-circle" style="font-size:1.3rem;color:#198754;"></i>
+                    <div>
+                        <div class="search-result-name"><?= e($result['nombre_completo']) ?></div>
+                        <div class="search-result-detail">DNI: <?= e($result['DNI']) ?></div>
+                    </div>
+                </a>
+            <?php endforeach; ?>
+        </div>
+    </div>
+<?php else: ?>
+    <div class="search-section">
+        <div class="no-results">
+            <i class="bi bi-search-x"></i>
+            <p class="mb-1"><strong>No se encontraron pacientes</strong></p>
+            <p class="mb-2" style="font-size:.85rem;">Intenta con otro nombre o DNI.</p>
+            <a href="panelevolucionpaciente.php" class="btn btn-green btn-sm">Nueva Búsqueda</a>
+        </div>
+    </div>
+<?php endif; ?>
+
+<?php if (count($searchResults) === 0 && $idPaciente > 0): ?>
+    <!-- Continuar con paciente específico -->
+<?php else: ?>
+    <?php return; // No mostrar resto si search multiple o vacío ?>
+<?php endif; ?>
+
+<?php endif; // Fin search mode ?>
+
+<!-- Patient info (solo si paciente específico) -->
+<?php if (!empty($paciente) && !$isSearchMode): ?>
+<div class="header-card d-flex justify-content-between align-items-center flex-wrap">
     <div>
       <h3 class="mb-1"><?= e($paciente['nombre_completo']) ?></h3>
       <small>
@@ -321,183 +461,222 @@ $cambio = $pesoActual - $pesoInicial;
       </small>
     </div>
     <?php if ($userRole !== 'Paciente'): ?>
-      <a class="btn-back" href="Activar_desactivar_paciente.php">
+      <a class="btn-green" href="Activar_desactivar_paciente.php">
         <i class="bi bi-arrow-left me-2"></i>Volver a Pacientes
       </a>
     <?php endif; ?>
   </div>
+<?php endif; ?>
 
-  <?php if ($noRegistrado): ?>
-    <div class="alert alert-warning border-2" role="alert">
-      <strong>Paciente nuevo:</strong> todav&iacute;a no tienes un registro completo en la cl&iacute;nica. Para comenzar a ver tu evoluci&oacute;n debes completar tu registro con un profesional. Una vez registrado aparecer&aacute;n tus datos, gr&aacute;ficas y registros de alimentos y ejercicios.
-    </div>
-  <?php endif; ?>
+<?php if (isset($noRegistrado) && $noRegistrado): ?>
+  <div class="alert alert-warning border-2" role="alert">
+    <strong>Paciente nuevo:</strong> todavía no tienes un registro completo en la clínica. Para comenzar a ver tu evolución debes completar tu registro con un profesional. Una vez registrado aparecerán tus datos, gráficas y registros de alimentos y ejercicios.
+  </div>
+<?php endif; ?>
 
-  <?php if (!$noRegistrado): ?>
-  <!-- Estadísticas principales (solo cuando registrado) -->
-  <div class="row g-3 mb-3">
-    <div class="col-md-3">
-      <div class="stat-card">
-        <div class="d-flex align-items-center gap-3">
-          <div class="stat-icon red">
-            <i class="bi bi-heart-pulse"></i>
-          </div>
-          <div>
-            <div class="stat-label">Peso Actual</div>
-            <div class="stat-value"><?= $pesoActual > 0 ? number_format($pesoActual, 1) : '--' ?> <small style="font-size:.85rem;">kg</small></div>
-            <?php if (count($expediente) > 0): ?>
-              <div class="recent-date">Último registro: <?= date('d/m/Y', strtotime(end($expediente)['fecha_registro'])) ?></div>
-            <?php endif; ?>
-          </div>
+<?php if (!$isSearchMode && !empty($paciente) && !$noRegistrado): ?>
+<!-- Estadísticas principales -->
+<div class="row g-3 mb-3">
+  <!-- [ESTADÍSTICAS EXISTENTES INTACTAS - PESO, IMC, TERMÓMETRO, PROGRESO, EJERCICIOS] -->
+  <div class="col-md-3">
+    <div class="stat-card">
+      <div class="d-flex align-items-center gap-3">
+        <div class="stat-icon red">
+          <i class="bi bi-heart-pulse"></i>
+        </div>
+        <div>
+          <div class="stat-label">Peso Actual</div>
+          <div class="stat-value"><?= $pesoActual > 0 ? number_format($pesoActual, 1) : '--' ?> <small style="font-size:.85rem;">kg</small></div>
+          <?php if (count($expediente) > 0): ?>
+            <div class="recent-date">Último registro: <?= date('d/m/Y', strtotime(end($expediente)['fecha_registro'])) ?></div>
+          <?php endif; ?>
         </div>
       </div>
     </div>
+  </div>
 
-    <div class="col-md-3">
-      <div class="stat-card">
-        <div class="d-flex align-items-center gap-3">
-          <div class="stat-icon blue">
-            <i class="bi bi-clipboard-data"></i>
+  <div class="col-md-3">
+    <div class="stat-card">
+      <div class="d-flex align-items-center gap-3">
+        <div class="stat-icon blue">
+          <i class="bi bi-clipboard-data"></i>
+        </div>
+        <div>
+          <div class="stat-label">IMC Actual</div>
+          <div class="stat-value" style="color: <?= $resultado['color'] ?>; font-weight: bold;"><?= $imcActual > 0 ? number_format($imcActual, 1) : '--' ?></div>
+          <?php if ($imcActual > 0): ?>
+            <div class="recent-date" style="color: <?= $resultado['color'] ?>;">
+              <?= $resultado['label'] ?>
+            </div>
+          <?php endif; ?>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Grasa Visceral Actual -->
+  <div class="col-md-3">
+    <div class="stat-card">
+      <div class="d-flex align-items-center gap-3">
+        <div class="stat-icon" style="background: linear-gradient(135deg, <?= $grasaResultado['color'] ?> 0%, <?= $grasaResultado['nivel'] == 3 ? '#c82333' : ( $grasaResultado['nivel'] == 2 ? '#ff9500' : $grasaResultado['color'] ) ?> 100%); color: white;">
+          <i class="bi bi-fire"></i>
+        </div>
+        <div>
+          <div class="stat-label">Grasa Visceral</div>
+          <div class="stat-value"><?= $grasaVisceralActual > 0 ? number_format($grasaVisceralActual, 1) : '--' ?></div>
+          <?php if ($grasaVisceralActual > 0 && $fechaGrasaVisceral): ?>
+            <div class="recent-date" style="color: <?= $grasaResultado['color'] ?>;">
+              <?= $grasaResultado['label'] ?> • <?= date('d/m/Y', strtotime($fechaGrasaVisceral)) ?>
+            </div>
+          <?php elseif ($grasaVisceralActual > 0): ?>
+            <div class="recent-date" style="color: <?= $grasaResultado['color'] ?>;">
+              <?= $grasaResultado['label'] ?>
+            </div>
+          <?php endif; ?>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-6">
+    <div class="historial-item" style="display: flex; align-items: center; gap: 20px; border-bottom: 1px solid #ccc; padding: 10px;">
+      <div>
+        <strong>Fecha:</strong> <?php echo count($expediente) > 0 ? date('d/m/Y', strtotime(end($expediente)['fecha_registro'])) : 'Sin datos'; ?><br>
+        <strong>IMC:</strong> <?= $imcActual > 0 ? number_format($imcActual, 1) : 'Sin datos' ?> (<?= $resultado['label'] ?>)
+      </div>
+
+      <div class="termometro-container" style="width: 200px; background: #eee; border-radius: 10px; height: 20px; overflow: hidden;">
+        <?php 
+          $porcentaje = $imcActual > 0 ? min(max(($imcActual - 15) * 3, 5), 100) : 0; 
+        ?>
+        <div style="width: <?php echo $porcentaje; ?>%; background-color: <?= $resultado['color'] ?>; height: 100%; transition: width 0.5s ease;"></div>
+      </div>
+      
+      <div class="decision-box" style="background: <?= $imcActual >= 30 ? '#fff3cd' : '#d4edda' ?>; padding: 8px 12px; border-radius: 6px; border-left: 4px solid <?= $imcActual >= 30 ? '#ffc107' : '#28a745' ?>;">
+        <small>Sugerencia:</small>
+        <strong><?php echo ($imcActual >= 30) ? "Plan Hipocalórico" : "Mantenimiento"; ?></strong>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-3">
+    <div class="stat-card">
+      <div class="d-flex align-items-center gap-3">
+        <div class="stat-icon green">
+          <i class="bi bi-graph-up-arrow"></i>
+        </div>
+        <div>
+          <div class="stat-label">Progreso de Peso</div>
+          <div class="stat-value">
+            <?php 
+              if ($cambio != 0) {
+                echo ($cambio > 0 ? '+' : '') . number_format($cambio, 1);
+                echo ' <small style="font-size:.85rem;">kg</small>';
+              } else {
+                echo '--';
+              }
+            ?>
           </div>
-          <div>
-            <div class="stat-label">IMC Actual</div>
-            <div class="stat-value"><?= $imcActual > 0 ? number_format($imcActual, 1) : '--' ?></div>
-            <?php if ($imcActual > 0): ?>
-              <div class="recent-date">
-                <?php 
-                  $categoria = 'Normal';
-                  if ($imcActual < 18.5) $categoria = 'Bajo peso';
-                  elseif ($imcActual >= 25 && $imcActual < 30) $categoria = 'Sobrepeso';
-                  elseif ($imcActual >= 30) $categoria = 'Obesidad';
-                  echo $categoria;
-                ?>
+          <div class="recent-date">Desde inicio del tratamiento</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-3">
+    <div class="stat-card">
+      <div class="d-flex align-items-center gap-3">
+        <div class="stat-icon purple">
+          <i class="bi bi-trophy"></i>
+        </div>
+        <div>
+          <div class="stat-label">Total Ejercicios</div>
+          <div class="stat-value"><?= $totalEjercicios ?></div>
+          <div class="recent-date"><?= $tiempoTotalEjercicio ?> min acumulados</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Gráficas -->
+<div class="row g-3">
+  <div class="col-lg-6">
+    <div class="chart-container">
+      <h5 class="mb-2"><i class="bi bi-graph-up text-primary me-2"></i>Evolución de Peso e IMC</h5>
+      <?php if (count($expediente) > 0): ?>
+        <div class="chart-wrapper">
+          <canvas id="chartPesoIMC"></canvas>
+        </div>
+      <?php else: ?>
+        <div class="no-data">
+          <i class="bi bi-inbox me-2"></i>Sin datos de expediente
+        </div>
+      <?php endif; ?>
+    </div>
+  </div>
+
+  <div class="col-lg-6">
+    <div class="chart-container">
+      <h5 class="mb-2"><i class="bi bi-activity text-success me-2"></i>Tiempo de Ejercicio (Últimos 7 registros)</h5>
+      <?php if (count($ejercicios) > 0): ?>
+        <div class="chart-wrapper">
+          <canvas id="chartEjercicios"></canvas>
+        </div>
+      <?php else: ?>
+        <div class="no-data">
+          <i class="bi bi-inbox me-2"></i>Sin registros de ejercicio
+        </div>
+      <?php endif; ?>
+    </div>
+  </div>
+</div>
+
+<!-- Registro de Alimentos -->
+<div class="alimentos-section">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h5 class="mb-0"><i class="bi bi-egg-fried text-warning me-2"></i>Registro de Alimentos (Últimos 15)</h5>
+    <a href="Resgistro_Alimentos.php" class="btn btn-sm btn-outline-primary">
+      <i class="bi bi-plus-circle me-1"></i>Ir a Registro Completo
+    </a>
+  </div>
+
+  <?php if (empty($alimentos)): ?>
+    <div class="text-center py-3 text-muted">
+      <i class="bi bi-inbox" style="font-size:2.2rem;"></i>
+      <p class="mt-2">No hay registros de alimentos aún</p>
+    </div>
+  <?php else: ?>
+    <?php foreach ($alimentos as $ali): ?>
+      <div class="alimento-card">
+        <div class="row align-items-center">
+          <div class="col-auto">
+            <?php if (!empty($ali['foto_path']) && file_exists($ali['foto_path'])): ?>
+              <img src="<?= e($ali['foto_path']) ?>" alt="Foto alimento" class="alimento-img">
+            <?php else: ?>
+              <div class="alimento-img d-flex align-items-center justify-content-center" style="background:#f8f9fa;">
+                <i class="bi bi-image text-muted" style="font-size:2rem;"></i>
               </div>
             <?php endif; ?>
           </div>
-        </div>
-      </div>
-    </div>
-
-    <div class="col-md-3">
-      <div class="stat-card">
-        <div class="d-flex align-items-center gap-3">
-          <div class="stat-icon green">
-            <i class="bi bi-graph-up-arrow"></i>
-          </div>
-          <div>
-            <div class="stat-label">Progreso de Peso</div>
-            <div class="stat-value">
-              <?php 
-                if ($cambio != 0) {
-                  echo ($cambio > 0 ? '+' : '') . number_format($cambio, 1);
-                  echo ' <small style="font-size:.85rem;">kg</small>';
-                } else {
-                  echo '--';
-                }
-              ?>
+          <div class="col">
+            <div class="d-flex align-items-center gap-2 mb-1">
+              <span class="tipo-badge tipo-<?= e($ali['tipo_comida']) ?>">
+                <?= e(ucfirst($ali['tipo_comida'])) ?>
+              </span>
+              <small class="text-muted">
+                <i class="bi bi-calendar3 me-1"></i><?= date('d/m/Y', strtotime($ali['fecha'])) ?>
+                <i class="bi bi-clock ms-2 me-1"></i><?= date('H:i', strtotime($ali['hora'])) ?>
+              </small>
             </div>
-            <div class="recent-date">Desde inicio del tratamiento</div>
+            <p class="mb-0" style="color:#495057;"><?= e($ali['descripcion']) ?></p>
           </div>
         </div>
       </div>
-    </div>
-
-    <div class="col-md-3">
-      <div class="stat-card">
-        <div class="d-flex align-items-center gap-3">
-          <div class="stat-icon purple">
-            <i class="bi bi-trophy"></i>
-          </div>
-          <div>
-            <div class="stat-label">Total Ejercicios</div>
-            <div class="stat-value"><?= $totalEjercicios ?></div>
-            <div class="recent-date"><?= $tiempoTotalEjercicio ?> min acumulados</div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Gráficas (solo cuando registrado) -->
-  <div class="row g-3">
-    <!-- Gráfica Peso/IMC -->
-    <div class="col-lg-6">
-      <div class="chart-container">
-        <h5 class="mb-2"><i class="bi bi-graph-up text-primary me-2"></i>Evolución de Peso e IMC</h5>
-        <?php if (count($expediente) > 0): ?>
-          <div class="chart-wrapper">
-            <canvas id="chartPesoIMC"></canvas>
-          </div>
-        <?php else: ?>
-          <div class="no-data">
-            <i class="bi bi-inbox me-2"></i>Sin datos de expediente
-          </div>
-        <?php endif; ?>
-      </div>
-    </div>
-
-    <!-- Gráfica Ejercicios -->
-    <div class="col-lg-6">
-      <div class="chart-container">
-        <h5 class="mb-2"><i class="bi bi-activity text-success me-2"></i>Tiempo de Ejercicio (Últimos 7 registros)</h5>
-        <?php if (count($ejercicios) > 0): ?>
-          <div class="chart-wrapper">
-            <canvas id="chartEjercicios"></canvas>
-          </div>
-        <?php else: ?>
-          <div class="no-data">
-            <i class="bi bi-inbox me-2"></i>Sin registros de ejercicio
-          </div>
-        <?php endif; ?>
-      </div>
-    </div>
-  </div>
-
-  <!-- Registro de Alimentos (solo cuando registrado) -->
-  <div class="alimentos-section">
-    <div class="d-flex justify-content-between align-items-center mb-3">
-      <h5 class="mb-0"><i class="bi bi-egg-fried text-warning me-2"></i>Registro de Alimentos (Últimos 15)</h5>
-      <a href="Resgistro_Alimentos.php" class="btn btn-sm btn-outline-primary">
-        <i class="bi bi-plus-circle me-1"></i>Ir a Registro Completo
-      </a>
-    </div>
-
-    <?php if (empty($alimentos)): ?>
-      <div class="text-center py-3 text-muted">
-        <i class="bi bi-inbox" style="font-size:2.2rem;"></i>
-        <p class="mt-2">No hay registros de alimentos aún</p>
-      </div>
-    <?php else: ?>
-      <?php foreach ($alimentos as $ali): ?>
-        <div class="alimento-card">
-          <div class="row align-items-center">
-            <div class="col-auto">
-              <?php if (!empty($ali['foto_path']) && file_exists($ali['foto_path'])): ?>
-                <img src="<?= e($ali['foto_path']) ?>" alt="Foto alimento" class="alimento-img">
-              <?php else: ?>
-                <div class="alimento-img d-flex align-items-center justify-content-center" style="background:#f8f9fa;">
-                  <i class="bi bi-image text-muted" style="font-size:2rem;"></i>
-                </div>
-              <?php endif; ?>
-            </div>
-            <div class="col">
-              <div class="d-flex align-items-center gap-2 mb-1">
-                <span class="tipo-badge tipo-<?= e($ali['tipo_comida']) ?>">
-                  <?= e(ucfirst($ali['tipo_comida'])) ?>
-                </span>
-                <small class="text-muted">
-                  <i class="bi bi-calendar3 me-1"></i><?= date('d/m/Y', strtotime($ali['fecha'])) ?>
-                  <i class="bi bi-clock ms-2 me-1"></i><?= date('H:i', strtotime($ali['hora'])) ?>
-                </small>
-              </div>
-              <p class="mb-0" style="color:#495057;"><?= e($ali['descripcion']) ?></p>
-            </div>
-          </div>
-        </div>
-      <?php endforeach; ?>
-    <?php endif; ?>
-  </div>
+    <?php endforeach; ?>
   <?php endif; ?>
+</div>
+<?php endif; // Fin datos paciente ?>
 
 </div>
 
@@ -506,7 +685,7 @@ $cambio = $pesoActual - $pesoInicial;
 const exp = <?= json_encode($expediente, JSON_NUMERIC_CHECK | JSON_UNESCAPED_UNICODE) ?>;
 const eje = <?= json_encode($ejercicios, JSON_NUMERIC_CHECK | JSON_UNESCAPED_UNICODE) ?>;
 
-// Paleta
+// [SCRIPTS DE GRÁFICAS EXISTENTES INTACTOS]
 const cPrimary = '#198754';
 const cPrimaryFill = 'rgba(25,135,84,.12)';
 const cPurple = '#6f42c1';
@@ -515,7 +694,6 @@ const cSuccess = '#20c997';
 const gridColor = '#e9ecef';
 const tickColor = '#6c757d';
 
-// Gráfica Peso/IMC
 if (exp.length > 0) {
   const ctxPeso = document.getElementById('chartPesoIMC');
   if (ctxPeso) {
@@ -569,7 +747,6 @@ if (exp.length > 0) {
   }
 }
 
-// Gráfica Ejercicios
 if (eje.length > 0) {
   const ultimos7 = eje.slice(-7);
   const ctxEje = document.getElementById('chartEjercicios');
