@@ -91,12 +91,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($isStaff && $post_uid > 0) { $effectiveUserId = $post_uid; }
 
     // Obtener nombre desde BD del usuario objetivo
-    $effectiveUserName = '';
+$effectiveUserName = '';
     if ($st = $conexion->prepare('SELECT Nombre_completo, Rol FROM usuarios WHERE id_usuarios = ? LIMIT 1')) {
         $st->bind_param('i', $effectiveUserId);
         $st->execute();
         $st->bind_result($nmUser, $roleUser);
-        if ($st->fetch()) { $effectiveUserName = $nmUser ?: ''; }
+        if ($st->fetch()) { 
+            $effectiveUserName = $nmUser ?: ''; 
+        }
         $st->close();
     }
     if ($effectiveUserName === '') { $errores[] = 'Usuario objetivo inválido.'; }
@@ -104,11 +106,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $dni = isset($_POST['dni']) ? trim($_POST['dni']) : '';
     $fecha_nacimiento = isset($_POST['fecha_nacimiento']) ? trim($_POST['fecha_nacimiento']) : '';
     $telefono = isset($_POST['telefono']) ? trim($_POST['telefono']) : '';
-    $referencia_medica = isset($_POST['referencia_medica']) ? trim($_POST['referencia_medica']) : '';
+$referencia_medica = isset($_POST['referencia_medica']) ? trim($_POST['referencia_medica']) : '';
+    $sexo_paciente = 'M';
     $edad_metabolica = isset($_POST['edad_metabolica']) ? trim($_POST['edad_metabolica']) : '';
     $peso = isset($_POST['peso']) ? trim($_POST['peso']) : '';
     $estatura = isset($_POST['estatura']) ? trim($_POST['estatura']) : '';
-    $masa_muscular = isset($_POST['masa_muscular']) ? trim($_POST['masa_muscular']) : '';
+
     $enfermedades_base = isset($_POST['enfermedades_base']) ? trim($_POST['enfermedades_base']) : '';
     $medicamentos = isset($_POST['medicamentos']) ? trim($_POST['medicamentos']) : '';
 
@@ -140,6 +143,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $errores[] = 'Referencia médica demasiado larga (máx 255 caracteres).';
     }
 
+
+
     // Validaciones para nuevos campos
     if (!empty($edad_metabolica) && !is_numeric($edad_metabolica)) {
         $errores[] = 'Edad metabólica debe ser un número válido.';
@@ -153,9 +158,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $errores[] = 'Estatura debe ser un número válido.';
     }
 
-    if (!empty($masa_muscular) && !is_numeric($masa_muscular)) {
-        $errores[] = 'Masa muscular debe ser un número válido.';
-    }
+
 
     // Verificar si ya existe paciente para ese usuario
     if (empty($errores)) {
@@ -181,27 +184,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         // Insertar paciente (NOTA: la tabla pacientes no incluye campos clínicos como talla/peso/IMC)
-        $sql = "INSERT INTO pacientes (id_usuarios, nombre_completo, DNI, fecha_nacimiento, edad, telefono, referencia_medica) VALUES (?,?,?,?,?,?,?)";
+        $sql = "INSERT INTO pacientes (id_usuarios, nombre_completo, sexo, DNI, fecha_nacimiento, edad, telefono, referencia_medica) VALUES (?,?,?,?,?,?,?,?)";
         $stmt = $conexion->prepare($sql);
         if ($stmt) {
-            $stmt->bind_param('isssiss', $effectiveUserId, $effectiveUserName, $dni, $fecha_nacimiento, $edad, $telefono, $referencia_medica);
+            $stmt->bind_param('isssisss', $effectiveUserId, $effectiveUserName, $sexo_paciente, $dni, $fecha_nacimiento, $edad, $telefono, $referencia_medica);
             if ($stmt->execute()) {
                 $nuevoPacienteId = $stmt->insert_id;
                 $exito = 'Paciente registrado correctamente.';
                 // Insertar registro inicial de expediente si hay al menos un dato clínico
-                $hayClinicos = ($edad_metabolica !== '' || $peso !== '' || $estatura !== '' || $masa_muscular !== '' || $enfermedades_base !== '' || $medicamentos !== '' || $imc !== null);
+$hayClinicos = ($edad_metabolica !== '' || $peso !== '' || $estatura !== '' || $enfermedades_base !== '' || $medicamentos !== '' || $imc !== null);
                 if ($hayClinicos) {
-                    $sqlExp = "INSERT INTO expediente (id_pacientes, edad_metabolica, peso, estatura, IMC, masa_muscular, enfermedades_base, medicamentos) VALUES (?,?,?,?,?,?,?,?)";
+$sqlExp = "INSERT INTO expediente (id_pacientes, edad_metabolica, peso, estatura, IMC, enfermedades_base, medicamentos) VALUES (?,?,?,?,?,?,?)";
                     if ($stmtExp = $conexion->prepare($sqlExp)) {
                         // Usamos valores NULL cuando estén vacíos para claridad
                         $valEdadM = ($edad_metabolica !== '') ? $edad_metabolica : null;
                         $valPeso = ($peso !== '') ? $peso : null;
                         $valEst = ($estatura !== '') ? $estatura : null;
                         $valIMC = ($imc !== null) ? $imc : null;
-                        $valMasa = ($masa_muscular !== '') ? $masa_muscular : null;
                         $valEnf = ($enfermedades_base !== '') ? $enfermedades_base : null;
                         $valMed = ($medicamentos !== '') ? $medicamentos : null;
-                        $stmtExp->bind_param('isssssss', $nuevoPacienteId, $valEdadM, $valPeso, $valEst, $valIMC, $valMasa, $valEnf, $valMed);
+$stmtExp->bind_param('idddsss', $nuevoPacienteId, $valEdadM, $valPeso, $valEst, $valIMC, $valEnf, $valMed);
                         if ($stmtExp->execute()) {
                             $exito .= ' Se creó expediente inicial.';
                         } else {
@@ -521,6 +523,20 @@ if (isset($_SESSION['flash_success'])) {
                     </div>
 
                     <div class="mb-3">
+                        <label for="sexo" class="form-label">
+                            <i class="bi bi-gender-ambiguous me-1"></i>Sexo
+                        </label>
+                        <select class="form-select" id="sexo" name="sexo" required>
+<option value="M" <?= ($effectiveUserSexo === 'M') ? 'selected' : '' ?>>Hombre</option>
+<option value="F" <?= ($effectiveUserSexo === 'F') ? 'selected' : '' ?>>Mujer</option>
+</xai:function_call}
+
+<xai:function_call name="edit_file">
+<parameter name="path">c:/xampp/htdocs/Cl-nica-Nutricional-J/TODO.md
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
                         <label for="referencia_medica" class="form-label">
                             <i class="bi bi-journal-medical me-1"></i>Referencia Médica
                         </label>
@@ -579,12 +595,7 @@ if (isset($_SESSION['flash_success'])) {
                             </label>
                             <input type="number" step="0.01" class="form-control" id="estatura" name="estatura" placeholder="170.5">
                         </div>
-                        <div class="col-md-6">
-                            <label for="masa_muscular" class="form-label">
-                                <i class="bi bi-activity me-1"></i>Masa muscular (kg)
-                            </label>
-                            <input type="number" step="0.01" class="form-control" id="masa_muscular" name="masa_muscular" placeholder="50.0">
-                        </div>
+
                     </div>
 
                     <div class="mb-3">

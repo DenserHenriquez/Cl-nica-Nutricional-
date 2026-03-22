@@ -56,7 +56,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             redirect_with_message('Las contrasenas no coinciden');
         }
         // Todos los usuarios nuevos se registran como Paciente por defecto
-        $rolValido = 'Paciente';
+$rolValido = 'Paciente';
+        $sexoValido = isset($_POST['sexo']) ? trim($_POST['sexo']) : 'M';
 
         // Comprobar unicidad de usuario y correo
         $stmt = $conexion->prepare('SELECT 1 FROM usuarios WHERE Usuario = ? OR Correo_electronico = ? LIMIT 1');
@@ -72,15 +73,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         $stmt->close();
 
-        // Comprobar si existe columna Rol, si no agregarla automaticamente
+// Comprobar columnas Rol y sexo
         try {
-            $colCheck = $conexion->query("SHOW COLUMNS FROM usuarios LIKE 'Rol'");
-            if ($colCheck && $colCheck->num_rows === 0) {
+            $colCheckRol = $conexion->query("SHOW COLUMNS FROM usuarios LIKE 'Rol'");
+            if ($colCheckRol && $colCheckRol->num_rows === 0) {
                 $conexion->query("ALTER TABLE usuarios ADD COLUMN Rol VARCHAR(20) NOT NULL DEFAULT 'Paciente'");
             }
-        } catch (Throwable $eAlter) {
-            // Si falla, seguimos con default paciente sin interrumpir (se insertara sin rol si no existe)
-        }
+        } catch (Throwable $eAlterRol) {}
+        try {
+            $colCheckSexo = $conexion->query("SHOW COLUMNS FROM usuarios LIKE 'sexo'");
+            if ($colCheckSexo && $colCheckSexo->num_rows === 0) {
+                $conexion->query("ALTER TABLE usuarios ADD COLUMN sexo ENUM('M','F') NOT NULL DEFAULT 'M'");
+            }
+        } catch (Throwable $eAlterSexo) {}
+
 
         // Hashear contraseña
         $hash = password_hash($contrasena, PASSWORD_BCRYPT);
@@ -89,10 +95,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         // Insertar usuario (intentar con Rol, si falla reintentar sin Rol)
-        $sqlInsert = 'INSERT INTO usuarios (Nombre_completo, Correo_electronico, Usuario, Contrasena, Rol) VALUES (?, ?, ?, ?, ?)';
+$sqlInsert = 'INSERT INTO usuarios (Nombre_completo, sexo, Correo_electronico, Usuario, Contrasena, Rol) VALUES (?, ?, ?, ?, ?, ?)';
+
         $stmt = $conexion->prepare($sqlInsert);
         if ($stmt) {
-            $stmt->bind_param('sssss', $nombre, $correo, $usuario, $hash, $rolValido);
+            $stmt->bind_param('ssssss', $nombre, $sexoValido, $correo, $usuario, $hash, $rolValido);
         } else {
             // Intentar sin Rol (por si no se pudo crear la columna)
             $stmt = $conexion->prepare('INSERT INTO usuarios (Nombre_completo, Correo_electronico, Usuario, Contrasena) VALUES (?, ?, ?, ?)');

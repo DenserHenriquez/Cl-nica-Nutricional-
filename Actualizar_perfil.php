@@ -1,6 +1,14 @@
 <?php
 session_start();
 require_once __DIR__ . '/db_connection.php';
+
+// Defensive: ensure sexo column exists
+$checkSexo = $conexion->query("SHOW COLUMNS FROM usuarios LIKE 'sexo'");
+if ($checkSexo && $checkSexo->num_rows === 0) {
+    $conexion->query("ALTER TABLE usuarios ADD COLUMN sexo ENUM('M','F') NOT NULL DEFAULT 'M' AFTER Nombre_completo");
+    echo "<div class='alert alert-info'>✅ Added sexo column to usuarios table.</div>";
+}
+
 // Migración defensiva: expediente.talla -> expediente.edad_metabolica
 if (isset($conexion) && $conexion instanceof mysqli) {
     $chkEdad = @$conexion->query("SHOW COLUMNS FROM expediente LIKE 'edad_metabolica'");
@@ -21,12 +29,12 @@ if (isset($conexion) && $conexion instanceof mysqli) {
 
 // CONFIGURACIÓN (ajusta según tus tablas)
 $TABLE_USERS = 'usuarios';
-$FIELDS_SELECT_USERS = 'id_usuarios, Nombre_completo, Correo_electronico, Usuario, Contrasena';
+$FIELDS_SELECT_USERS = 'id_usuarios, Nombre_completo, sexo, Correo_electronico, Usuario, Contrasena';
 $TABLE_PATIENTS = 'pacientes';
 $FIELDS_SELECT_PATIENTS = 'id_pacientes, id_usuarios, nombre_completo, DNI, fecha_nacimiento, edad, telefono, referencia_medica';
 // Tabla expediente (registro médico del paciente)
 $TABLE_EXPEDIENTE = 'expediente';
-$FIELDS_SELECT_EXPEDIENTE = 'id_expediente, id_pacientes, edad_metabolica, peso, estatura, IMC, masa_muscular, enfermedades_base, medicamentos';
+$FIELDS_SELECT_EXPEDIENTE = 'id_expediente, id_pacientes, edad_metabolica, peso, estatura, IMC, enfermedades_base, medicamentos';
 // Tabla de historial de actualizaciones (crear en BD si no existe)
 $TABLE_HISTORY = 'historial_actualizaciones';
 
@@ -50,6 +58,7 @@ $exito = '';
 // Cargar datos actuales del usuario
 function cargarUsuario(mysqli $conexion, string $tabla, int $id, string $campos)
 {
+    // Fallback for sexo - JOIN with pacientes if needed
     $stmt = $conexion->prepare("SELECT $campos FROM $tabla WHERE id_usuarios = ? LIMIT 1");
     if (!$stmt) {
         return null;
@@ -59,8 +68,27 @@ function cargarUsuario(mysqli $conexion, string $tabla, int $id, string $campos)
     $res = $stmt->get_result();
     $dato = $res ? $res->fetch_assoc() : null;
     $stmt->close();
+    
+    // Ensure sexo is available (from pacientes fallback)
+    if (!isset($dato['sexo']) && $tabla === 'usuarios') {
+        $pacSexo = cargarPacienteSexoOnly($conexion, $id);
+        $dato['sexo'] = $pacSexo ?: 'M';
+    }
     return $dato ?: null;
 }
+
+// Helper for sexo fallback
+function cargarPacienteSexoOnly(mysqli $conexion, int $id) {
+    $stmt = $conexion->prepare("SELECT sexo FROM pacientes WHERE id_usuarios = ? LIMIT 1");
+    if (!$stmt) return null;
+    $stmt->bind_param('i', $id);
+    $stmt->execute();
+    $res = $stmt->get_result();
+    $sexo = $res ? $res->fetch_assoc()['sexo'] ?? null : null;
+    $stmt->close();
+    return $sexo;
+}
+
 
 // Cargar datos actuales del paciente
 function cargarPaciente(mysqli $conexion, string $tabla, int $id, string $campos)
@@ -185,6 +213,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     if ($accion === 'perfil') {
         // --- ACTUALIZAR PERFIL (usuarios + pacientes) ---
+$sexo = $_POST['sexo'] ?? 'M';
         $correo = trim($_POST['Correo_electronico'] ?? '');
         $contrasena = trim($_POST['Contrasena'] ?? '');
         $nombreCompletoPaciente = trim($_POST['nombre_completo'] ?? '');
@@ -201,8 +230,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         $fotoNombreFinal = null; // (No hay columna foto en esquema actual, mantenemos placeholder)
 
-        $permitidosUsuario = ['Correo_electronico'];
-        $payloadNuevoUsuario = [ 'Correo_electronico' => $correo ];
+$permitidosUsuario = ['sexo', 'Correo_electronico'];
+$payloadNuevoUsuario = [ 'sexo' => $sexo, 'Correo_electronico' => $correo ];
         if ($contrasena !== '') {
             $payloadNuevoUsuario['Contrasena'] = password_hash($contrasena, PASSWORD_DEFAULT);
             $permitidosUsuario[] = 'Contrasena';
@@ -280,8 +309,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $edad_metabolica = trim($_POST['edad_metabolica'] ?? ''); // antes 'talla'
         $peso = trim($_POST['peso'] ?? '');   // kg
         $estatura = trim($_POST['estatura'] ?? ''); // cm
-        $masa_muscular = trim($_POST['masa_muscular'] ?? '');
-        $enfermedades_base = trim($_POST['enfermedades_base'] ?? '');
+    $enfermedades_base = trim($_POST['enfermedades_base'] ?? '');
         $medicamentos = trim($_POST['medicamentos'] ?? '');
 
         // Calcular IMC si peso y estatura válidos
@@ -294,7 +322,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($peso !== '' && !is_numeric($peso)) { $errores[] = 'El peso debe ser numérico.'; }
     if ($estatura !== '' && !is_numeric($estatura)) { $errores[] = 'La estatura debe ser numérica.'; }
     if ($edad_metabolica !== '' && !is_numeric($edad_metabolica)) { $errores[] = 'La edad metabólica debe ser numérica.'; }
-    if ($masa_muscular !== '' && !is_numeric($masa_muscular)) { $errores[] = 'La masa muscular debe ser numérica.'; }
+
 
         if (!$errores) {
             $nuevoExpediente = [
@@ -302,7 +330,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 'peso' => $peso !== '' ? $peso : null,
                 'estatura' => $estatura !== '' ? $estatura : null,
                 'IMC' => $IMC !== null ? $IMC : null,
-                'masa_muscular' => $masa_muscular !== '' ? $masa_muscular : null,
                 'enfermedades_base' => $enfermedades_base !== '' ? $enfermedades_base : null,
                 'medicamentos' => $medicamentos !== '' ? $medicamentos : null,
             ];
@@ -548,11 +575,20 @@ $historial = cargarHistorial($conexion, $TABLE_HISTORY, $targetUserId);
                             <input type="password" class="form-control" id="Contrasena" name="Contrasena" placeholder="Dejar en blanco para no cambiar">
                         </div>
 
-                        <div class="mb-3">
+<div class="mb-3">
                             <label for="nombre_completo" class="form-label">
                                 <i class="bi bi-person me-1"></i>Nombre completo
                             </label>
                             <input type="text" class="form-control" id="nombre_completo" name="nombre_completo" value="<?= htmlspecialchars($paciente['nombre_completo'] ?? '', ENT_QUOTES, 'UTF-8') ?>" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="sexo" class="form-label">
+                                <i class="bi bi-gender-ambiguous me-1"></i>Sexo
+                            </label>
+                            <select class="form-select" id="sexo" name="sexo" required>
+<option value="M" <?= (h($usuario['sexo'] ?? '') === 'M') ? 'selected' : '' ?>>Hombre</option>
+<option value="F" <?= (h($usuario['sexo'] ?? '') === 'F') ? 'selected' : '' ?>>Mujer</option>
+                            </select>
                         </div>
 
                         <div class="row mb-3">
