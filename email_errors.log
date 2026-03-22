@@ -13,3 +13,5 @@
 [2026-03-11 22:32:19] Correo enviado exitosamente {"to":"akra5669@gmail.com","subject":"Confirmaci\u00f3n de cita m\u00e9dica - Cl\u00ednica Nutricional"}
 [2026-03-11 23:55:09] Correo enviado exitosamente {"to":"Anthonypaciente@correo.com","subject":"Confirmaci\u00f3n de cita m\u00e9dica - Cl\u00ednica Nutricional"}
 [2026-03-18 06:09:34] Correo enviado exitosamente {"to":"Anthonypaciente@correo.com","subject":"Confirmaci\u00f3n de cita m\u00e9dica - Cl\u00ednica Nutricional"}
+[2026-03-22 04:49:51] ERROR: PHPMailer no está cargado. Verificar que composer install se ejecutó correctamente. {"to":"anagn@nutri.hn","subject":"Confirmaci\u00f3n de cita m\u00e9dica - Cl\u00ednica Nutricional"}
+[2026-03-22 04:50:15] ERROR: PHPMailer no está cargado. Verificar que composer install se ejecutó correctamente. {"to":"anagn@nutri.hn","subject":"Confirmaci\u00f3n de cita m\u00e9dica - Cl\u00ednica Nutricional"}

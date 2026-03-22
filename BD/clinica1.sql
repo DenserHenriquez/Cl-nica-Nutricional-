@@ -243,6 +243,7 @@ CREATE TABLE `pacientes` (
   `id_pacientes` int(11) NOT NULL,
   `id_usuarios` int(11) NOT NULL,
   `nombre_completo` varchar(100) DEFAULT NULL,
+  `sexo` enum('M','F') NOT NULL DEFAULT 'M',
   `DNI` varchar(20) DEFAULT NULL,
   `fecha_nacimiento` date DEFAULT NULL,
   `edad` int(11) DEFAULT NULL,
