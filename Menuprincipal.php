@@ -65,7 +65,8 @@ $menuItems = [
     'retroalimentacion' => ['Medico', 'Paciente', 'Administrador']
     ,'estadisticas_medico' => ['Administrador'],
     'consulta_medica' => ['Medico', 'Administrador'],
-    'edicion_inicio' => ['Administrador']
+    'edicion_inicio' => ['Administrador'],
+    'rangos_corporales' => ['Medico', 'Paciente', 'Administrador']
 ];
 
 // Función para verificar si el usuario tiene acceso a un item del menú
@@ -364,6 +365,14 @@ function e($str) { return htmlspecialchars((string)$str, ENT_QUOTES, 'UTF-8'); }
                         <li class="nav-item">
                             <a class="nav-link" href="panelevolucionpaciente.php" target="main-content">
                                 <i class="bi bi-graph-up"></i> Panel de Evolucion
+                            </a>
+                        </li>
+                        <?php endif; ?>
+
+                        <?php if (hasAccess('rangos_corporales', $userRole, $menuItems)): ?>
+                        <li class="nav-item">
+                            <a class="nav-link" href="RangosCorporales.php" target="main-content">
+                                <i class="bi bi-rulers"></i> Rangos Corporales
                             </a>
                         </li>
                         <?php endif; ?>
