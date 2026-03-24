@@ -322,6 +322,26 @@ if ($pacienteId) {
         .alert {
             border-radius: 0.375rem;
         }
+        .table-responsive {
+            text-align: center;
+        }
+        table.table th,
+        table.table td {
+            text-align: center;
+            vertical-align: middle;
+        }
+        .table td:nth-child(1),
+        .table th:nth-child(1) {
+            text-align: left;
+        }
+        .table td:nth-child(2),
+        .table th:nth-child(2) {
+            text-align: left;
+        }
+        .table td:nth-child(5),
+        .table th:nth-child(5) {
+            text-align: left;
+        }
         .header-section {
             background: linear-gradient(135deg, #198754 0%, #146c43 100%);
             color: white;
@@ -391,6 +411,28 @@ if ($pacienteId) {
             .header-section h1 { font-size:1.4rem; }
             .header-section p { font-size:.82rem; }
             .medical-icon i { font-size:1.3rem !important; }
+        }
+        /* Nombre del Examen en una línea */
+        table.table th:nth-child(2),
+        table.table td:nth-child(2) {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 200px;
+        }
+        /* Botones de acciones alineados */
+        .action-buttons {
+            display: flex;
+            gap: 0.25rem;
+            flex-wrap: nowrap;
+            align-items: center;
+            white-space: nowrap;
+        }
+        .action-buttons .btn {
+            display: inline-flex;
+            align-items: center;
+            white-space: nowrap;
+            padding: 0.375rem 0.5rem;
         }
     </style>
 </head>
@@ -462,10 +504,10 @@ if ($pacienteId) {
                 <form method="post" enctype="multipart/form-data" class="row g-3" id="uploadForm">
                     <input type="hidden" id="exam_id" name="exam_id" value="">
                     <div class="col-md-4">
-                        <label for="categoria_examen" class="form-label">
-                            <i class="bi bi-tags me-1"></i>Categoría de Examen *
+                        <label for="categoria_examen" class="form-label fw-bold text-success">
+                            Categoría de Examen (Obligatorio)
                         </label>
-                        <select class="form-select" id="categoria_examen" name="categoria_examen" required>
+                        <select class="form-select border-success" id="categoria_examen" name="categoria_examen">
                             <option value="">-- Seleccionar Categoría --</option>
                             <option value="Perfil Metabólico">Perfil Metabólico</option>
                             <option value="Nutrientes y Sangre">Nutrientes y Sangre</option>
@@ -476,38 +518,33 @@ if ($pacienteId) {
                         <span class="muted">Seleccione la categoría del examen</span>
                     </div>
                     <div class="col-md-4">
-                        <label for="nombre_examen" class="form-label">
-                            <i class="bi bi-card-text me-1"></i>Nombre del Examen *
+                        <label for="nombre_examen" class="form-label fw-bold text-success">
+                            Nombre del Examen *
                         </label>
-                        <input type="text" class="form-control" id="nombre_examen" name="nombre_examen" required>
+                        <input type="text" class="form-control" id="nombre_examen" name="nombre_examen">
                     </div>
                     <div class="col-md-2">
-                        <label for="fecha_examen" class="form-label">
-                            <i class="bi bi-calendar3 me-1"></i>Fecha *
+                        <label for="fecha_examen" class="form-label fw-bold text-success">
+                            Fecha *
                         </label>
-                        <input type="date" class="form-control" id="fecha_examen" name="fecha_examen" value="<?= date('Y-m-d') ?>" required>
-                    </div>
-                    <div class="col-md-2">
-                        <label for="notas" class="form-label">
-                            <i class="bi bi-journal-text me-1"></i>Notas (opcional)
-                        </label>
-                        <textarea class="form-control" id="notas" name="notas" rows="1"></textarea>
+                        <input type="date" class="form-control" id="fecha_examen" name="fecha_examen" value="<?= date('Y-m-d') ?>">
                     </div>
                     <div class="col-12">
-                        <label class="form-label">
-                            <i class="bi bi-folder2-open me-1"></i>Cargar Archivo
+                        <label class="form-label text-success fw-bold">
+                            Subir Archivo (PDF)
                         </label>
-                        <div class="border rounded upload-zone position-relative text-center py-5" id="uploadZone">
-                            <div class="text-muted">
-                                <i class="bi bi-cloud-upload fs-1"></i>
-                                <p class="mt-2 mb-0">Arrastre y suelte su archivo o haga clic para examinar</p>
-                            </div>
-                            <input type="file" class="form-control position-absolute top-0 start-0 w-100 h-100 opacity-0" id="examen_pdf" name="examen_pdf" accept="application/pdf" required>
+                        <input type="file" class="form-control" id="examen_pdf" name="examen_pdf" accept="application/pdf">
+                        <span class="small text-muted d-block mt-2">Solo se aceptan archivos .pdf (máx 10MB)</span>
+                    </div>
+                    <div class="col-12" id="errorMessage" style="display:none;">
+                        <div class="alert alert-warning alert-dismissible fade show" role="alert">
+                            <strong>Por favor, completa los campos obligatorios:</strong>
+                            <ul class="mb-0 mt-2" id="errorList"></ul>
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                         </div>
-                        <span class="muted">Solo se aceptan archivos .pdf (máx 10MB)</span>
                     </div>
                     <div class="col-12 d-grid">
-                        <button type="submit" class="btn btn-primary btn-lg" id="submitBtn">
+                        <button type="button" class="btn btn-primary btn-lg" id="submitBtn">
                             <i class="bi bi-plus-circle me-2"></i>Añadir a la Lista
                         </button>
                     </div>
@@ -538,7 +575,6 @@ if ($pacienteId) {
                                     <th>Categoría</th>
                                     <th>Nombre del Examen</th>
                                     <th>Fecha</th>
-                                    <th>Notas</th>
                                     <th>Archivo</th>
                                     <th>Tamaño</th>
                                     <th>Acciones</th>
@@ -575,7 +611,6 @@ if ($pacienteId) {
                                         </td>
                                         <td><?= htmlspecialchars($ex['nombre_examen'] ?? '', ENT_QUOTES, 'UTF-8') ?></td>
                                         <td><?= htmlspecialchars(date('d/m/Y', strtotime($ex['fecha_examen'] ?? $ex['creado_en'])), ENT_QUOTES, 'UTF-8') ?></td>
-                                        <td><?= nl2br(htmlspecialchars($ex['notas'] ?? '', ENT_QUOTES, 'UTF-8')) ?></td>
                                         <td>
                                             <div class="d-flex align-items-center">
                                                 <i class="bi bi-file-earmark-pdf-fill file-icon me-2"></i>
@@ -586,18 +621,20 @@ if ($pacienteId) {
                                         </td>
                                         <td><?= round(((int)$ex['tamano']) / 1024, 1) ?> KB</td>
                                         <td>
-                                            <button type="button" class="btn btn-outline-primary btn-sm btn-edit" data-id="<?= (int)$ex['id'] ?>">
-                                                <i class="bi bi-pencil"></i>
-                                            </button>
-                                            <a href="?id_pacientes=<?= $pacienteId ?>&delete=<?= (int)$ex['id'] ?>" class="btn btn-outline-danger btn-sm" onclick="return confirm('¿Eliminar este examen?');">
-                                                <i class="bi bi-trash"></i>
-                                            </a>
-                                            <a class="btn btn-primary btn-sm" target="_blank" href="<?= htmlspecialchars($ex['ruta'], ENT_QUOTES, 'UTF-8') ?>">
-                                                <i class="bi bi-eye me-1"></i>
-                                            </a>
-                                            <a class="btn btn-secondary btn-sm" target="_blank" href="<?= htmlspecialchars($ex['ruta'], ENT_QUOTES, 'UTF-8') ?>" download="<?= htmlspecialchars($ex['nombre_paciente'], ENT_QUOTES, 'UTF-8') ?>">
-                                                <i class="bi bi-download me-1"></i>Descargar
-                                            </a>
+                                            <div class="action-buttons">
+                                                <button type="button" class="btn btn-outline-primary btn-sm btn-edit" data-id="<?= (int)$ex['id'] ?>">
+                                                    <i class="bi bi-pencil"></i>
+                                                </button>
+                                                <button type="button" class="btn btn-outline-danger btn-sm btn-delete" data-id="<?= (int)$ex['id'] ?>" data-name="<?= htmlspecialchars($ex['nombre_examen'] ?? '', ENT_QUOTES, 'UTF-8') ?>">
+                                                    <i class="bi bi-trash"></i>
+                                                </button>
+                                                <a class="btn btn-primary btn-sm" target="_blank" href="<?= htmlspecialchars($ex['ruta'], ENT_QUOTES, 'UTF-8') ?>">
+                                                    <i class="bi bi-eye me-1"></i>
+                                                </a>
+                                                <a class="btn btn-secondary btn-sm" target="_blank" href="<?= htmlspecialchars($ex['ruta'], ENT_QUOTES, 'UTF-8') ?>" download="<?= htmlspecialchars($ex['nombre_paciente'], ENT_QUOTES, 'UTF-8') ?>">
+                                                    <i class="bi bi-download me-1"></i>Descargar
+                                                </a>
+                                            </div>
                                         </td>
                                     </tr>
                                 <?php endforeach; ?>
@@ -605,6 +642,26 @@ if ($pacienteId) {
                         </table>
                     </div>
                 <?php endif; ?>
+            </div>
+        </div>
+
+        <!-- Modal de confirmación de eliminación -->
+        <div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content border-danger">
+                    <div class="modal-header bg-danger text-white">
+                        <h5 class="modal-title" id="deleteModalLabel">Eliminar Examen</h5>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <p class="mb-0">¿Está seguro de que desea eliminar el examen <strong id="examNameToDelete"></strong>?</p>
+                        <p class="text-muted small mt-2">Esta acción no se puede deshacer.</p>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                        <a href="#" id="deleteConfirmLink" class="btn btn-danger">Eliminar</a>
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -645,6 +702,119 @@ if ($pacienteId) {
                     const text = row.textContent.toLowerCase();
                     row.style.display = text.includes(filter) ? '' : 'none';
                 });
+            });
+        }
+
+        // Manejo del botón de editar examen
+        document.querySelectorAll('.btn-edit').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const examId = this.getAttribute('data-id');
+                const row = this.closest('tr');
+                
+                if (examId && row) {
+                    const categoria = row.getAttribute('data-cat') || '';
+                    const nombre = row.getAttribute('data-name') || '';
+                    const fecha = row.getAttribute('data-date') || '';
+                    
+                    // Llenar el formulario con los datos del examen
+                    document.getElementById('categoria_examen').value = categoria;
+                    document.getElementById('nombre_examen').value = nombre;
+                    document.getElementById('fecha_examen').value = fecha;
+                    document.getElementById('exam_id').value = examId;
+                    
+                    // Cambiar botón a modo edición
+                    const submitBtn = document.getElementById('submitBtn');
+                    if (submitBtn) {
+                        submitBtn.textContent = 'Actualizar Examen';
+                        submitBtn.classList.remove('btn-primary');
+                        submitBtn.classList.add('btn-warning');
+                    }
+                    
+                    // Mostrar botón cancelar
+                    const cancelWrapper = document.getElementById('cancelWrapper');
+                    if (cancelWrapper) cancelWrapper.style.display = '';
+                    
+                    // Desplazar a la parte superior del formulario
+                    document.querySelector('form').scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+            });
+        });
+        
+        // Botón cancelar edición
+        const cancelBtn = document.getElementById('cancelEdit');
+        if (cancelBtn) {
+            cancelBtn.addEventListener('click', function() {
+                // Limpiar formulario
+                document.getElementById('uploadForm').reset();
+                document.getElementById('exam_id').value = '';
+                
+                // Restaurar botón
+                const submitBtn = document.getElementById('submitBtn');
+                if (submitBtn) {
+                    submitBtn.textContent = 'Añadir a la Lista';
+                    submitBtn.classList.remove('btn-warning');
+                    submitBtn.classList.add('btn-primary');
+                }
+                
+                // Ocultar botón cancelar
+                const cancelWrapper = document.getElementById('cancelWrapper');
+                if (cancelWrapper) cancelWrapper.style.display = 'none';
+            });
+        }
+
+        // Modal de eliminación personalizado
+        const deleteModal = new bootstrap.Modal(document.getElementById('deleteModal'), { backdrop: 'static' });
+        document.querySelectorAll('.btn-delete').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const examId = this.getAttribute('data-id');
+                const examName = this.getAttribute('data-name');
+                
+                // Llenar modal con datos
+                document.getElementById('examNameToDelete').textContent = examName;
+                const deleteLink = document.getElementById('deleteConfirmLink');
+                deleteLink.href = '?id_pacientes=<?= $pacienteId ?>&delete=' + examId;
+                
+                // Mostrar modal
+                deleteModal.show();
+            });
+        });
+
+        // Validación personalizada del formulario
+        const submitBtn = document.getElementById('submitBtn');
+        const uploadForm = document.getElementById('uploadForm');
+        const errorMessage = document.getElementById('errorMessage');
+        const errorList = document.getElementById('errorList');
+
+        if (submitBtn) {
+            submitBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                errorList.innerHTML = '';
+                errorMessage.style.display = 'none';
+                
+                const categoriaVal = document.getElementById('categoria_examen').value.trim();
+                const nombreVal = document.getElementById('nombre_examen').value.trim();
+                const fechaVal = document.getElementById('fecha_examen').value.trim();
+                const fileVal = document.getElementById('examen_pdf').files.length;
+                
+                const errors = [];
+                
+                if (!categoriaVal) errors.push('Selecciona una categoría de examen');
+                if (!nombreVal) errors.push('Ingresa el nombre del examen');
+                if (!fechaVal) errors.push('Selecciona una fecha');
+                if (!fileVal) errors.push('Sube un archivo PDF');
+                
+                if (errors.length > 0) {
+                    errors.forEach(error => {
+                        const li = document.createElement('li');
+                        li.textContent = error;
+                        errorList.appendChild(li);
+                    });
+                    errorMessage.style.display = 'block';
+                    errorMessage.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                } else {
+                    // Si todo es válido, enviar formulario
+                    uploadForm.submit();
+                }
             });
         }
     </script>
