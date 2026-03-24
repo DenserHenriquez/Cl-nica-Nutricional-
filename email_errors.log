@@ -15,3 +15,8 @@
 [2026-03-18 06:09:34] Correo enviado exitosamente {"to":"Anthonypaciente@correo.com","subject":"Confirmaci\u00f3n de cita m\u00e9dica - Cl\u00ednica Nutricional"}
 [2026-03-22 04:49:51] ERROR: PHPMailer no está cargado. Verificar que composer install se ejecutó correctamente. {"to":"anagn@nutri.hn","subject":"Confirmaci\u00f3n de cita m\u00e9dica - Cl\u00ednica Nutricional"}
 [2026-03-22 04:50:15] ERROR: PHPMailer no está cargado. Verificar que composer install se ejecutó correctamente. {"to":"anagn@nutri.hn","subject":"Confirmaci\u00f3n de cita m\u00e9dica - Cl\u00ednica Nutricional"}
+[2026-03-24 18:06:11] ERROR: PHPMailer no está cargado. Verificar que composer install se ejecutó correctamente. {"to":"leo@gmail.com","subject":"Confirmaci\u00f3n de cita m\u00e9dica - Cl\u00ednica Nutricional"}
+[2026-03-24 18:32:34] ERROR: PHPMailer no está cargado. Verificar que composer install se ejecutó correctamente. {"to":"jazelbonilla16@gmail.com","subject":"Confirmaci\u00f3n de cita m\u00e9dica - Cl\u00ednica Nutricional"}
+[2026-03-24 18:46:32] ERROR: PHPMailer no está cargado. Verificar que composer install se ejecutó correctamente. {"to":"jazelbonilla16@gmail.com","subject":"Confirmaci\u00f3n de cita m\u00e9dica - Cl\u00ednica Nutricional"}
+[2026-03-24 18:53:19] ERROR: PHPMailer no está cargado. Verificar que composer install se ejecutó correctamente. {"to":"jazelbonilla16@gmail.com","subject":"Confirmaci\u00f3n de cita m\u00e9dica - Cl\u00ednica Nutricional"}
+[2026-03-24 18:54:08] ERROR: PHPMailer no está cargado. Verificar que composer install se ejecutó correctamente. {"to":"jazelbonilla16@gmail.com","subject":"Confirmaci\u00f3n de cita m\u00e9dica - Cl\u00ednica Nutricional"}
