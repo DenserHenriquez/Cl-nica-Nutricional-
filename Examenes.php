@@ -406,6 +406,32 @@ if ($pacienteId) {
             border: 1px solid #dee2e6;
             border-radius: 0.375rem;
         }
+        /* Typeahead styles (search suggestions) */
+        .typeahead-wrapper { position: relative; }
+        .typeahead-list {
+            position: absolute;
+            top: 100%; left: 0; right: 0;
+            background: #fff;
+            border: 1px solid #e6ece3;
+            z-index: 2000;
+            max-height: 260px;
+            overflow-y: auto;
+            border-radius: 6px;
+            box-shadow: 0 6px 18px rgba(0,0,0,0.08);
+        }
+        .typeahead-item {
+            display:flex;
+            justify-content:space-between;
+            align-items:center;
+            padding:12px 14px;
+            cursor:pointer;
+            border-bottom:1px solid #f1f3f2;
+        }
+        .typeahead-item:last-child { border-bottom:none; }
+        .typeahead-item:hover { background:#e9f7ef; }
+        .typeahead-name { font-weight:700; color:#198754; font-size:1rem; }
+        .typeahead-meta { font-size:0.9rem; color:#6c757d; text-align:right; margin-left:12px; white-space:nowrap; }
+        @media (max-width:576px) { .typeahead-list { max-height:200px; } }
         @media (max-width:576px) {
             .preview-pdf { height:280px; }
             .header-section h1 { font-size:1.4rem; }
@@ -457,30 +483,29 @@ if ($pacienteId) {
             </div>
         <?php endif; ?>
         
-        <?php if ($success): ?>
-            <div class="alert alert-success" role="alert">
-                <i class="bi bi-check-circle-fill me-2"></i><?= htmlspecialchars($success, ENT_QUOTES, 'UTF-8') ?>
-            </div>
-        <?php endif; ?>
-
         <?php if ($isStaff): ?>
-            <!-- Selector de paciente para médicos -->
+            <!-- Selector de paciente para médicos (búsqueda por nombre o DNI) -->
             <div class="card mb-4">
                 <div class="card-header bg-primary text-white">
                     <h5 class="card-title mb-0"><i class="bi bi-people me-2"></i>Seleccionar Paciente</h5>
                 </div>
                 <div class="card-body">
-                    <form method="get" class="row g-3">
+                    <form method="get" class="row g-2 align-items-center" id="pacienteSearchForm">
+                        <div class="col-12">
+                            <label for="buscar_paciente_examen" class="form-label">Paciente</label>
+                        </div>
                         <div class="col-md-8">
-                            <label for="pacienteSelect" class="form-label">Paciente</label>
-                            <select name="id_pacientes" id="pacienteSelect" class="form-select" onchange="this.form.submit()">
-                                <option value="">-- Seleccionar Paciente --</option>
-                                <?php foreach ($listaPacientes as $p): ?>
-                                    <option value="<?= $p['id_pacientes'] ?>" <?= ($requestedPacienteId == $p['id_pacientes']) ? 'selected' : '' ?>>
-                                        <?= htmlspecialchars($p['nombre_completo'], ENT_QUOTES, 'UTF-8') ?>
-                                    </option>
-                                <?php endforeach; ?>
-                            </select>
+                            <div class="typeahead-wrapper position-relative">
+                                <input type="text" class="form-control" id="buscar_paciente_examen" name="q" placeholder="Ingrese nombre o DNI del paciente" autocomplete="off" value="<?= isset($_GET['q']) ? htmlspecialchars($_GET['q'], ENT_QUOTES, 'UTF-8') : '' ?>">
+                                <div id="typeahead-list-examen" class="typeahead-list" style="display:none;"></div>
+                            </div>
+                            <input type="hidden" name="id_pacientes" id="id_pacientes_hidden" value="<?= htmlspecialchars((string)$requestedPacienteId, ENT_QUOTES, 'UTF-8') ?>">
+                        </div>
+                        <div class="col-md-4 d-flex justify-content-md-end align-items-center gap-2">
+                            <button class="btn btn-primary btn-sm" type="submit" style="white-space:nowrap; padding:.35rem .6rem; margin-top:0;"><i class="bi bi-search me-1"></i>Buscar</button>
+                            <?php if ($requestedPacienteId || (isset($_GET['q']) && $_GET['q'] !== '')): ?>
+                                <a class="btn btn-secondary btn-sm" href="Examenes.php" style="white-space:nowrap; padding:.35rem .6rem;">Limpiar</a>
+                            <?php endif; ?>
                         </div>
                     </form>
                 </div>
@@ -705,6 +730,61 @@ if ($pacienteId) {
             });
         }
 
+        // Typeahead para búsqueda de pacientes (usa Consulta_Medica.php?ajax=pacientes)
+        (function(){
+            const input = document.getElementById('buscar_paciente_examen');
+            const list = document.getElementById('typeahead-list-examen');
+            const hidden = document.getElementById('id_pacientes_hidden');
+            const form = document.getElementById('pacienteSearchForm');
+            if (!input || !list || !form) return;
+
+            let controller = null;
+            let debounceTimer = null;
+
+            function clearList(){ list.innerHTML = ''; list.style.display = 'none'; }
+
+            input.addEventListener('input', function(){
+                const q = this.value.trim();
+                hidden.value = '';
+                if (debounceTimer) clearTimeout(debounceTimer);
+                if (controller) { try{ controller.abort(); }catch(e){} }
+                if (q.length < 2) { clearList(); return; }
+                debounceTimer = setTimeout(() => {
+                    controller = new AbortController();
+                    fetch('Consulta_Medica.php?ajax=pacientes&q=' + encodeURIComponent(q), { signal: controller.signal })
+                        .then(r => r.json())
+                        .then(data => {
+                            list.innerHTML = '';
+                            if (!Array.isArray(data) || data.length === 0) { clearList(); return; }
+                            data.forEach(item => {
+                                const div = document.createElement('div');
+                                div.className = 'typeahead-item';
+                                const metaParts = [];
+                                if (item.dni) metaParts.push('DNI: ' + item.dni);
+                                if (item.telefono) metaParts.push('Tel: ' + item.telefono);
+                                const metaText = metaParts.join('  ·  ');
+                                div.innerHTML = '<div class="typeahead-name">' + (item.nombre || '') + '</div>' +
+                                                '<div class="typeahead-meta">' + metaText + '</div>';
+                                div.addEventListener('click', function(){
+                                    hidden.value = item.id || '';
+                                    input.value = item.nombre || '';
+                                    clearList();
+                                    // enviar formulario para seleccionar paciente
+                                    form.submit();
+                                });
+                                list.appendChild(div);
+                            });
+                            list.style.display = 'block';
+                        }).catch(()=>{
+                            clearList();
+                        });
+                }, 200);
+            });
+
+            // ocultar al perder foco (pequeña demora para permitir click)
+            input.addEventListener('blur', function(){ setTimeout(clearList, 200); });
+        })();
+
         // Manejo del botón de editar examen
         document.querySelectorAll('.btn-edit').forEach(btn => {
             btn.addEventListener('click', function() {
@@ -817,6 +897,8 @@ if ($pacienteId) {
                 }
             });
         }
+
+        
     </script>
 </body>
 </html>
