@@ -61,12 +61,12 @@ class EvaluadorRangos {
     <style>
         body { background-color: #f8f9fa; }
         .header-section {
-            background: #ffffff;
-            color: #0d5132;
+            background: linear-gradient(135deg, #198754 0%, #146c43 100%);
+            color: white;
             padding: 1.1rem 1.6rem;
             margin-bottom: 1rem;
             border-radius: 12px;
-            border: 1px solid #c8e6c9;
+            border: 1px solid #198754;
             box-shadow: 0 2px 8px rgba(0,0,0,.06);
         }
         .header-section h1 {
@@ -74,17 +74,17 @@ class EvaluadorRangos {
             font-weight: 700;
             margin: 0;
             line-height: 1.3;
-            color: #0d5132;
+            color: white;
         }
         .header-section p {
             font-size: 1.05rem;
-            opacity: 0.92;
+            opacity: 0.9;
             margin: 0;
-            color: #495057;
+            color: #e9f7ef;
         }
         .medical-icon {
             font-size: 1.9rem;
-            color: #198754;
+            color: white;
         }
         .stat-card, .card {
             border: none;
@@ -238,11 +238,7 @@ class EvaluadorRangos {
         </div>
 
         <!-- Footer Actions -->
-        <div class="text-center mt-4 pt-3 border-top">
-            <a href="Menuprincipal.php" class="btn btn-outline-success">
-                <i class="bi bi-arrow-left me-2"></i>Volver al Menú Principal
-            </a>
-        </div>
+        <!-- Botón eliminado según solicitud -->
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>

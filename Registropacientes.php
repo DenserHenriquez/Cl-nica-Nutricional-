@@ -523,13 +523,10 @@ if (isset($_SESSION['flash_success'])) {
                     </div>
 
 
-</xai:function_call}
+</xai:function_call
 
-<xai:function_call name="edit_file">
-<parameter name="path">c:/xampp/htdocs/Cl-nica-Nutricional-J/TODO.md
-                        </select>
-                    </div>
-
+name="edit_file">
+<parameter name="path">
                     <div class="mb-3">
                         <label for="referencia_medica" class="form-label">
                             <i class="bi bi-journal-medical me-1"></i>Referencia Médica
