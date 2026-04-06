@@ -672,10 +672,10 @@ if ($action === 'add_availability') {
                             $medicos[$medico_id]['nombre'] ?? 'Médico de la clínica'
                         );
                         if ($resultado['success']) {
-                            $sent = true;
                             $response_msg .= ' Correo de confirmación enviado a ' . htmlspecialchars($pacienteEmail) . '.';
                         } else {
-                            $response_msg .= ' Error al enviar correo: ' . htmlspecialchars($resultado['error']);
+                            logEmailError("UI: Email failed for cita confirmada", ['email' => $pacienteEmail, 'error' => $resultado['error']]);
+                            $response_msg .= ' No se pudo enviar notificación por correo (detalles en log).';
                         }
                     } else {
                         $response_msg .= ' El paciente no tiene correo registrado, no se envió notificación.';

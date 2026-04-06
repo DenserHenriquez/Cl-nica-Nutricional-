@@ -50,14 +50,29 @@ function enviarCorreo($to, $subject, $body, $isHtml = false) {
         return ['success' => false, 'error' => $error];
     }
     
-    // Cargar PHPMailer
-    require_once $autoloadPath;
+    // Cargar PHPMailer de forma robusta (autoload + fallback explícito)
+    $phpmailerDir = __DIR__ . '/vendor/phpmailer/phpmailer/src';
     
-    // Verificar que PHPMailer está disponible
-    if (!class_exists('PHPMailer\PHPMailer\PHPMailer')) {
-        $error = "PHPMailer no está cargado. Verificar que composer install se ejecutó correctamente.";
-        logEmailError("ERROR: $error", ['to' => $to, 'subject' => $subject]);
-        return ['success' => false, 'error' => $error];
+    // Log debug
+    logEmailError("DEBUG: phpmailer_dir=" . (is_dir($phpmailerDir) ? 'OK' : 'MISSING'), ['to' => $to]);
+    
+    // Cargar autoload si existe
+    $autoloadPath = __DIR__ . '/vendor/autoload.php';
+    if (file_exists($autoloadPath)) {
+        require_once $autoloadPath;
+    }
+    
+    // Siempre cargar fuentes clave (orden Exception primero)
+    if (is_dir($phpmailerDir)) {
+        require_once $phpmailerDir . '/Exception.php';
+        require_once $phpmailerDir . '/PHPMailer.php';
+        require_once $phpmailerDir . '/SMTP.php';
+    }
+    
+    // Verificar silenciosamente
+    if (!class_exists('PHPMailer\\PHPMailer\\PHPMailer')) {
+        logEmailError("ERROR: PHPMailer no disponible tras loads", ['to' => $to]);
+        return ['success' => false, 'error' => 'Error interno de correo. Revise logs.'];
     }
     
     $mail = new \PHPMailer\PHPMailer\PHPMailer(true);
