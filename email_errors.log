@@ -36,3 +36,5 @@
 [2026-04-06 05:31:01] Correo enviado exitosamente {"to":"Anthonypaciente@correo.com","subject":"Confirmaci\u00f3n de cita m\u00e9dica - Cl\u00ednica Nutricional"}
 [2026-04-06 05:31:10] DEBUG: phpmailer_dir=OK {"to":"denserpacheco0@gmail.com"}
 [2026-04-06 05:31:13] Correo enviado exitosamente {"to":"denserpacheco0@gmail.com","subject":"Confirmaci\u00f3n de cita m\u00e9dica - Cl\u00ednica Nutricional"}
+[2026-04-06 05:50:45] DEBUG: phpmailer_dir=MISSING {"to":"akra5669@gmail.com"}
+[2026-04-06 05:50:45] ERROR: PHPMailer no disponible tras loads {"to":"akra5669@gmail.com"}
