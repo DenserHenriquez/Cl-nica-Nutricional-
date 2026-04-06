@@ -29,7 +29,7 @@ if (isset($conexion) && $conexion instanceof mysqli) {
 
 // CONFIGURACIÓN (ajusta según tus tablas)
 $TABLE_USERS = 'usuarios';
-$FIELDS_SELECT_USERS = 'id_usuarios, Nombre_completo, sexo, Correo_electronico, Usuario, Contrasena';
+$FIELDS_SELECT_USERS = 'id_usuarios, Nombre_completo, sexo, Correo_electronico, Usuario, Contrasena, telefono';
 $TABLE_PATIENTS = 'pacientes';
 $FIELDS_SELECT_PATIENTS = 'id_pacientes, id_usuarios, nombre_completo, DNI, fecha_nacimiento, edad, telefono, referencia_medica';
 // Tabla expediente (registro médico del paciente)
@@ -230,8 +230,13 @@ $sexo = $_POST['sexo'] ?? 'M';
 
         $fotoNombreFinal = null; // (No hay columna foto en esquema actual, mantenemos placeholder)
 
-$permitidosUsuario = ['sexo', 'Correo_electronico'];
-$payloadNuevoUsuario = [ 'sexo' => $sexo, 'Correo_electronico' => $correo ];
+$permitidosUsuario = ['Nombre_completo', 'sexo', 'Correo_electronico', 'telefono'];
+$payloadNuevoUsuario = [
+    'Nombre_completo' => $nombreCompletoPaciente,
+    'sexo' => $sexo,
+    'Correo_electronico' => $correo,
+    'telefono' => $telefono,
+];
         if ($contrasena !== '') {
             $payloadNuevoUsuario['Contrasena'] = password_hash($contrasena, PASSWORD_DEFAULT);
             $permitidosUsuario[] = 'Contrasena';
@@ -240,6 +245,7 @@ $payloadNuevoUsuario = [ 'sexo' => $sexo, 'Correo_electronico' => $correo ];
         $edadCalculada = calcularEdad($fechaNacimiento);
         $payloadNuevoPaciente = [
             'nombre_completo' => $nombreCompletoPaciente,
+            'sexo' => $sexo,
             'DNI' => $dni,
             'fecha_nacimiento' => $fechaNacimiento,
             'edad' => $edadCalculada,
@@ -248,7 +254,7 @@ $payloadNuevoUsuario = [ 'sexo' => $sexo, 'Correo_electronico' => $correo ];
         ];
 
         $cambiosUsuario = diffs_campos($usuario ?? [], $payloadNuevoUsuario, $permitidosUsuario);
-        $permitidosPaciente = ['nombre_completo', 'DNI', 'fecha_nacimiento', 'edad', 'telefono', 'referencia_medica'];
+        $permitidosPaciente = ['nombre_completo', 'sexo', 'DNI', 'fecha_nacimiento', 'edad', 'telefono', 'referencia_medica'];
         $cambiosPaciente = diffs_campos($paciente ?? [], $payloadNuevoPaciente, $permitidosPaciente);
 
         if (!$errores) {
