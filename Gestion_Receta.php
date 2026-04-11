@@ -441,5 +441,6 @@ document.addEventListener('DOMContentLoaded', function(){
         });
 });
 </script>
+<script src="assets/js/form-integrity.js"></script>
 </body>
 </html>

@@ -147,13 +147,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // TOGGLE ACTIVO
     if ($action === 'toggle') {
         $id = (int)($_POST['id'] ?? 0);
-        $conexion->query("UPDATE inicio_banners SET activo = NOT activo WHERE id = $id");
+        $stmt = $conexion->prepare("UPDATE inicio_banners SET activo = NOT activo WHERE id = ?");
+        $stmt->bind_param('i', $id);
+        $stmt->execute();
+        $stmt->close();
         header('Location: edicioninicio.php'); exit;
     }
     // GUARDAR CONFIGURACIÓN
     if ($action === 'save_config') {
         $interval = max(1000, (int)($_POST['carousel_interval'] ?? 5000));
-        $conexion->query("INSERT INTO inicio_config (clave,valor) VALUES ('carousel_interval','$interval') ON DUPLICATE KEY UPDATE valor='$interval'");
+        $stmt = $conexion->prepare("INSERT INTO inicio_config (clave,valor) VALUES ('carousel_interval',?) ON DUPLICATE KEY UPDATE valor=?");
+        $stmt->bind_param('ii', $interval, $interval);
+        $stmt->execute();
+        $stmt->close();
         $carouselInterval = $interval;
         $msg = 'Configuración guardada.'; $msgType = 'success';
     }
@@ -219,7 +225,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     if ($action === 'toggle_tarjeta') {
         $id = (int)($_POST['id'] ?? 0);
-        $conexion->query("UPDATE inicio_tarjetas SET activo = NOT activo WHERE id = $id");
+        $stmt = $conexion->prepare("UPDATE inicio_tarjetas SET activo = NOT activo WHERE id = ?");
+        $stmt->bind_param('i', $id);
+        $stmt->execute();
+        $stmt->close();
         header('Location: edicioninicio.php#tarjetas'); exit;
     }
 
@@ -282,13 +291,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     if ($action === 'toggle_pac') {
         $id = (int)($_POST['id'] ?? 0);
-        $conexion->query("UPDATE pac_banners SET activo = NOT activo WHERE id = $id");
+        $stmt = $conexion->prepare("UPDATE pac_banners SET activo = NOT activo WHERE id = ?");
+        $stmt->bind_param('i', $id);
+        $stmt->execute();
+        $stmt->close();
         header('Location: edicioninicio.php#pac'); exit;
     }
 
     if ($action === 'save_pac_config') {
         $interval = max(1000, (int)($_POST['pac_carousel_interval'] ?? 5000));
-        $conexion->query("INSERT INTO inicio_config (clave,valor) VALUES ('pac_carousel_interval','$interval') ON DUPLICATE KEY UPDATE valor='$interval'");
+        $stmt = $conexion->prepare("INSERT INTO inicio_config (clave,valor) VALUES ('pac_carousel_interval',?) ON DUPLICATE KEY UPDATE valor=?");
+        $stmt->bind_param('ii', $interval, $interval);
+        $stmt->execute();
+        $stmt->close();
         $pacCarouselInterval = $interval;
         $msg = 'Configuración del carrusel paciente guardada.'; $msgType = 'success';
     }
@@ -297,29 +312,53 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 // ── Acciones GET ──────────────────────────────────────────────────────────────
 if (isset($_GET['delete'])) {
     $id  = (int)$_GET['delete'];
-    $res = $conexion->query("SELECT imagen FROM inicio_banners WHERE id = $id");
+    $stmt = $conexion->prepare("SELECT imagen FROM inicio_banners WHERE id = ?");
+    $stmt->bind_param("i", $id);
+    $stmt->execute();
+    $res = $stmt->get_result();
     if ($res && $row = $res->fetch_assoc()) {
         if ($row['imagen'] && file_exists(__DIR__ . '/' . $row['imagen'])) @unlink(__DIR__ . '/' . $row['imagen']);
     }
-    $conexion->query("DELETE FROM inicio_banners WHERE id = $id");
+    $stmt->close();
+    
+    $stmt = $conexion->prepare("DELETE FROM inicio_banners WHERE id = ?");
+    $stmt->bind_param("i", $id);
+    $stmt->execute();
+    $stmt->close();
     header('Location: edicioninicio.php?ok=deleted'); exit;
 }
 if (isset($_GET['delete_tarjeta'])) {
     $id = (int)$_GET['delete_tarjeta'];
-    $res = $conexion->query("SELECT imagen FROM inicio_tarjetas WHERE id = $id");
+    $stmt = $conexion->prepare("SELECT imagen FROM inicio_tarjetas WHERE id = ?");
+    $stmt->bind_param("i", $id);
+    $stmt->execute();
+    $res = $stmt->get_result();
     if ($res && $row = $res->fetch_assoc()) {
         if ($row['imagen'] && file_exists(__DIR__ . '/' . $row['imagen'])) @unlink(__DIR__ . '/' . $row['imagen']);
     }
-    $conexion->query("DELETE FROM inicio_tarjetas WHERE id = $id");
+    $stmt->close();
+    
+    $stmt = $conexion->prepare("DELETE FROM inicio_tarjetas WHERE id = ?");
+    $stmt->bind_param("i", $id);
+    $stmt->execute();
+    $stmt->close();
     header('Location: edicioninicio.php?ok=deleted#tarjetas'); exit;
 }
 if (isset($_GET['delete_pac'])) {
     $id  = (int)$_GET['delete_pac'];
-    $res = $conexion->query("SELECT imagen FROM pac_banners WHERE id = $id");
+    $stmt = $conexion->prepare("SELECT imagen FROM pac_banners WHERE id = ?");
+    $stmt->bind_param("i", $id);
+    $stmt->execute();
+    $res = $stmt->get_result();
     if ($res && $row = $res->fetch_assoc()) {
         if ($row['imagen'] && file_exists(__DIR__ . '/' . $row['imagen'])) @unlink(__DIR__ . '/' . $row['imagen']);
     }
-    $conexion->query("DELETE FROM pac_banners WHERE id = $id");
+    $stmt->close();
+    
+    $stmt = $conexion->prepare("DELETE FROM pac_banners WHERE id = ?");
+    $stmt->bind_param("i", $id);
+    $stmt->execute();
+    $stmt->close();
     header('Location: edicioninicio.php?ok=deleted#pac'); exit;
 }
 if (isset($_GET['ok'])) {
@@ -335,8 +374,12 @@ if ($res) { while ($r = $res->fetch_assoc()) $banners[] = $r; }
 $editBanner = null;
 if (isset($_GET['edit'])) {
     $eid = (int)$_GET['edit'];
-    $res2 = $conexion->query("SELECT * FROM inicio_banners WHERE id = $eid");
+    $stmt = $conexion->prepare("SELECT * FROM inicio_banners WHERE id = ?");
+    $stmt->bind_param("i", $eid);
+    $stmt->execute();
+    $res2 = $stmt->get_result();
     if ($res2) $editBanner = $res2->fetch_assoc();
+    $stmt->close();
 }
 
 // ── Cargar tarjetas ────────────────────────────────────────────────────────────
@@ -347,8 +390,12 @@ if ($resT) { while ($r = $resT->fetch_assoc()) $tarjetas[] = $r; }
 $editTarjeta = null;
 if (isset($_GET['edit_tarjeta'])) {
     $etid = (int)$_GET['edit_tarjeta'];
-    $res3 = $conexion->query("SELECT * FROM inicio_tarjetas WHERE id = $etid");
+    $stmt = $conexion->prepare("SELECT * FROM inicio_tarjetas WHERE id = ?");
+    $stmt->bind_param("i", $etid);
+    $stmt->execute();
+    $res3 = $stmt->get_result();
     if ($res3) $editTarjeta = $res3->fetch_assoc();
+    $stmt->close();
 }
 
 // ── Cargar pac_banners ──────────────────────────────────────────────────────
@@ -359,8 +406,12 @@ if ($resPac) { while ($r = $resPac->fetch_assoc()) $pacBanners[] = $r; }
 $editPac = null;
 if (isset($_GET['edit_pac'])) {
     $epid = (int)$_GET['edit_pac'];
-    $res4 = $conexion->query("SELECT * FROM pac_banners WHERE id = $epid");
+    $stmt = $conexion->prepare("SELECT * FROM pac_banners WHERE id = ?");
+    $stmt->bind_param("i", $epid);
+    $stmt->execute();
+    $res4 = $stmt->get_result();
     if ($res4) $editPac = $res4->fetch_assoc();
+    $stmt->close();
 }
 ?>
 <!DOCTYPE html>
@@ -1338,5 +1389,6 @@ function previewImg(input, previewId){
     });
 })();
 </script>
+<script src="assets/js/form-integrity.js"></script>
 </body>
 </html>

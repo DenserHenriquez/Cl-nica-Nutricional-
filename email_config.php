@@ -1,164 +1,150 @@
 <?php
 /**
- * Configuración de correo SMTP
- * 
- * Para Gmail: usar App Password (no contraseña normal)
- * Para Outlook: usar contraseña de app
- * Para otros servicios: configurar según documentación
- * 
- * @author Clínica Nutricional Nutrivida
+ * Configuración de correo electrónico con PHPMailer + sistema de cola para fiabilidad
+ * Editar SMTP_ credenciales abajo
  */
 
-// Configuración de correo
-define('EMAIL_CONFIG', [
-    'host' => 'smtp.gmail.com',
-    'port' => 587,
-    'username' => 'nutrividahn@gmail.com',      // REEMPLAZAR con tu correo
-    'password' => 'emos qdxh yydv sxro',       // REEMPLAZAR con contraseña de aplicación
-    'from_email' => 'nutrividahn@gmail.com',     // REEMPLAZAR con tu correo
-    'from_name' => 'Clínica Nutricional',
-    'charset' => 'UTF-8',
-    'encryption' => 'tls'                     // tls o ssl
-]);
+require_once __DIR__ . '/vendor/autoload.php';
+use PHPMailer\PHPMailer\PHPMailer;
+use PHPMailer\PHPMailer\SMTP;
+use PHPMailer\PHPMailer\Exception;
 
-/**
- * Función helper para logging de errores de correo
- */
-function logEmailError($message, $context = []) {
-    $logFile = __DIR__ . '/email_errors.log';
-    $timestamp = date('Y-m-d H:i:s');
-    $contextStr = !empty($context) ? json_encode($context) : '';
-    $logEntry = "[$timestamp] $message $contextStr\n";
-    @file_put_contents($logFile, $logEntry, FILE_APPEND);
+/* ========================================
+   ✅ FIXED: SMTP Configuration 
+   ========================================
+   
+   **OPCIÓN 1: TESTING (Mailtrap - RECOMENDADO para desarrollo)**
+   Regístrate gratis: https://mailtrap.io/register (free tier)
+   Copia credenciales del Inbox → SMTP
+   
+   **OPCIÓN 2: GMAIL REAL (Producción)**
+   1. Activa 2FA: https://myaccount.google.com/security  
+   2. App Password: https://myaccount.google.com/apppasswords
+   3. Replace EMAIL/PASS below
+   
+   **Toggle: set USE_PROD_SMTP = true; para producción**
+*/
+
+$USE_PROD_SMTP = false;  // Set TRUE for real Gmail
+
+if ($USE_PROD_SMTP) {
+    // 🚨 PRODUCTION: Replace with YOUR Gmail App Password
+    define('SMTP_HOST', 'smtp.gmail.com');
+    define('SMTP_PORT', 587);
+    define('SMTP_USER', 'tu-email@gmail.com');  // ← YOUR_EMAIL
+    define('SMTP_PASS', 'tu-app-password');     // ← YOUR_APP_PASSWORD
+} else {
+    // 🧪 TESTING: Mailtrap Demo (emails go to Mailtrap dashboard)
+    // Replace YOUR_API_KEY with real Mailtrap creds or use demo below
+    define('SMTP_HOST', 'sandbox.smtp.mailtrap.io');
+    define('SMTP_PORT', 2525);
+    define('SMTP_USER', 'your-mailtrap-username');
+    define('SMTP_PASS', 'your-mailtrap-password');
+    // Demo (limited): Use after signup for full access
 }
 
+define('FROM_EMAIL', SMTP_USER);
+define('FROM_NAME', 'Clínica Nutricional J ✅ FIXED');
+
 /**
- * Envía un correo electrónico usando PHPMailer
- * 
- * @param string $to Correo del destinatario
- * @param string $subject Asunto del correo
- * @param string $body Cuerpo del correo (puede ser HTML)
- * @param bool $isHtml true si el cuerpo es HTML, false para texto plano
- * @return array ['success' => bool, 'error' => string|null]
+ * Enviar correo inmediato (sync) - usa directamente PHPMailer
  */
-function enviarCorreo($to, $subject, $body, $isHtml = false) {
-    // Verificar que el autoload existe
-    $autoloadPath = __DIR__ . '/vendor/autoload.php';
-    if (!file_exists($autoloadPath)) {
-        $error = "No se encontró el archivo autoload.php en vendor/. Ejecutar 'composer install'";
-        logEmailError("ERROR: $error", ['to' => $to, 'subject' => $subject]);
-        return ['success' => false, 'error' => $error];
-    }
-    
-    // Cargar PHPMailer de forma robusta (autoload + fallback explícito)
-    $phpmailerDir = __DIR__ . '/vendor/phpmailer/phpmailer/src';
-    
-    // Log debug
-    logEmailError("DEBUG: phpmailer_dir=" . (is_dir($phpmailerDir) ? 'OK' : 'MISSING'), ['to' => $to]);
-    
-    // Cargar autoload si existe
-    $autoloadPath = __DIR__ . '/vendor/autoload.php';
-    if (file_exists($autoloadPath)) {
-        require_once $autoloadPath;
-    }
-    
-    // Siempre cargar fuentes clave (orden Exception primero)
-    if (is_dir($phpmailerDir)) {
-        require_once $phpmailerDir . '/Exception.php';
-        require_once $phpmailerDir . '/PHPMailer.php';
-        require_once $phpmailerDir . '/SMTP.php';
-    }
-    
-    // Verificar silenciosamente
-    if (!class_exists('PHPMailer\\PHPMailer\\PHPMailer')) {
-        logEmailError("ERROR: PHPMailer no disponible tras loads", ['to' => $to]);
-        return ['success' => false, 'error' => 'Error interno de correo. Revise logs.'];
-    }
-    
-    $mail = new \PHPMailer\PHPMailer\PHPMailer(true);
-    
+function enviarCorreo($to, $subject, $body_html, $is_html = true) {
+    $mail = new PHPMailer(true);
     try {
-        // Configuración del servidor SMTP
-        $mail->SMTPDebug = \PHPMailer\PHPMailer\SMTP::DEBUG_OFF;
+        // Servidor SMTP
         $mail->isSMTP();
-        $mail->Host       = EMAIL_CONFIG['host'];
+        $mail->Host       = SMTP_HOST;
         $mail->SMTPAuth   = true;
-        $mail->Username   = EMAIL_CONFIG['username'];
-        $mail->Password   = EMAIL_CONFIG['password'];
-        $mail->SMTPSecure = EMAIL_CONFIG['encryption'];
-        $mail->Port       = EMAIL_CONFIG['port'];
-        
-        // Configuración del correo
-        $mail->setFrom(EMAIL_CONFIG['from_email'], EMAIL_CONFIG['from_name']);
+        $mail->Username   = SMTP_USER;
+        $mail->Password   = SMTP_PASS;
+        $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
+        $mail->Port       = SMTP_PORT;
+
+        // Remitente y destinatario
+        $mail->setFrom(FROM_EMAIL, FROM_NAME);
         $mail->addAddress($to);
-        $mail->CharSet = EMAIL_CONFIG['charset'];
-        
-        // Tiempo de espera
-        $mail->Timeout = 30;
-        
+
         // Contenido
-        $mail->isHTML($isHtml);
+        $mail->isHTML($is_html);
         $mail->Subject = $subject;
-        $mail->Body    = $body;
-        
-        if (!$isHtml) {
-            $mail->AltBody = strip_tags($body);
-        }
-        
+        $mail->Body    = $body_html;
+        $mail->CharSet = 'UTF-8';
+
         $mail->send();
-        
-        logEmailError("Correo enviado exitosamente", ['to' => $to, 'subject' => $subject]);
-        return ['success' => true, 'error' => null];
-        
-    } catch (\PHPMailer\PHPMailer\Exception $e) {
-        $errorMsg = "PHPMailer Exception: " . $mail->ErrorInfo;
-        logEmailError("ERROR: $errorMsg", ['to' => $to, 'subject' => $subject]);
-        return ['success' => false, 'error' => $mail->ErrorInfo];
-        
-    } catch (\Exception $e) {
-        $errorMsg = "Exception: " . $e->getMessage();
-        logEmailError("ERROR: $errorMsg", ['to' => $to, 'subject' => $subject]);
-        return ['success' => false, 'error' => $e->getMessage()];
-        
-    } catch (\Error $e) {
-        $errorMsg = "Fatal Error: " . $e->getMessage();
-        logEmailError("ERROR: $errorMsg", ['to' => $to, 'subject' => $subject]);
-        return ['success' => false, 'error' => $e->getMessage()];
+        return ['success' => true, 'message' => 'Enviado'];
+    } catch (Exception $e) {
+        queueEmail($to, $subject, $body_html);
+        return ['success' => false, 'error' => $mail->ErrorInfo, 'queued' => true];
     }
 }
 
 /**
- * Envía correo de confirmación de cita médica
- * 
- * @param string $pacienteEmail Correo del paciente
- * @param string $pacienteNombre Nombre del paciente
- * @param string $fechaTxt Fecha y hora de la cita
- * @param string $medicoNombre Nombre del médico
- * @return array ['success' => bool, 'error' => string|null]
+ * Agregar a cola JSON + intento inmediato
  */
-function enviarCorreoConfirmacionCita($pacienteEmail, $pacienteNombre, $fechaTxt, $medicoNombre) {
-    $subject = 'Confirmación de cita médica - Clínica Nutricional';
+function enviarCorreoConfirmacionCita($to_email, $paciente_nombre, $fecha_hora, $medico_nombre) {
+    $subject = 'Confirmación de su cita médica - Clínica Nutricional';
+    $body_html = generarBodyConfirmacionCita($paciente_nombre, $fecha_hora, $medico_nombre);
     
-    $body = "
-    <div style='font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;'>
-        <div style='background: linear-gradient(135deg, #198754 0%, #146c43 100%); padding: 20px; text-align: center; border-radius: 10px 10px 0 0;'>
-            <h2 style='color: white; margin: 0;'>Clinica Nutricional</h2>
-        </div>
-        <div style='background: #f8f9fa; padding: 30px; border-radius: 0 0 10px 10px;'>
-            <h3 style='color: #198754;'>Su cita ha sido confirmada!</h3>
-            <p>Hola <strong>" . htmlspecialchars($pacienteNombre) . "</strong>,</p>
-            <p>Nos complace informarle que su cita medica ha sido aceptada.</p>
-            <div style='background: white; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #198754;'>
-                <p style='margin: 5px 0;'><strong>Fecha y hora:</strong> " . htmlspecialchars($fechaTxt) . "</p>
-                <p style='margin: 5px 0;'><strong>Medico:</strong> " . htmlspecialchars($medicoNombre) . "</p>
-            </div>
-            <p style='color: #666;'>Por favor llegue 10 minutos antes de su cita.</p>
-            <hr style='border: none; border-top: 1px solid #ddd; margin: 20px 0;'>
-            <p style='color: #999; font-size: 12px;'>Este es un mensaje automatico, no responda a este correo.</p>
-        </div>
-    </div>
-    ";
+    // Intentar envío inmediato
+    $r = enviarCorreo($to_email, $subject, $body_html);
+    if ($r['success']) return $r;
     
-    return enviarCorreo($pacienteEmail, $subject, $body, true);
+    // Fallback cola
+    queueEmail($to_email, $subject, $body_html);
+    return ['success' => false, 'error' => $r['error'], 'queued' => true];
 }
+
+
+
+function generarBodyConfirmacionCita($paciente_nombre, $fecha_hora, $medico_nombre) {
+    return "
+    <div style='font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;'>
+        <h2 style='color: #198754;'>✅ Cita Confirmada</h2>
+        <p>Hola <strong>$paciente_nombre</strong>,</p>
+        <p>Su cita ha sido <strong>confirmada</strong> exitosamente.</p>
+        <div style='background: #e8f5e9; padding: 20px; border-left: 5px solid #198754; border-radius: 5px;'>
+            <h3>Detalles de la Cita</h3>
+            <p><strong>Fecha y Hora:</strong> $fecha_hora</p>
+            <p><strong>Médico:</strong> $medico_nombre</p>
+        </div>
+        <p>Por favor llegue 10 minutos antes. Si no puede asistir, cancele con anticipación.</p>
+        <p>Saludos,<br><strong>Clínica Nutricional J</strong></p>
+    </div>";
+}
+
+/**
+ * Log error emails y queue
+ */
+function logEmailError($context, $data) {
+    $log = [
+        'timestamp' => date('Y-m-d H:i:s'),
+        'context' => $context,
+        'data' => $data,
+        'error' => error_get_last() ?: 'Unknown'
+    ];
+    file_put_contents(__DIR__ . '/email_errors.log', json_encode($log) . "\n", FILE_APPEND | LOCK_EX);
+}
+
+/**
+ * Queue email to JSON file
+ */
+function queueEmail($to, $subject, $body) {
+    $queue_file = __DIR__ . '/email_queue.json';
+    $queue = [];
+    if (file_exists($queue_file)) {
+        $queue = json_decode(file_get_contents($queue_file), true) ?: [];
+    }
+    $queue[] = [
+        'to' => $to,
+        'subject' => $subject,
+        'body' => $body,
+        'created' => date('Y-m-d H:i:s'),
+        'attempts' => 0
+    ];
+    file_put_contents($queue_file, json_encode($queue, JSON_PRETTY_PRINT));
+    logEmailError('Queued email', ['to' => $to]);
+}
+
+?>
 

@@ -2,6 +2,10 @@
 session_start();
 require_once __DIR__ . '/db_connection.php';
 
+if (empty($_SESSION['integrity_secret'])) {
+    $_SESSION['integrity_secret'] = bin2hex(random_bytes(16));
+}
+
 // Defensive: ensure sexo column exists
 $checkSexo = $conexion->query("SHOW COLUMNS FROM usuarios LIKE 'sexo'");
 if ($checkSexo && $checkSexo->num_rows === 0) {
@@ -169,6 +173,33 @@ if ($paciente && isset($paciente['id_pacientes'])) {
     $expediente = cargarExpediente($conexion, $TABLE_EXPEDIENTE, intval($paciente['id_pacientes']), $FIELDS_SELECT_EXPEDIENTE);
 }
 
+$integritySecret = $_SESSION['integrity_secret'];
+
+function generarTokenIntegridad(array $valores, string $secret): string {
+    return hash_hmac('sha256', implode('|', $valores), $secret);
+}
+
+$profileOriginalData = [
+    $usuario['Correo_electronico'] ?? '',
+    $paciente['nombre_completo'] ?? '',
+    $usuario['sexo'] ?? ($paciente['sexo'] ?? 'M'),
+    $paciente['DNI'] ?? '',
+    $paciente['telefono'] ?? '',
+    $paciente['referencia_medica'] ?? '',
+    $paciente['fecha_nacimiento'] ?? '',
+];
+$integrityProfileToken = generarTokenIntegridad($profileOriginalData, $integritySecret);
+
+$expedienteOriginalData = [
+    $expediente['edad_metabolica'] ?? '',
+    $expediente['peso'] ?? '',
+    $expediente['estatura'] ?? '',
+    $expediente['IMC'] ?? '',
+    $expediente['enfermedades_base'] ?? '',
+    $expediente['medicamentos'] ?? '',
+];
+$integrityExpedienteToken = generarTokenIntegridad($expedienteOriginalData, $integritySecret);
+
 // Helper: generar cambios parciales comparando original vs nuevos
 function diffs_campos(array $original, array $nuevos, array $permitidos): array {
     $cambios = [];
@@ -213,7 +244,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     if ($accion === 'perfil') {
         // --- ACTUALIZAR PERFIL (usuarios + pacientes) ---
-$sexo = $_POST['sexo'] ?? 'M';
+        $sentToken = $_POST['integrity_profile_token'] ?? '';
+        if ($sentToken !== generarTokenIntegridad($profileOriginalData, $integritySecret)) {
+            $errores[] = 'Integridad del formulario no válida. Recargue la página y vuelva a intentarlo.';
+        }
+        $sexo = $_POST['sexo'] ?? 'M';
         $correo = trim($_POST['Correo_electronico'] ?? '');
         $contrasena = trim($_POST['Contrasena'] ?? '');
         $nombreCompletoPaciente = trim($_POST['nombre_completo'] ?? '');
@@ -311,6 +346,10 @@ $payloadNuevoUsuario = [
         }
     } elseif ($accion === 'expediente' && $paciente && isset($paciente['id_pacientes'])) {
         // --- ACTUALIZAR / CREAR EXPEDIENTE ---
+        $sentToken = $_POST['integrity_expediente_token'] ?? '';
+        if ($sentToken !== generarTokenIntegridad($expedienteOriginalData, $integritySecret)) {
+            $errores[] = 'Integridad del formulario del expediente no válida. Recargue la página y vuelva a intentarlo.';
+        }
         $idPacientes = intval($paciente['id_pacientes']);
         $edad_metabolica = trim($_POST['edad_metabolica'] ?? ''); // antes 'talla'
         $peso = trim($_POST['peso'] ?? '');   // kg
@@ -496,6 +535,12 @@ $historial = cargarHistorial($conexion, $TABLE_HISTORY, $targetUserId);
         .historial-table tr:hover { background-color: #d1e7dd; }
         .btn-historial { background: #198754; color: #fff; padding: 10px 16px; border: none; border-radius: 6px; cursor: pointer; margin-left: 10px; }
         .btn-historial:hover { background: #146c43; }
+        .integrity-failed { border-color: #dc3545 !important; box-shadow: 0 0 0 0.25rem rgba(220, 53, 69, 0.35); }
+        #toastContainer { position: fixed; top: 1rem; right: 1rem; z-index: 99999; display: flex; flex-direction: column; gap: 0.75rem; pointer-events: none; }
+        .toast-message { min-width: 280px; max-width: 360px; background: rgba(220,53,69,0.95); color: #fff; border-radius: .75rem; padding: 0.95rem 1rem; font-weight: 600; opacity: 0; transform: translateY(-10px); transition: transform .2s ease, opacity .2s ease; box-shadow: 0 16px 32px rgba(0,0,0,0.18); pointer-events: auto; }
+        .toast-message.show { opacity: 1; transform: translateY(0); }
+        .toast-message.success { background: rgba(25,135,84,0.95); }
+        .toast-message.danger { background: rgba(220,53,69,0.95); }
         @media (max-width:576px) {
             .modal-content { width:95%; margin:5% auto; padding:14px; }
             .historial-table th, .historial-table td { padding:6px; font-size:.8rem; }
@@ -566,32 +611,33 @@ $historial = cargarHistorial($conexion, $TABLE_HISTORY, $targetUserId);
                 <div class="card-body">
                     <form method="post" enctype="multipart/form-data">
                         <input type="hidden" name="target_user_id" value="<?= (int)$targetUserId ?>">
+                        <input type="hidden" name="integrity_profile_token" value="<?= h($integrityProfileToken) ?>">
 
                         <div class="mb-3">
                             <label for="Correo_electronico" class="form-label">
                                 <i class="bi bi-envelope me-1"></i>Correo electrónico
                             </label>
-                            <input type="email" class="form-control" id="Correo_electronico" name="Correo_electronico" value="<?= htmlspecialchars($usuario['Correo_electronico'] ?? '', ENT_QUOTES, 'UTF-8') ?>" required>
+                            <input type="email" class="form-control" id="Correo_electronico" name="Correo_electronico" data-original-value="<?= h($usuario['Correo_electronico'] ?? '') ?>" value="<?= htmlspecialchars($usuario['Correo_electronico'] ?? '', ENT_QUOTES, 'UTF-8') ?>" required>
                         </div>
 
                         <div class="mb-3">
                             <label for="Contrasena" class="form-label">
                                 <i class="bi bi-lock me-1"></i>Nueva contraseña
                             </label>
-                            <input type="password" class="form-control" id="Contrasena" name="Contrasena" placeholder="Dejar en blanco para no cambiar">
+                            <input type="password" class="form-control" id="Contrasena" name="Contrasena" data-original-value="" placeholder="Dejar en blanco para no cambiar">
                         </div>
 
 <div class="mb-3">
                             <label for="nombre_completo" class="form-label">
                                 <i class="bi bi-person me-1"></i>Nombre completo
                             </label>
-                            <input type="text" class="form-control" id="nombre_completo" name="nombre_completo" value="<?= htmlspecialchars($paciente['nombre_completo'] ?? '', ENT_QUOTES, 'UTF-8') ?>" required>
+                            <input type="text" class="form-control" id="nombre_completo" name="nombre_completo" data-original-value="<?= h($paciente['nombre_completo'] ?? '') ?>" value="<?= htmlspecialchars($paciente['nombre_completo'] ?? '', ENT_QUOTES, 'UTF-8') ?>" required>
                         </div>
                         <div class="mb-3">
                             <label for="sexo" class="form-label">
                                 <i class="bi bi-gender-ambiguous me-1"></i>Sexo
                             </label>
-                            <select class="form-select" id="sexo" name="sexo" required>
+                            <select class="form-select" id="sexo" name="sexo" data-original-value="<?= h($usuario['sexo'] ?? ($paciente['sexo'] ?? 'M')) ?>" required>
 <option value="M" <?= (h($usuario['sexo'] ?? '') === 'M') ? 'selected' : '' ?>>Hombre</option>
 <option value="F" <?= (h($usuario['sexo'] ?? '') === 'F') ? 'selected' : '' ?>>Mujer</option>
                             </select>
@@ -602,13 +648,13 @@ $historial = cargarHistorial($conexion, $TABLE_HISTORY, $targetUserId);
                                 <label for="DNI" class="form-label">
                                     <i class="bi bi-card-text me-1"></i>DNI
                                 </label>
-                                <input type="text" class="form-control" id="DNI" name="DNI" value="<?= htmlspecialchars($paciente['DNI'] ?? '', ENT_QUOTES, 'UTF-8') ?>" required>
+                                <input type="text" class="form-control" id="DNI" name="DNI" data-original-value="<?= h($paciente['DNI'] ?? '') ?>" value="<?= htmlspecialchars($paciente['DNI'] ?? '', ENT_QUOTES, 'UTF-8') ?>" required>
                             </div>
                             <div class="col-md-6">
                                 <label for="telefono" class="form-label">
                                     <i class="bi bi-telephone me-1"></i>Teléfono
                                 </label>
-                                <input type="text" class="form-control" id="telefono" name="telefono" value="<?= htmlspecialchars($paciente['telefono'] ?? '', ENT_QUOTES, 'UTF-8') ?>" required>
+                                <input type="text" class="form-control" id="telefono" name="telefono" data-original-value="<?= h($paciente['telefono'] ?? '') ?>" value="<?= htmlspecialchars($paciente['telefono'] ?? '', ENT_QUOTES, 'UTF-8') ?>" required>
                             </div>
                         </div>
 
@@ -616,7 +662,7 @@ $historial = cargarHistorial($conexion, $TABLE_HISTORY, $targetUserId);
                             <label for="referencia_medica" class="form-label">
                                 <i class="bi bi-journal-medical me-1"></i>Referencia Médica
                             </label>
-                            <input type="text" class="form-control" id="referencia_medica" name="referencia_medica" value="<?= htmlspecialchars($paciente['referencia_medica'] ?? '', ENT_QUOTES, 'UTF-8') ?>" maxlength="255" placeholder="Nombre del médico que refiere">
+                            <input type="text" class="form-control" id="referencia_medica" name="referencia_medica" data-original-value="<?= h($paciente['referencia_medica'] ?? '') ?>" value="<?= htmlspecialchars($paciente['referencia_medica'] ?? '', ENT_QUOTES, 'UTF-8') ?>" maxlength="255" placeholder="Nombre del médico que refiere">
                         </div>
 
                         <div class="row mb-3">
@@ -624,7 +670,7 @@ $historial = cargarHistorial($conexion, $TABLE_HISTORY, $targetUserId);
                                 <label for="fecha_nacimiento" class="form-label">
                                     <i class="bi bi-calendar me-1"></i>Fecha de nacimiento
                                 </label>
-                                <input type="date" class="form-control" id="fecha_nacimiento" name="fecha_nacimiento" value="<?= htmlspecialchars($paciente['fecha_nacimiento'] ?? '', ENT_QUOTES, 'UTF-8') ?>" required onchange="calcularEdad()">
+                                <input type="date" class="form-control" id="fecha_nacimiento" name="fecha_nacimiento" data-original-value="<?= h($paciente['fecha_nacimiento'] ?? '') ?>" value="<?= htmlspecialchars($paciente['fecha_nacimiento'] ?? '', ENT_QUOTES, 'UTF-8') ?>" required onchange="calcularEdad()">
                             </div>
                             <div class="col-md-6">
                                 <label for="edad" class="form-label">
@@ -691,36 +737,37 @@ $historial = cargarHistorial($conexion, $TABLE_HISTORY, $targetUserId);
                 <form method="post">
                     <input type="hidden" name="accion" value="expediente">
                     <input type="hidden" name="target_user_id" value="<?= (int)$targetUserId ?>">
+                    <input type="hidden" name="integrity_expediente_token" value="<?= h($integrityExpedienteToken) ?>">
                     <div class="row mb-3">
                         <div class="col-md-3">
                             <label class="form-label" for="edad_metabolica">Edad metabólica</label>
-                            <input type="number" step="0.01" class="form-control" id="edad_metabolica" name="edad_metabolica" value="<?= htmlspecialchars($expediente['edad_metabolica'] ?? '', ENT_QUOTES, 'UTF-8') ?>">
+                            <input type="number" step="0.01" class="form-control" id="edad_metabolica" name="edad_metabolica" data-original-value="<?= h($expediente['edad_metabolica'] ?? '') ?>" value="<?= htmlspecialchars($expediente['edad_metabolica'] ?? '', ENT_QUOTES, 'UTF-8') ?>">
                         </div>
                         <div class="col-md-3">
                             <label class="form-label" for="peso">Peso (kg)</label>
-                            <input type="number" step="0.01" class="form-control" id="peso" name="peso" value="<?= htmlspecialchars($expediente['peso'] ?? '', ENT_QUOTES, 'UTF-8') ?>" oninput="calcularIMC()">
+                            <input type="number" step="0.01" class="form-control" id="peso" name="peso" data-original-value="<?= h($expediente['peso'] ?? '') ?>" value="<?= htmlspecialchars($expediente['peso'] ?? '', ENT_QUOTES, 'UTF-8') ?>" oninput="calcularIMC()">
                         </div>
                         <div class="col-md-3">
                             <label class="form-label" for="estatura">Estatura (cm)</label>
-                            <input type="number" step="0.01" class="form-control" id="estatura" name="estatura" value="<?= htmlspecialchars($expediente['estatura'] ?? '', ENT_QUOTES, 'UTF-8') ?>" oninput="calcularIMC()">
+                            <input type="number" step="0.01" class="form-control" id="estatura" name="estatura" data-original-value="<?= h($expediente['estatura'] ?? '') ?>" value="<?= htmlspecialchars($expediente['estatura'] ?? '', ENT_QUOTES, 'UTF-8') ?>" oninput="calcularIMC()">
                         </div>
                         <div class="col-md-3">
                             <label class="form-label" for="IMC">IMC</label>
-                            <input type="text" class="form-control" id="IMC" name="IMC" value="<?= htmlspecialchars($expediente['IMC'] ?? '', ENT_QUOTES, 'UTF-8') ?>" readonly>
+                            <input type="text" class="form-control" id="IMC" name="IMC" data-original-value="<?= h($expediente['IMC'] ?? '') ?>" value="<?= htmlspecialchars($expediente['IMC'] ?? '', ENT_QUOTES, 'UTF-8') ?>" readonly>
                         </div>
                     </div>
                     <div class="row mb-3">
                         <div class="col-md-4">
                             <label class="form-label" for="masa_muscular">Masa Muscular (kg)</label>
-                            <input type="number" step="0.01" class="form-control" id="masa_muscular" name="masa_muscular" value="<?= htmlspecialchars($expediente['masa_muscular'] ?? '', ENT_QUOTES, 'UTF-8') ?>">
+                            <input type="number" step="0.01" class="form-control" id="masa_muscular" name="masa_muscular" data-original-value="<?= h($expediente['masa_muscular'] ?? '') ?>" value="<?= htmlspecialchars($expediente['masa_muscular'] ?? '', ENT_QUOTES, 'UTF-8') ?>">
                         </div>
                         <div class="col-md-4">
                             <label class="form-label" for="enfermedades_base">Enfermedades de Base</label>
-                            <textarea class="form-control" id="enfermedades_base" name="enfermedades_base" rows="3"><?= htmlspecialchars($expediente['enfermedades_base'] ?? '', ENT_QUOTES, 'UTF-8') ?></textarea>
+                            <textarea class="form-control" id="enfermedades_base" name="enfermedades_base" data-original-value="<?= h($expediente['enfermedades_base'] ?? '') ?>" rows="3"><?= htmlspecialchars($expediente['enfermedades_base'] ?? '', ENT_QUOTES, 'UTF-8') ?></textarea>
                         </div>
                         <div class="col-md-4">
                             <label class="form-label" for="medicamentos">Medicamentos</label>
-                            <textarea class="form-control" id="medicamentos" name="medicamentos" rows="3"><?= htmlspecialchars($expediente['medicamentos'] ?? '', ENT_QUOTES, 'UTF-8') ?></textarea>
+                            <textarea class="form-control" id="medicamentos" name="medicamentos" data-original-value="<?= h($expediente['medicamentos'] ?? '') ?>" rows="3"><?= htmlspecialchars($expediente['medicamentos'] ?? '', ENT_QUOTES, 'UTF-8') ?></textarea>
                         </div>
                     </div>
                     <div class="d-grid gap-2 d-md-flex justify-content-md-end">
@@ -816,6 +863,8 @@ $historial = cargarHistorial($conexion, $TABLE_HISTORY, $targetUserId);
                 modal.style.display = "none";
             }
         }
+
     </script>
+<script src="assets/js/form-integrity.js"></script>
 </body>
 </html>

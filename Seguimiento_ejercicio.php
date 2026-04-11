@@ -434,6 +434,7 @@ if ($vista === 'diaria') {
     </div>
   <?php endif; ?>
   </div>
+<script src="assets/js/form-integrity.js"></script>
 </body>
 </html>
 <?php $conexion->close(); ?>

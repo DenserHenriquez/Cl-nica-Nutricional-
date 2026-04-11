@@ -529,6 +529,7 @@ if ($medico_id === 0) {
         </script>
         <!-- Bootstrap JS -->
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="assets/js/form-integrity.js"></script>
     </body>
     </html>
     <?php
@@ -604,7 +605,8 @@ if ($action === 'add_availability') {
         $stmt = $conn->prepare("UPDATE citas SET estado=? WHERE id=? AND medico_id=?");
         $stmt->bind_param('sii', $nuevo_estado, $cita_id, $medico_id);
         $stmt->execute();
-        $response_msg = 'Estado de la cita actualizado.';
+    $response_msg = 'Estado de la cita actualizado.';
+
 
         // Enviar correo al paciente si se confirma la cita
         if ($nuevo_estado === 'confirmada') {
@@ -654,29 +656,16 @@ if ($action === 'add_availability') {
                         $subject = 'Confirmación de cita médica';
                         $bodyText = "Hola {$pacienteNombre},\n\nSu cita ha sido aceptada.\n\nFecha y hora: {$fechaTxt}\nMédico: " . ($medicos[$medico_id]['nombre'] ?? 'Médico de la clínica') . "\n\nPor favor llegue 10 minutos antes de su cita.\n\nEste es un mensaje automático, no responda a este correo.";
 
-                        // Cabeceras básicas para mail()
-                        $headers   = "MIME-Version: 1.0\r\n";
-                        $headers  .= "Content-type: text/plain; charset=UTF-8\r\n";
-                        $headers  .= 'From: ' . $fromName . " <no-reply@localhost>\r\n";
-
-                        // Intentar enviar
-                        // Nota: en XAMPP/Windows es posible que mail() requiera configuración adicional de SMTP.
-                        // Se intenta igualmente y se informa en la interfaz.
-                        $sent = false;
-                        // Intentar enviar usando PHPMailer
+                        // Intentar enviar usando la configuración de correo
                         require_once __DIR__ . '/email_config.php';
-                        $resultado = enviarCorreoConfirmacionCita(
-                            $pacienteEmail,
-                            $pacienteNombre,
-                            $fechaTxt,
-                            $medicos[$medico_id]['nombre'] ?? 'Médico de la clínica'
-                        );
+                        $resultado = enviarCorreo($pacienteEmail, 'Confirmación de cita médica', generarBodyConfirmacionCita($pacienteNombre, $fechaTxt, $medicos[$medico_id]['nombre'] ?? 'Médico de la clínica'), true);
                         if ($resultado['success']) {
-                            $response_msg .= ' Correo de confirmación enviado a ' . htmlspecialchars($pacienteEmail) . '.';
+                            $response_msg .= ' ✅ Notificación enviada correctamente.';
                         } else {
-                            logEmailError("UI: Email failed for cita confirmada", ['email' => $pacienteEmail, 'error' => $resultado['error']]);
-                            $response_msg .= ' No se pudo enviar notificación por correo (detalles en log).';
+                            logEmailError("Email cita confirmada en QUEUE", ['email' => $pacienteEmail, 'error' => $resultado['error']]);
+                            $response_msg .= ' ⚠️ En cola para reintento automático (ver Logs)';
                         }
+
                     } else {
                         $response_msg .= ' El paciente no tiene correo registrado, no se envió notificación.';
                     }
@@ -1640,6 +1629,7 @@ function monthNameEs($m) {
     </script>
 
     <script src="assets/js/script.js"></script>
+<script src="assets/js/form-integrity.js"></script>
 </body>
 </html>
 

@@ -222,5 +222,6 @@ function h($v) { return htmlspecialchars($v ?? '', ENT_QUOTES | ENT_SUBSTITUTE, 
             }
         })();
     </script>
+<script src="assets/js/form-integrity.js"></script>
 </body>
 </html>

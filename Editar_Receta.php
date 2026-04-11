@@ -229,5 +229,6 @@ function h($v){ return htmlspecialchars($v ?? '', ENT_QUOTES | ENT_SUBSTITUTE, '
         document.getElementById('imagePreview')?.style.display = 'block';
     }
     </script>
+<script src="assets/js/form-integrity.js"></script>
 </body>
 </html>

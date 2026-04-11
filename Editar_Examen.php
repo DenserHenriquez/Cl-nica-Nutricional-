@@ -170,5 +170,6 @@ function h($v){ return htmlspecialchars($v ?? '', ENT_QUOTES, 'UTF-8'); }
             </div>
         </form>
     </div>
+<script src="assets/js/form-integrity.js"></script>
 </body>
 </html>
