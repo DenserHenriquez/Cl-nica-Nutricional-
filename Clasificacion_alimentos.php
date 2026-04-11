@@ -346,5 +346,6 @@ if ($stmtList) {
             </div>
         </div>
     </div>
+<script src="assets/js/form-integrity.js"></script>
 </body>
 </html>

@@ -647,5 +647,6 @@ if ($res) { while ($r = $res->fetch_assoc()) $tarjetas[] = $r; }
             }
         });
     </script>
+<script src="assets/js/form-integrity.js"></script>
 </body>
 </html>

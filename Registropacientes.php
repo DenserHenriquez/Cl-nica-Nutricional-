@@ -775,5 +775,6 @@ name="edit_file">
     </script>
 
     <script src="assets/js/script.js"></script>
+<script src="assets/js/form-integrity.js"></script>
 </body>
 </html>

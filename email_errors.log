@@ -1,40 +1,10 @@
-[2026-03-10 05:06:14] Correo enviado exitosamente {"to":"denserpacheco0@gmail.com","subject":"Confirmaci\u00f3n de cita m\u00e9dica - Cl\u00ednica Nutricional"}
-[2026-03-10 05:07:11] Correo enviado exitosamente {"to":"fsmendez2002@hotmail.com","subject":"Confirmaci\u00f3n de cita m\u00e9dica - Cl\u00ednica Nutricional"}
-[2026-03-10 05:07:24] Correo enviado exitosamente {"to":"jazelbonilla16@gmail.com","subject":"Confirmaci\u00f3n de cita m\u00e9dica - Cl\u00ednica Nutricional"}
-[2026-03-10 05:19:07] Correo enviado exitosamente {"to":"fsmendez2002@hotmail.com","subject":"Confirmaci\u00f3n de cita m\u00e9dica - Cl\u00ednica Nutricional"}
-[2026-03-10 05:19:17] Correo enviado exitosamente {"to":"jazelbonilla16@gmail.com","subject":"Confirmaci\u00f3n de cita m\u00e9dica - Cl\u00ednica Nutricional"}
-[2026-03-10 05:19:30] Correo enviado exitosamente {"to":"denserpacheco0@gmail.com","subject":"Confirmaci\u00f3n de cita m\u00e9dica - Cl\u00ednica Nutricional"}
-[2026-03-10 05:21:12] Correo enviado exitosamente {"to":"fsmendez2002@hotmail.com","subject":"Confirmaci\u00f3n de cita m\u00e9dica - Cl\u00ednica Nutricional"}
-[2026-03-10 05:21:23] Correo enviado exitosamente {"to":"denserpacheco0@gmail.com","subject":"Confirmaci\u00f3n de cita m\u00e9dica - Cl\u00ednica Nutricional"}
-[2026-03-10 20:36:33] ERROR: PHPMailer no está cargado. Verificar que composer install se ejecutó correctamente. {"to":"akra5669@gmail.com","subject":"Confirmaci\u00f3n de cita m\u00e9dica - Cl\u00ednica Nutricional"}
-[2026-03-10 20:41:51] ERROR: PHPMailer no está cargado. Verificar que composer install se ejecutó correctamente. {"to":"akra5669@gmail.com","subject":"Confirmaci\u00f3n de cita m\u00e9dica - Cl\u00ednica Nutricional"}
-[2026-03-10 20:48:43] Correo enviado exitosamente {"to":"akra5669@gmail.com","subject":"Confirmaci\u00f3n de cita m\u00e9dica - Cl\u00ednica Nutricional"}
-[2026-03-11 22:32:17] Correo enviado exitosamente {"to":"Anthonypaciente@correo.com","subject":"Confirmaci\u00f3n de cita m\u00e9dica - Cl\u00ednica Nutricional"}
-[2026-03-11 22:32:19] Correo enviado exitosamente {"to":"akra5669@gmail.com","subject":"Confirmaci\u00f3n de cita m\u00e9dica - Cl\u00ednica Nutricional"}
-[2026-03-11 23:55:09] Correo enviado exitosamente {"to":"Anthonypaciente@correo.com","subject":"Confirmaci\u00f3n de cita m\u00e9dica - Cl\u00ednica Nutricional"}
-[2026-03-18 06:09:34] Correo enviado exitosamente {"to":"Anthonypaciente@correo.com","subject":"Confirmaci\u00f3n de cita m\u00e9dica - Cl\u00ednica Nutricional"}
-[2026-03-22 04:49:51] ERROR: PHPMailer no está cargado. Verificar que composer install se ejecutó correctamente. {"to":"anagn@nutri.hn","subject":"Confirmaci\u00f3n de cita m\u00e9dica - Cl\u00ednica Nutricional"}
-[2026-03-22 04:50:15] ERROR: PHPMailer no está cargado. Verificar que composer install se ejecutó correctamente. {"to":"anagn@nutri.hn","subject":"Confirmaci\u00f3n de cita m\u00e9dica - Cl\u00ednica Nutricional"}
-[2026-03-24 18:06:11] ERROR: PHPMailer no está cargado. Verificar que composer install se ejecutó correctamente. {"to":"leo@gmail.com","subject":"Confirmaci\u00f3n de cita m\u00e9dica - Cl\u00ednica Nutricional"}
-[2026-03-24 18:32:34] ERROR: PHPMailer no está cargado. Verificar que composer install se ejecutó correctamente. {"to":"jazelbonilla16@gmail.com","subject":"Confirmaci\u00f3n de cita m\u00e9dica - Cl\u00ednica Nutricional"}
-[2026-03-24 18:46:32] ERROR: PHPMailer no está cargado. Verificar que composer install se ejecutó correctamente. {"to":"jazelbonilla16@gmail.com","subject":"Confirmaci\u00f3n de cita m\u00e9dica - Cl\u00ednica Nutricional"}
-[2026-03-24 18:53:19] ERROR: PHPMailer no está cargado. Verificar que composer install se ejecutó correctamente. {"to":"jazelbonilla16@gmail.com","subject":"Confirmaci\u00f3n de cita m\u00e9dica - Cl\u00ednica Nutricional"}
-[2026-03-24 18:54:08] ERROR: PHPMailer no está cargado. Verificar que composer install se ejecutó correctamente. {"to":"jazelbonilla16@gmail.com","subject":"Confirmaci\u00f3n de cita m\u00e9dica - Cl\u00ednica Nutricional"}
-[2026-04-06 05:15:48] ERROR: PHPMailer no está cargado. Verificar que composer install se ejecutó correctamente. {"to":"jazelbonilla16@gmail.com","subject":"Confirmaci\u00f3n de cita m\u00e9dica - Cl\u00ednica Nutricional"}
-[2026-04-06 05:19:35] ERROR: PHPMailer no está cargado. Verificar que composer install se ejecutó correctamente. {"to":"denser@nutri.hn","subject":"Confirmaci\u00f3n de cita m\u00e9dica - Cl\u00ednica Nutricional"}
-[2026-04-06 05:24:16] DEBUG: phpmailer_dir=MISSING {"to":"denser@nutri.hn"}
-[2026-04-06 05:24:16] ERROR: PHPMailer no disponible tras loads {"to":"denser@nutri.hn"}
-[2026-04-06 05:24:16] UI: Email failed for cita confirmada {"email":"denser@nutri.hn","error":"Error interno de correo. Revise logs."}
-[2026-04-06 05:26:10] DEBUG: phpmailer_dir=MISSING {"to":"jazelbonilla16@gmail.com"}
-[2026-04-06 05:26:10] ERROR: PHPMailer no disponible tras loads {"to":"jazelbonilla16@gmail.com"}
-[2026-04-06 05:26:10] UI: Email failed for cita confirmada {"email":"jazelbonilla16@gmail.com","error":"Error interno de correo. Revise logs."}
-[2026-04-06 05:30:26] DEBUG: phpmailer_dir=OK {"to":"jazelbonilla16@gmail.com"}
-[2026-04-06 05:30:29] Correo enviado exitosamente {"to":"jazelbonilla16@gmail.com","subject":"Confirmaci\u00f3n de cita m\u00e9dica - Cl\u00ednica Nutricional"}
-[2026-04-06 05:30:39] DEBUG: phpmailer_dir=OK {"to":"anagn@nutri.hn"}
-[2026-04-06 05:30:42] Correo enviado exitosamente {"to":"anagn@nutri.hn","subject":"Confirmaci\u00f3n de cita m\u00e9dica - Cl\u00ednica Nutricional"}
-[2026-04-06 05:30:58] DEBUG: phpmailer_dir=OK {"to":"Anthonypaciente@correo.com"}
-[2026-04-06 05:31:01] Correo enviado exitosamente {"to":"Anthonypaciente@correo.com","subject":"Confirmaci\u00f3n de cita m\u00e9dica - Cl\u00ednica Nutricional"}
-[2026-04-06 05:31:10] DEBUG: phpmailer_dir=OK {"to":"denserpacheco0@gmail.com"}
-[2026-04-06 05:31:13] Correo enviado exitosamente {"to":"denserpacheco0@gmail.com","subject":"Confirmaci\u00f3n de cita m\u00e9dica - Cl\u00ednica Nutricional"}
-[2026-04-06 05:50:45] DEBUG: phpmailer_dir=MISSING {"to":"akra5669@gmail.com"}
-[2026-04-06 05:50:45] ERROR: PHPMailer no disponible tras loads {"to":"akra5669@gmail.com"}
+{"timestamp":"2026-04-11 17:26:07","context":"Queued email","data":{"to":"denserpacheco0@gmail.com"},"error":"Unknown"}
+{"timestamp":"2026-04-11 17:26:07","context":"Email cita confirmada en QUEUE","data":{"email":"denserpacheco0@gmail.com","error":"SMTP Error: Could not authenticate."},"error":"Unknown"}
+{"timestamp":"2026-04-11 17:26:22","context":"Queued email","data":{"to":"denserpacheco0@gmail.com"},"error":"Unknown"}
+{"timestamp":"2026-04-11 17:26:22","context":"Email cita confirmada en QUEUE","data":{"email":"denserpacheco0@gmail.com","error":"SMTP Error: Could not authenticate."},"error":"Unknown"}
+{"timestamp":"2026-04-11 17:31:45","context":"Queued email","data":{"to":"denserpacheco0@gmail.com"},"error":"Unknown"}
+{"timestamp":"2026-04-11 17:31:45","context":"Queued email","data":{"to":"denserpacheco0@gmail.com"},"error":"Unknown"}
+{"timestamp":"2026-04-11 17:31:54","context":"Queued email","data":{"to":"dede@nutri.hn"},"error":"Unknown"}
+{"timestamp":"2026-04-11 17:31:54","context":"Queued email","data":{"to":"dede@nutri.hn"},"error":"Unknown"}
+{"timestamp":"2026-04-11 17:33:50","context":"Queued email","data":{"to":"denserpacheco0@gmail.com"},"error":"Unknown"}
+{"timestamp":"2026-04-11 17:33:50","context":"Email cita confirmada en QUEUE","data":{"email":"denserpacheco0@gmail.com","error":"Invalid address:  (From): your-mailtrap-username"},"error":"Unknown"}

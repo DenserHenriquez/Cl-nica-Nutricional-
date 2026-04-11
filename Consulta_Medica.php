@@ -1459,5 +1459,6 @@ if ($ok && !$exito) { $exito = 'Consulta guardada correctamente.'; }
     });
   })();
 </script>
+<script src="assets/js/form-integrity.js"></script>
 </body>
 </html>

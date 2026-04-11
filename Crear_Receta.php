@@ -555,5 +555,6 @@ $csrf = $_SESSION['csrf'];
         <?php endif; ?>
         <?php endif; ?>
     </script>
+<script src="assets/js/form-integrity.js"></script>
 </body>
 </html>

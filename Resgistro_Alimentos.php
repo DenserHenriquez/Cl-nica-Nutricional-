@@ -597,5 +597,6 @@ if ($vista === 'diaria') {
             }
         }
     </script>
+<script src="assets/js/form-integrity.js"></script>
 </body>
 </html>
