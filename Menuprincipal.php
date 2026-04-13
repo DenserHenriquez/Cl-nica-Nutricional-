@@ -81,7 +81,7 @@ function e($str) { return htmlspecialchars((string)$str, ENT_QUOTES, 'UTF-8'); }
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Menu Principal | NUTRIVIDA</title>
+    <title>Menú Principal | NUTRIVIDA</title>
     <!-- Bootstrap 5 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- FontAwesome for icons -->
@@ -330,7 +330,7 @@ function e($str) { return htmlspecialchars((string)$str, ENT_QUOTES, 'UTF-8'); }
                 <div class="position-sticky">
                     <h5 class="sidebar-heading" onclick="toggleSidebar()">
                         <i class="bi bi-grid-3x3-gap"></i>
-                        <span>Menu Principal</span>
+                        <span>Menú Principal</span>
                     </h5>
                     <ul class="nav flex-column">
                         <li class="nav-item">
@@ -363,8 +363,9 @@ function e($str) { return htmlspecialchars((string)$str, ENT_QUOTES, 'UTF-8'); }
                         
                         <?php if (hasAccess('panel_evolucion', $userRole, $menuItems)): ?>
                         <li class="nav-item">
-                            <a class="nav-link" href="panelevolucionpaciente.php" target="main-content">
-                                <i class="bi bi-graph-up"></i> Panel de Evolucion
+                            <a class="nav-link d-flex align-items-center" href="panelevolucionpaciente.php" target="main-content">
+                                <i class="bi bi-graph-up"></i>
+                                <span class="ms-2">Panel de Evolución</span>
                             </a>
                         </li>
                         <?php endif; ?>
@@ -388,7 +389,7 @@ function e($str) { return htmlspecialchars((string)$str, ENT_QUOTES, 'UTF-8'); }
                         <?php if (hasAccess('busqueda_avanzada', $userRole, $menuItems)): ?>
                         <li class="nav-item">
                             <a class="nav-link" href="Busqueda_avanzada.php" target="main-content">
-                                <i class="bi bi-search"></i> Busqueda Avanzada
+                                <i class="bi bi-search"></i> Búsqueda de Pacientes
                             </a>
                         </li>
                         <?php endif; ?>
@@ -396,7 +397,7 @@ function e($str) { return htmlspecialchars((string)$str, ENT_QUOTES, 'UTF-8'); }
                         <?php if (hasAccess('citas_medicas', $userRole, $menuItems)): ?>
                         <li class="nav-item">
                             <a class="nav-link" href="citas_medico.php" target="main-content">
-                                <i class="bi bi-calendar-event"></i> Citas Medicas
+                                <i class="bi bi-calendar-event"></i> Citas Médicas
                             </a>
                         </li>
                         <?php endif; ?>
@@ -452,7 +453,7 @@ function e($str) { return htmlspecialchars((string)$str, ENT_QUOTES, 'UTF-8'); }
                         <?php if (hasAccess('clasificacion_alimentos', $userRole, $menuItems)): ?>
                         <li class="nav-item">
                             <a class="nav-link" href="Clasificacion_alimentos.php" target="main-content">
-                                <i class="bi bi-apple"></i> Clasificacion de Alimentos
+                                <i class="bi bi-apple"></i> Clasificación de Alimentos
                             </a>
                         </li>
                         <?php endif; ?>
@@ -484,7 +485,7 @@ function e($str) { return htmlspecialchars((string)$str, ENT_QUOTES, 'UTF-8'); }
                         <?php if (hasAccess('retroalimentacion', $userRole, $menuItems)): ?>
                         <li class="nav-item">
                             <a class="nav-link" href="retroalimentacion1.php" target="main-content">
-                                <i class="bi bi-chat-dots"></i> Retroalimentacion
+                                <i class="bi bi-chat-dots"></i> Retroalimentación
                             </a>
                         </li>
                         <?php endif; ?>
