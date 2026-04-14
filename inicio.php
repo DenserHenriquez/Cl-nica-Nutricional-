@@ -1106,13 +1106,24 @@ $tipNutricional = $tips[array_rand($tips)];
             .then(r=>r.json())
             .then(function(data){
                 if(data&&data.ok){
+                    if(action === 'confirmar' && data.email){
+                        alert('Cita confirmada. ' + data.email);
+                    } else if(action === 'confirmar') {
+                        alert('Cita confirmada.');
+                    } else if(action === 'cancelar') {
+                        alert('Cita cancelada.');
+                    }
                     if(card){
                         card.style.transition='opacity .3s, max-height .35s, margin .35s, padding .35s';
                         card.style.maxHeight=card.scrollHeight+'px';
                         requestAnimationFrame(function(){ card.style.opacity='0'; card.style.maxHeight='0'; card.style.overflow='hidden'; card.style.margin='0'; card.style.padding='0'; });
                         setTimeout(function(){ card.remove(); loadCitas(); },380);
                     } else { loadCitas(); }
-                } else { alert('No se pudo actualizar la cita.'); if(card){ card.style.opacity='1'; card.style.pointerEvents=''; } }
+                } else {
+                    const message = (data && (data.error || data.email)) ? (data.error || data.email) : 'No se pudo actualizar la cita.';
+                    alert(message);
+                    if(card){ card.style.opacity='1'; card.style.pointerEvents=''; }
+                }
             })
             .catch(function(){ alert('Error de conexión.'); if(card){ card.style.opacity='1'; card.style.pointerEvents=''; } });
     };

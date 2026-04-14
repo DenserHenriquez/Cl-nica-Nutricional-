@@ -85,10 +85,50 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $errores[] = 'Token inválido. Recargue la página.';
     }
 
-    // Elegir usuario a registrar según rol
-    $post_uid = isset($_POST['uid']) ? (int)$_POST['uid'] : 0;
-    $effectiveUserId = $user_id;
-    if ($isStaff && $post_uid > 0) { $effectiveUserId = $post_uid; }
+    // Eliminar usuario sin registro de paciente (solo staff)
+    if ($isStaff && isset($_POST['action']) && $_POST['action'] === 'delete_user') {
+        $delete_user_id = isset($_POST['delete_user_id']) ? (int)$_POST['delete_user_id'] : 0;
+        if ($delete_user_id <= 0) {
+            $errores[] = 'Usuario inválido para eliminación.';
+        } else {
+            $check = $conexion->prepare(
+                'SELECT u.id_usuarios FROM usuarios u LEFT JOIN pacientes p ON p.id_usuarios = u.id_usuarios WHERE u.id_usuarios = ? AND u.Rol = ? AND p.id_pacientes IS NULL LIMIT 1'
+            );
+            if ($check) {
+                $rolPaciente = 'Paciente';
+                $check->bind_param('is', $delete_user_id, $rolPaciente);
+                $check->execute();
+                $check->store_result();
+                if ($check->num_rows === 1) {
+                    $check->close();
+                    $del = $conexion->prepare('DELETE FROM usuarios WHERE id_usuarios = ?');
+                    if ($del) {
+                        $del->bind_param('i', $delete_user_id);
+                        if ($del->execute()) {
+                            $_SESSION['flash_success'] = 'Usuario eliminado correctamente.';
+                            header('Location: Registropacientes.php');
+                            exit;
+                        }
+                        $errores[] = 'No se pudo eliminar el usuario: ' . $del->error;
+                        $del->close();
+                    } else {
+                        $errores[] = 'Error al preparar eliminación: ' . $conexion->error;
+                    }
+                } else {
+                    $errores[] = 'El usuario no existe o ya tiene registro de paciente.';
+                    $check->close();
+                }
+            } else {
+                $errores[] = 'Error verificando usuario: ' . $conexion->error;
+            }
+        }
+    }
+
+    if (!($isStaff && isset($_POST['action']) && $_POST['action'] === 'delete_user')) {
+        // Elegir usuario a registrar según rol
+        $post_uid = isset($_POST['uid']) ? (int)$_POST['uid'] : 0;
+        $effectiveUserId = $user_id;
+        if ($isStaff && $post_uid > 0) { $effectiveUserId = $post_uid; }
 
     // Obtener nombre desde BD del usuario objetivo
 $effectiveUserName = '';
@@ -223,6 +263,7 @@ $stmtExp->bind_param('idddsss', $nuevoPacienteId, $valEdadM, $valPeso, $valEst, 
         } else {
             $errores[] = 'Error preparando inserción de paciente: ' . $conexion->error;
         }
+    }
     }
 }
 
@@ -466,7 +507,7 @@ if (isset($_SESSION['flash_success'])) {
                                         <th style="width:60px;" class="sortable">ID</th>
                                         <th class="sortable">Nombre</th>
                                         <th style="width:140px;" class="sortable">Rol</th>
-                                        <th style="width:180px;" class="text-end">Acciones</th>
+                                        <th style="width:220px;" class="text-end">Acciones</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -476,9 +517,19 @@ if (isset($_SESSION['flash_success'])) {
                                             <td><?= htmlspecialchars($u['Nombre_completo'] ?? 'Usuario', ENT_QUOTES, 'UTF-8') ?></td>
                                             <td><?= htmlspecialchars($u['Rol'] ?? '', ENT_QUOTES, 'UTF-8') ?></td>
                                             <td class="text-end">
-                                                <a class="btn btn-sm btn-outline-primary" href="Registropacientes.php?uid=<?= (int)$u['id_usuarios'] ?>">
-                                                    <i class="bi bi-person-plus me-1"></i> Registrar paciente
-                                                </a>
+                                                <div class="d-flex justify-content-end flex-nowrap gap-2 align-items-center action-buttons">
+                                                    <a class="btn btn-sm btn-outline-primary action-btn-action" href="Registropacientes.php?uid=<?= (int)$u['id_usuarios'] ?>">
+                                                        <i class="bi bi-person-plus me-1"></i> Registrar paciente
+                                                    </a>
+                                                    <form method="post" class="m-0" style="display:inline-block;" onsubmit="return confirm(<?= json_encode('¿Eliminar el usuario "' . ($u['Nombre_completo'] ?? 'Usuario') . '"? Esta acción no se puede deshacer.') ?>);">
+                                                        <input type="hidden" name="csrf" value="<?= htmlspecialchars($csrf ?? '', ENT_QUOTES, 'UTF-8') ?>">
+                                                        <input type="hidden" name="action" value="delete_user">
+                                                        <input type="hidden" name="delete_user_id" value="<?= (int)$u['id_usuarios'] ?>">
+                                                        <button type="submit" class="btn btn-sm btn-outline-danger action-btn-action">
+                                                            <i class="bi bi-trash me-1"></i> Eliminar
+                                                        </button>
+                                                    </form>
+                                                </div>
                                             </td>
                                         </tr>
                                     <?php endforeach; ?>
