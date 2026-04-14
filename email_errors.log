@@ -8,3 +8,36 @@
 {"timestamp":"2026-04-11 17:31:54","context":"Queued email","data":{"to":"dede@nutri.hn"},"error":"Unknown"}
 {"timestamp":"2026-04-11 17:33:50","context":"Queued email","data":{"to":"denserpacheco0@gmail.com"},"error":"Unknown"}
 {"timestamp":"2026-04-11 17:33:50","context":"Email cita confirmada en QUEUE","data":{"email":"denserpacheco0@gmail.com","error":"Invalid address:  (From): your-mailtrap-username"},"error":"Unknown"}
+{"timestamp":"2026-04-14 09:14:43","context":"Queued email","data":{"to":"akra5669@gmail.com"},"error":"Unknown"}
+{"timestamp":"2026-04-14 09:14:43","context":"Email cita confirmada en QUEUE","data":{"email":"akra5669@gmail.com","error":"Correo encolado"},"error":"Unknown"}
+{"timestamp":"2026-04-14 09:14:53","context":"Queued email","data":{"to":"akra5669@gmail.com"},"error":"Unknown"}
+{"timestamp":"2026-04-14 09:14:53","context":"Email cita confirmada en QUEUE","data":{"email":"akra5669@gmail.com","error":"Correo encolado"},"error":"Unknown"}
+{"timestamp":"2026-04-14 09:15:19","context":"Queued email","data":{"to":"akra5669@gmail.com"},"error":"Unknown"}
+{"timestamp":"2026-04-14 09:15:19","context":"Email cita confirmada en QUEUE","data":{"email":"akra5669@gmail.com","error":"Correo encolado"},"error":"Unknown"}
+{"timestamp":"2026-04-14 09:16:05","context":"Queued email","data":{"to":"akra5669@gmail.com"},"error":"Unknown"}
+{"timestamp":"2026-04-14 09:16:05","context":"Email cita confirmada en QUEUE","data":{"email":"akra5669@gmail.com","error":"Correo encolado"},"error":"Unknown"}
+{"timestamp":"2026-04-14 09:16:31","context":"Queued email","data":{"to":"akra5669@gmail.com"},"error":"Unknown"}
+{"timestamp":"2026-04-14 09:20:56","context":"Queued email","data":{"to":"akra5669@gmail.com"},"error":"Unknown"}
+{"timestamp":"2026-04-14 09:20:56","context":"Email cita confirmada en QUEUE","data":{"email":"akra5669@gmail.com","error":"Correo encolado"},"error":"Unknown"}
+{"timestamp":"2026-04-14 09:22:59","context":"Queued email","data":{"to":"akra5669@gmail.com"},"error":"Unknown"}
+{"timestamp":"2026-04-14 09:22:59","context":"Email cita confirmada en QUEUE","data":{"email":"akra5669@gmail.com","error":"Correo encolado"},"error":"Unknown"}
+{"timestamp":"2026-04-14 09:28:38","context":"Queued email","data":{"to":"akra5669@gmail.com"},"error":"Unknown"}
+{"timestamp":"2026-04-14 09:28:38","context":"Email cita confirmada en QUEUE","data":{"email":"akra5669@gmail.com","error":"Credenciales SMTP no configuradas (en cola)"},"error":"Unknown"}
+{"timestamp":"2026-04-14 09:50:23","context":"Queued email","data":{"to":"akra5669@gmail.com"},"error":"Unknown"}
+{"timestamp":"2026-04-14 09:50:23","context":"Email cita confirmada en QUEUE","data":{"email":"akra5669@gmail.com","error":"Credenciales SMTP no configuradas (en cola)"},"error":"Unknown"}
+{"timestamp":"2026-04-14 09:55:37","context":"Queued email","data":{"to":"akra5669@gmail.com"},"error":"Unknown"}
+{"timestamp":"2026-04-14 09:59:58","context":"Queued email","data":{"to":"superflash0prime@gmail.com"},"error":"Unknown"}
+{"timestamp":"2026-04-14 10:07:30","context":"Queued email","data":{"to":"superflash0prime@gmail.com"},"error":"Unknown"}
+{"timestamp":"2026-04-14 10:07:30","context":"Email cita confirmada en QUEUE","data":{"email":"superflash0prime@gmail.com","error":"Credenciales SMTP no configuradas (en cola)"},"error":"Unknown"}
+{"timestamp":"2026-04-14 10:15:16","context":"Queued email","data":{"to":"superflash0prime@gmail.com"},"error":"Unknown"}
+{"timestamp":"2026-04-14 10:15:16","context":"Email cita confirmada en QUEUE","data":{"email":"superflash0prime@gmail.com","error":"PHPMailer no disponible (en cola)"},"error":"Unknown"}
+{"timestamp":"2026-04-14 10:16:36","context":"Queued email","data":{"to":"superflash0prime@gmail.com"},"error":"Unknown"}
+{"timestamp":"2026-04-14 10:16:36","context":"Email cita confirmada en QUEUE","data":{"email":"superflash0prime@gmail.com","error":"PHPMailer no disponible (en cola)"},"error":"Unknown"}
+{"timestamp":"2026-04-14 10:17:43","context":"Queued email","data":{"to":"superflash0prime@gmail.com"},"error":"Unknown"}
+{"timestamp":"2026-04-14 10:17:43","context":"Email cita confirmada en QUEUE","data":{"email":"superflash0prime@gmail.com","error":"PHPMailer no disponible (en cola)"},"error":"Unknown"}
+{"timestamp":"2026-04-14 10:20:08","context":"Queued email","data":{"to":"superflash0prime@gmail.com"},"error":"Unknown"}
+{"timestamp":"2026-04-14 10:20:08","context":"Email cita confirmada en QUEUE","data":{"email":"superflash0prime@gmail.com","error":"PHPMailer no disponible (en cola)"},"error":"Unknown"}
+{"timestamp":"2026-04-14 10:30:47","context":"Queued email","data":{"to":"superflash0prime@gmail.com"},"error":"Unknown"}
+{"timestamp":"2026-04-14 10:30:47","context":"Email cita confirmada en QUEUE","data":{"email":"superflash0prime@gmail.com","error":"PHPMailer no disponible (en cola)"},"error":"Unknown"}
+{"timestamp":"2026-04-14 20:21:54","context":"Queued email","data":{"to":"superflash0prime@gmail.com"},"error":"Unknown"}
+{"timestamp":"2026-04-14 20:21:54","context":"Email cita confirmada en QUEUE","data":{"email":"superflash0prime@gmail.com","error":"PHPMailer no disponible (en cola)"},"error":"Unknown"}

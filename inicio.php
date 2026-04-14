@@ -1063,9 +1063,15 @@ $tipNutricional = $tips[array_rand($tips)];
     let panelOpen = false;
     function escH(s){ const d=document.createElement('div'); d.textContent=String(s); return d.innerHTML; }
     function fmtFecha(dateStr){ if(!dateStr) return ''; const p=dateStr.split('-'); return p.length===3 ? p[2]+'/'+p[1]+'/'+p[0] : dateStr; }
+    const apiCitasUrl = <?= json_encode(rtrim(dirname($_SERVER['SCRIPT_NAME']), '/\\') . '/api_citas_medico.php'); ?>;
     function loadCitas(){
-        fetch('api_citas_medico.php?action=pending',{credentials:'same-origin'})
-            .then(r=>r.json())
+        fetch(apiCitasUrl + '?action=pending', {credentials:'same-origin'})
+            .then(function(resp){
+                if (!resp.ok) {
+                    return resp.text().then(function(text){ throw new Error('HTTP ' + resp.status + ' ' + resp.statusText + ': ' + text); });
+                }
+                return resp.json();
+            })
             .then(function(data){
                 const badge=document.getElementById('citasBadge');
                 const body=document.getElementById('citasPanelBody');
@@ -1102,17 +1108,15 @@ $tipNutricional = $tips[array_rand($tips)];
         const card=document.getElementById('cita-'+id);
         if(card){ card.style.opacity='0.4'; card.style.pointerEvents='none'; }
         const fd=new FormData(); fd.append('action',action); fd.append('id',id);
-        fetch('api_citas_medico.php',{method:'POST',body:fd,credentials:'same-origin'})
-            .then(r=>r.json())
+        fetch(apiCitasUrl,{method:'POST',body:fd,credentials:'same-origin'})
+            .then(function(resp){
+                if (!resp.ok) {
+                    return resp.text().then(function(text){ throw new Error('HTTP ' + resp.status + ' ' + resp.statusText + ': ' + text); });
+                }
+                return resp.json();
+            })
             .then(function(data){
                 if(data&&data.ok){
-                    if(action === 'confirmar' && data.email){
-                        alert('Cita confirmada. ' + data.email);
-                    } else if(action === 'confirmar') {
-                        alert('Cita confirmada.');
-                    } else if(action === 'cancelar') {
-                        alert('Cita cancelada.');
-                    }
                     if(card){
                         card.style.transition='opacity .3s, max-height .35s, margin .35s, padding .35s';
                         card.style.maxHeight=card.scrollHeight+'px';
@@ -1120,12 +1124,13 @@ $tipNutricional = $tips[array_rand($tips)];
                         setTimeout(function(){ card.remove(); loadCitas(); },380);
                     } else { loadCitas(); }
                 } else {
-                    const message = (data && (data.error || data.email)) ? (data.error || data.email) : 'No se pudo actualizar la cita.';
-                    alert(message);
                     if(card){ card.style.opacity='1'; card.style.pointerEvents=''; }
                 }
             })
-            .catch(function(){ alert('Error de conexión.'); if(card){ card.style.opacity='1'; card.style.pointerEvents=''; } });
+            .catch(function(error){
+                console.error('Error en api_citas_medico:', error);
+                if(card){ card.style.opacity='1'; card.style.pointerEvents=''; }
+            });
     };
     loadCitas();
     setInterval(loadCitas, 30000);

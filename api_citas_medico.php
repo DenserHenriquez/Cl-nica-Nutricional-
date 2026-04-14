@@ -66,11 +66,34 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         $stmt->bind_param('ii', $id, $medicoId);
         $stmt->execute();
-        $ok = $stmt->affected_rows > 0;
+        $changed = $stmt->affected_rows > 0;
         $stmt->close();
 
+        if (!$changed) {
+            $check = $conexion->prepare("SELECT estado FROM citas WHERE id = ? AND medico_id = ? LIMIT 1");
+            if ($check) {
+                $check->bind_param('ii', $id, $medicoId);
+                $check->execute();
+                $result = $check->get_result();
+                $row = $result ? $result->fetch_assoc() : null;
+                $check->close();
+                if ($row) {
+                    if ($row['estado'] === 'confirmada') {
+                        echo json_encode(['ok' => true, 'email' => 'La cita ya estaba confirmada.']);
+                        exit;
+                    }
+                    if ($row['estado'] === 'cancelada') {
+                        echo json_encode(['ok' => false, 'error' => 'La cita ya fue cancelada.']);
+                        exit;
+                    }
+                }
+            }
+            echo json_encode(['ok' => false, 'error' => 'No se encontró la cita o no tienes permiso para modificarla.']);
+            exit;
+        }
+
         $emailMsg = '';
-        if ($ok) {
+        if ($changed) {
             // Obtener datos de la cita y email del paciente
             $q = $conexion->prepare(
                 "SELECT c.fecha, c.hora, c.nombre_completo, c.paciente_id,
@@ -162,10 +185,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
         }
 
-        if (!$ok) {
-            echo json_encode(['ok' => false, 'error' => 'No se encontró la cita o no tienes permiso para modificarla.']);
-            exit;
-        }
         echo json_encode(['ok' => true, 'email' => $emailMsg]);
         exit;
     }
@@ -178,7 +197,93 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmt->execute();
         $ok = $stmt->affected_rows > 0;
         $stmt->close();
-        echo json_encode(['ok' => $ok]);
+        
+        $emailMsg = '';
+        if ($ok) {
+            // Obtener datos de la cita y email del paciente
+            $q = $conexion->prepare(
+                "SELECT c.fecha, c.hora, c.nombre_completo, c.paciente_id,
+                        COALESCE(u.Correo_electronico, pu.Correo_electronico) AS email,
+                        COALESCE(p.id_usuarios, c.paciente_id) AS paciente_usuario_id,
+                        m.Nombre_completo AS medico_nombre
+                 FROM citas c
+                 LEFT JOIN usuarios u ON u.id_usuarios = c.paciente_id
+                 LEFT JOIN pacientes p ON p.id_pacientes = c.paciente_id
+                 LEFT JOIN usuarios pu ON pu.id_usuarios = p.id_usuarios
+                 LEFT JOIN usuarios m ON m.id_usuarios = ?
+                 WHERE c.id = ? AND c.medico_id = ?
+                 LIMIT 1"
+            );
+            if ($q) {
+                $q->bind_param('iii', $medicoId, $id, $medicoId);
+                $q->execute();
+                $rowC = $q->get_result()->fetch_assoc();
+                $q->close();
+
+                if ($rowC) {
+                    $pacienteNombre = $rowC['nombre_completo'] ?: 'Paciente';
+                    $pacienteEmail  = $rowC['email'] ?? '';
+                    $pacienteUsuarioId = (int)($rowC['paciente_usuario_id'] ?? 0);
+                    $medicoNombre   = $rowC['medico_nombre'] ?? 'Médico de la clínica';
+
+                    // Si paciente_id es id_pacientes, buscar el email real en usuarios
+                    if (empty($pacienteEmail) && $pacienteUsuarioId > 0) {
+                        $tmp = $conexion->prepare(
+                            "SELECT Correo_electronico FROM usuarios WHERE id_usuarios = ? LIMIT 1"
+                        );
+                        if ($tmp) {
+                            $tmp->bind_param('i', $pacienteUsuarioId);
+                            $tmp->execute();
+                            $urow = $tmp->get_result()->fetch_assoc();
+                            $tmp->close();
+                            if ($urow) {
+                                $pacienteEmail = $urow['Correo_electronico'] ?? '';
+                            }
+                        }
+                    }
+
+                    // Fallback: buscar email por nombre
+                    if (empty($pacienteEmail)) {
+                        $tmp = $conexion->prepare(
+                            "SELECT Correo_electronico FROM usuarios WHERE Nombre_completo = ? LIMIT 1"
+                        );
+                        if ($tmp) {
+                            $tmp->bind_param('s', $pacienteNombre);
+                            $tmp->execute();
+                            $urow = $tmp->get_result()->fetch_assoc();
+                            $tmp->close();
+                            if ($urow) {
+                                $pacienteEmail = $urow['Correo_electronico'] ?? '';
+                            }
+                        }
+                    }
+
+                    if (!empty($pacienteEmail)) {
+                        try {
+                            $dt = new DateTime($rowC['fecha'] . ' ' . $rowC['hora'], new DateTimeZone('America/Mexico_City'));
+                            $fechaTxt = $dt->format('d/m/Y H:i');
+                        } catch (Exception $e) {
+                            $fechaTxt = $rowC['fecha'] . ' ' . substr($rowC['hora'], 0, 5);
+                        }
+
+                        require_once __DIR__ . '/email_config.php';
+                        $resultado = enviarCorreoCancelacionCita(
+                            $pacienteEmail,
+                            $pacienteNombre,
+                            $fechaTxt,
+                            $medicoNombre
+                        );
+                        $emailMsg = $resultado['success']
+                            ? 'Correo de cancelación enviado a ' . $pacienteEmail
+                            : 'Error al enviar correo: ' . $resultado['error'];
+                    } else {
+                        $emailMsg = 'Paciente sin correo registrado.';
+                    }
+                }
+            }
+        }
+        
+        echo json_encode(['ok' => $ok, 'email' => $emailMsg]);
         exit;
     }
 }

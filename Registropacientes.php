@@ -243,7 +243,7 @@ $sqlExp = "INSERT INTO expediente (id_pacientes, edad_metabolica, peso, estatura
                         $valIMC = ($imc !== null) ? $imc : null;
                         $valEnf = ($enfermedades_base !== '') ? $enfermedades_base : null;
                         $valMed = ($medicamentos !== '') ? $medicamentos : null;
-$stmtExp->bind_param('idddsss', $nuevoPacienteId, $valEdadM, $valPeso, $valEst, $valIMC, $valEnf, $valMed);
+                        $stmtExp->bind_param('iddddss', $nuevoPacienteId, $valEdadM, $valPeso, $valEst, $valIMC, $valEnf, $valMed);
                         if ($stmtExp->execute()) {
                             $exito .= ' Se creó expediente inicial.';
                         } else {
@@ -826,6 +826,5 @@ name="edit_file">
     </script>
 
     <script src="assets/js/script.js"></script>
-<script src="assets/js/form-integrity.js"></script>
 </body>
 </html>
