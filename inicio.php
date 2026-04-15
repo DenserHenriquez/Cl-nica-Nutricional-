@@ -501,10 +501,59 @@ $tipNutricional = $tips[array_rand($tips)];
     .cita-meta { font-size: .84rem; color: #6c757d; margin: 3px 0 8px; }
     .cita-motivo { font-size: .82rem; color: #495057; background: #e8f5e9; border-radius: 6px; padding: 5px 8px; margin-bottom: 10px; }
     .cita-actions { display: flex; gap: 8px; }
+    /* Notificaciones flotantes */
+    #notificaciones-container {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        z-index: 9999;
+        pointer-events: none;
+        max-width: 400px;
+    }
+    .notificacion {
+        background: #fff;
+        border-radius: 8px;
+        padding: 16px;
+        margin-bottom: 12px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        pointer-events: auto;
+        animation: slideInRight .3s ease-out;
+    }
+    @keyframes slideInRight {
+        from { transform: translateX(420px); opacity: 0; }
+        to { transform: translateX(0); opacity: 1; }
+    }
+    @keyframes slideOutRight {
+        from { transform: translateX(0); opacity: 1; }
+        to { transform: translateX(420px); opacity: 0; }
+    }
+    .notificacion.closing {
+        animation: slideOutRight .3s ease-in;
+    }
+    .notificacion-success { border-left: 5px solid #198754; background-color: #f0fdf4; }
+    .notificacion-success .notificacion-title { color: #15803d; }
+    .notificacion-error { border-left: 5px solid #dc3545; background-color: #fef2f2; }
+    .notificacion-error .notificacion-title { color: #991b1b; }
+    .notificacion-warning { border-left: 5px solid #fd7e14; background-color: #fffbeb; }
+    .notificacion-warning .notificacion-title { color: #b45309; }
+    .notificacion-info { border-left: 5px solid #0d6efd; background-color: #eff6ff; }
+    .notificacion-info .notificacion-title { color: #1e40af; }
+    .notificacion-title {
+        font-weight: 700;
+        font-size: 0.95rem;
+        margin: 0 0 8px 0;
+    }
+    .notificacion-message {
+        font-size: 0.9rem;
+        color: #495057;
+        margin: 0;
+        line-height: 1.4;
+    }
 
 </style>
 </head>
 <body>
+<div id="notificaciones-container"></div>
 
 <?php if ($userRole === 'Paciente' && !empty($bannerSlides)): ?>
 <!-- ══ CARRUSEL DE BANNERS ══ -->
@@ -1064,6 +1113,33 @@ $tipNutricional = $tips[array_rand($tips)];
     function escH(s){ const d=document.createElement('div'); d.textContent=String(s); return d.innerHTML; }
     function fmtFecha(dateStr){ if(!dateStr) return ''; const p=dateStr.split('-'); return p.length===3 ? p[2]+'/'+p[1]+'/'+p[0] : dateStr; }
     const apiCitasUrl = new URL('api_citas_medico.php', window.location.href).href;
+    
+    // Función para mostrar notificaciones flotantes
+    window.mostrarNotificacion = function(titulo, mensaje, tipo, duracion){
+        tipo = tipo || 'info';
+        duracion = duracion || 4000;
+        const container = document.getElementById('notificaciones-container');
+        if(!container) return;
+        const notif = document.createElement('div');
+        notif.className = 'notificacion notificacion-' + tipo;
+        notif.innerHTML = '<div class="notificacion-title">' + escH(titulo) + '</div><div class="notificacion-message">' + escH(mensaje) + '</div>';
+        container.appendChild(notif);
+        
+        const timeout = setTimeout(function(){
+            notif.classList.add('closing');
+            setTimeout(function(){
+                notif.remove();
+            }, 300);
+        }, duracion);
+        
+        notif.addEventListener('click', function(){
+            clearTimeout(timeout);
+            notif.classList.add('closing');
+            setTimeout(function(){
+                notif.remove();
+            }, 300);
+        });
+    };
 
     async function fetchJson(url, options = {}) {
         const response = await fetch(url, { credentials: 'include', ...options });
@@ -1120,11 +1196,13 @@ $tipNutricional = $tips[array_rand($tips)];
             .then(function(data){
                 if(data&&data.ok){
                     if(action === 'confirmar' && data.email){
-                        alert('Cita confirmada. ' + data.email);
+                        mostrarNotificacion('✓ Cita Confirmada', data.email, 'success', 4000);
                     } else if(action === 'confirmar') {
-                        alert('Cita confirmada.');
+                        mostrarNotificacion('✓ Cita Confirmada', 'La cita ha sido confirmada exitosamente.', 'success', 4000);
+                    } else if(action === 'cancelar' && data.email_msg){
+                        mostrarNotificacion('✓ Cita Cancelada', data.email_msg, 'success', 4000);
                     } else if(action === 'cancelar') {
-                        alert('Cita cancelada.');
+                        mostrarNotificacion('✓ Cita Cancelada', 'La cita ha sido cancelada.', 'success', 4000);
                     }
                     if(card){
                         card.style.transition='opacity .3s, max-height .35s, margin .35s, padding .35s';
@@ -1133,12 +1211,12 @@ $tipNutricional = $tips[array_rand($tips)];
                         setTimeout(function(){ card.remove(); loadCitas(); },380);
                     } else { loadCitas(); }
                 } else {
-                    const message = (data && (data.error || data.email)) ? (data.error || data.email) : 'No se pudo actualizar la cita.';
-                    alert(message);
+                    const message = (data && (data.error || data.email_msg)) ? (data.error || data.email_msg) : 'No se pudo actualizar la cita.';
+                    mostrarNotificacion('⚠ Error', message, 'error', 4000);
                     if(card){ card.style.opacity='1'; card.style.pointerEvents=''; }
                 }
             })
-            .catch(function(error){ alert('Error al actualizar la cita: ' + (error.message || 'Error de conexión.'));
+            .catch(function(error){ mostrarNotificacion('✕ Error de Conexión', error.message || 'Error de conexión.', 'error', 4000);
                 if(card){ card.style.opacity='1'; card.style.pointerEvents=''; }
             });
     };
