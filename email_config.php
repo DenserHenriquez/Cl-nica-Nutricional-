@@ -1,6 +1,7 @@
 <?php
 /**
  * Configuración de correo electrónico con PHPMailer + sistema de cola para fiabilidad
+<<<<<<< Updated upstream
  * 
  * ⚠️ IMPORTANTE: Configura tus credenciales en 'email_credentials.php' (NO aquí)
  */
@@ -26,6 +27,49 @@ if (!defined('SMTP_CREDENTIALS_CONFIGURED') || !SMTP_CREDENTIALS_CONFIGURED) {
 } else {
     define('SMTP_NOT_CONFIGURED', false);
 }
+=======
+ * Los correos se encolan automáticamente si PHPMailer no está disponible
+ */
+
+// Usar fully qualified names para evitar conflictos
+// Los statements use no pueden estar en condicionales
+
+// Verificar si PHPMailer está disponible
+$PHPMailer_available = false;
+if (file_exists(__DIR__ . '/vendor/autoload.php')) {
+    @require_once __DIR__ . '/vendor/autoload.php';
+    if (class_exists('PHPMailer\\PHPMailer\\PHPMailer')) {
+        $PHPMailer_available = true;
+    }
+}
+
+/* ========================================
+   ✅ FIXED: SMTP Configuration 
+   ========================================
+   
+   **OPCIÓN 1: TESTING (Mailtrap - RECOMENDADO para desarrollo)**
+   Regístrate gratis: https://mailtrap.io/register (free tier)
+   Copia credenciales del Inbox → SMTP
+   
+   **OPCIÓN 2: GMAIL REAL (Producción)**
+   1. Activa 2FA: https://myaccount.google.com/security  
+   2. App Password: https://myaccount.google.com/apppasswords
+   3. Replace EMAIL/PASS below
+   
+   **Toggle: set USE_PROD_SMTP = true; para producción**
+*/
+
+$USE_PROD_SMTP = true;  // Usar Gmail real
+
+// SMTP para Gmail + App Password
+define('SMTP_HOST', 'smtp.gmail.com');
+define('SMTP_PORT', 587);
+define('SMTP_USER', 'nutrividahn@gmail.com');
+define('SMTP_PASS', 'abfd kelq gkkk wlmd');
+
+define('FROM_EMAIL', SMTP_USER);
+define('FROM_NAME', 'Clínica Nutricional J');
+>>>>>>> Stashed changes
 
 // Asegurar que FROM_EMAIL esté definido
 if (!defined('FROM_EMAIL')) {
@@ -36,11 +80,12 @@ if (!defined('FROM_NAME')) {
 }
 
 /**
- * Enviar correo inmediato (sync) - usa directamente PHPMailer
+ * Enviar correo inmediato (sync) - usa directamente PHPMailer si está disponible
  */
 function enviarCorreo($to, $subject, $body_html, $is_html = true) {
     global $PHPMailer_available;
     
+<<<<<<< Updated upstream
     // Si no hay credenciales configuradas o PHPMailer no está disponible, encolar
     if (!$PHPMailer_available || SMTP_NOT_CONFIGURED) {
         queueEmail($to, $subject, $body_html);
@@ -55,13 +100,34 @@ function enviarCorreo($to, $subject, $body_html, $is_html = true) {
     
     try {
         $mail = new \PHPMailer\PHPMailer\PHPMailer(true);
+=======
+    // Si PHPMailer no está disponible, encolar inmediatamente
+    if (!$PHPMailer_available) {
+        queueEmail($to, $subject, $body_html, 'PHPMailer no disponible - encolado automáticamente', 'PHPMailer not available');
+        return ['success' => false, 'error' => 'PHPMailer no disponible - correo encolado', 'queued' => true];
+    }
+    
+    // Verificar credenciales SMTP
+    if (!defined('SMTP_USER') || !defined('SMTP_PASS') || strpos(SMTP_USER, 'REEMPLAZA') !== false || strpos(SMTP_PASS, 'tu-app') !== false) {
+        queueEmail($to, $subject, $body_html, 'Credenciales SMTP no configuradas - encolado automáticamente', 'Credentials not configured');
+        return ['success' => false, 'error' => 'Credenciales SMTP no configuradas - correo encolado para después', 'queued' => true];
+    }
+    
+    try {
+        $mail = new PHPMailer\PHPMailer\PHPMailer(true);
+        
+>>>>>>> Stashed changes
         // Servidor SMTP
         $mail->isSMTP();
         $mail->Host       = SMTP_HOST;
         $mail->SMTPAuth   = true;
         $mail->Username   = SMTP_USER;
         $mail->Password   = SMTP_PASS;
+<<<<<<< Updated upstream
         $mail->SMTPSecure = \PHPMailer\PHPMailer\PHPMailer::ENCRYPTION_STARTTLS;
+=======
+        $mail->SMTPSecure = PHPMailer\PHPMailer\PHPMailer::ENCRYPTION_STARTTLS;
+>>>>>>> Stashed changes
         $mail->Port       = SMTP_PORT;
 
         // Remitente y destinatario
@@ -74,6 +140,7 @@ function enviarCorreo($to, $subject, $body_html, $is_html = true) {
         $mail->Body    = $body_html;
         $mail->CharSet = 'UTF-8';
 
+<<<<<<< Updated upstream
         $sent = $mail->send();
         return ['success' => true, 'message' => 'Enviado correctamente'];
     } catch (Exception $e) {
@@ -88,6 +155,22 @@ function enviarCorreo($to, $subject, $body_html, $is_html = true) {
             'error' => 'Error SMTP: ' . $e->getMessage() . ' (en cola para reintento)',
             'queued' => true
         ];
+=======
+        $mail->send();
+        return ['success' => true, 'message' => 'Enviado exitosamente'];
+    } catch (Exception $e) {
+        $error = isset($mail) ? ($mail->ErrorInfo ?: $e->getMessage()) : $e->getMessage();
+        logEmailError('Email send failed', [
+            'to' => $to,
+            'subject' => $subject,
+            'error_info' => $error,
+            'exception' => $e->getMessage()
+        ], $error);
+        
+        // Encolar como fallback
+        queueEmail($to, $subject, $body_html, 'Error en envío - encolado para reintento', $error);
+        return ['success' => false, 'error' => $error, 'queued' => true];
+>>>>>>> Stashed changes
     }
 }
 
