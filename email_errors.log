@@ -8,3 +8,5 @@
 {"timestamp":"2026-04-11 17:31:54","context":"Queued email","data":{"to":"dede@nutri.hn"},"error":"Unknown"}
 {"timestamp":"2026-04-11 17:33:50","context":"Queued email","data":{"to":"denserpacheco0@gmail.com"},"error":"Unknown"}
 {"timestamp":"2026-04-11 17:33:50","context":"Email cita confirmada en QUEUE","data":{"email":"denserpacheco0@gmail.com","error":"Invalid address:  (From): your-mailtrap-username"},"error":"Unknown"}
+{"timestamp":"2026-04-15 06:24:29","context":"Queued email","data":{"to":"denserpacheco0@gmail.com"},"error":"Unknown"}
+{"timestamp":"2026-04-15 06:24:29","context":"Email cita confirmada en QUEUE","data":{"email":"denserpacheco0@gmail.com","error":"Invalid address:  (From): your-mailtrap-username"},"error":"Unknown"}
