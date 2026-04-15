@@ -5,6 +5,11 @@
  */
 
 require_once __DIR__ . '/vendor/autoload.php';
+
+if (!class_exists('PHPMailer\\PHPMailer\\PHPMailer')) {
+    throw new RuntimeException('PHPMailer no se encontró. Ejecuta composer install en el directorio del proyecto y verifica la carpeta vendor/phpmailer/phpmailer.');
+}
+
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\SMTP;
 use PHPMailer\PHPMailer\Exception;
@@ -25,26 +30,17 @@ use PHPMailer\PHPMailer\Exception;
    **Toggle: set USE_PROD_SMTP = true; para producción**
 */
 
-$USE_PROD_SMTP = false;  // Set TRUE for real Gmail
+$USE_PROD_SMTP = true;  // Usar Gmail real
 
-if ($USE_PROD_SMTP) {
-    // 🚨 PRODUCTION: Replace with YOUR Gmail App Password
-    define('SMTP_HOST', 'smtp.gmail.com');
-    define('SMTP_PORT', 587);
-    define('SMTP_USER', 'tu-email@gmail.com');  // ← YOUR_EMAIL
-    define('SMTP_PASS', 'tu-app-password');     // ← YOUR_APP_PASSWORD
-} else {
-    // 🧪 TESTING: Mailtrap Demo (emails go to Mailtrap dashboard)
-    // Replace YOUR_API_KEY with real Mailtrap creds or use demo below
-    define('SMTP_HOST', 'sandbox.smtp.mailtrap.io');
-    define('SMTP_PORT', 2525);
-    define('SMTP_USER', 'your-mailtrap-username');
-    define('SMTP_PASS', 'your-mailtrap-password');
-    // Demo (limited): Use after signup for full access
-}
+// SMTP para Gmail + App Password
+define('SMTP_HOST', 'smtp.gmail.com');
+define('SMTP_PORT', 587);
+define('SMTP_USER', 'nutrividahn@gmail.com');
+define('SMTP_PASS', 'abfd kelq gkkk wlmd');
 
 define('FROM_EMAIL', SMTP_USER);
-define('FROM_NAME', 'Clínica Nutricional J ✅ FIXED');
+define('FROM_NAME', 'Clínica Nutricional J');
+
 
 /**
  * Enviar correo inmediato (sync) - usa directamente PHPMailer
@@ -74,8 +70,14 @@ function enviarCorreo($to, $subject, $body_html, $is_html = true) {
         $mail->send();
         return ['success' => true, 'message' => 'Enviado'];
     } catch (Exception $e) {
-        queueEmail($to, $subject, $body_html);
-        return ['success' => false, 'error' => $mail->ErrorInfo, 'queued' => true];
+        $error = $mail->ErrorInfo ?: $e->getMessage();
+        logEmailError('Email send failed', [
+            'to' => $to,
+            'subject' => $subject,
+            'error_info' => $error,
+            'exception' => $e->getMessage()
+        ], $error);
+        return ['success' => false, 'error' => $error, 'queued' => false];
     }
 }
 
@@ -91,7 +93,7 @@ function enviarCorreoConfirmacionCita($to_email, $paciente_nombre, $fecha_hora, 
     if ($r['success']) return $r;
     
     // Fallback cola
-    queueEmail($to_email, $subject, $body_html);
+    queueEmail($to_email, $subject, $body_html, 'Email cita confirmada en QUEUE', $r['error']);
     return ['success' => false, 'error' => $r['error'], 'queued' => true];
 }
 
@@ -116,12 +118,12 @@ function generarBodyConfirmacionCita($paciente_nombre, $fecha_hora, $medico_nomb
 /**
  * Log error emails y queue
  */
-function logEmailError($context, $data) {
+function logEmailError($context, $data = [], $error = null) {
     $log = [
         'timestamp' => date('Y-m-d H:i:s'),
         'context' => $context,
         'data' => $data,
-        'error' => error_get_last() ?: 'Unknown'
+        'error' => $error ?: error_get_last() ?: 'Unknown'
     ];
     file_put_contents(__DIR__ . '/email_errors.log', json_encode($log) . "\n", FILE_APPEND | LOCK_EX);
 }
@@ -129,7 +131,7 @@ function logEmailError($context, $data) {
 /**
  * Queue email to JSON file
  */
-function queueEmail($to, $subject, $body) {
+function queueEmail($to, $subject, $body, $context = 'Queued email', $error = null) {
     $queue_file = __DIR__ . '/email_queue.json';
     $queue = [];
     if (file_exists($queue_file)) {
@@ -140,10 +142,11 @@ function queueEmail($to, $subject, $body) {
         'subject' => $subject,
         'body' => $body,
         'created' => date('Y-m-d H:i:s'),
-        'attempts' => 0
+        'attempts' => 0,
+        'last_error' => $error
     ];
     file_put_contents($queue_file, json_encode($queue, JSON_PRETTY_PRINT));
-    logEmailError('Queued email', ['to' => $to]);
+    logEmailError($context, ['to' => $to, 'subject' => $subject, 'last_error' => $error], $error);
 }
 
 ?>

@@ -47,5 +47,12 @@
         "body": "\r\n    <div style='font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;'>\r\n        <h2 style='color: #198754;'>\u2705 Cita Confirmada<\/h2>\r\n        <p>Hola <strong>David Pacheco<\/strong>,<\/p>\r\n        <p>Su cita ha sido <strong>confirmada<\/strong> exitosamente.<\/p>\r\n        <div style='background: #e8f5e9; padding: 20px; border-left: 5px solid #198754; border-radius: 5px;'>\r\n            <h3>Detalles de la Cita<\/h3>\r\n            <p><strong>Fecha y Hora:<\/strong> 07\/03\/2026 10:30<\/p>\r\n            <p><strong>M\u00e9dico:<\/strong> anthony<\/p>\r\n        <\/div>\r\n        <p>Por favor llegue 10 minutos antes. Si no puede asistir, cancele con anticipaci\u00f3n.<\/p>\r\n        <p>Saludos,<br><strong>Cl\u00ednica Nutricional J<\/strong><\/p>\r\n    <\/div>",
         "created": "2026-04-11 17:33:50",
         "attempts": 0
+    },
+    {
+        "to": "denserpacheco0@gmail.com",
+        "subject": "Confirmaci\u00f3n de cita m\u00e9dica",
+        "body": "\r\n    <div style='font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;'>\r\n        <h2 style='color: #198754;'>\u2705 Cita Confirmada<\/h2>\r\n        <p>Hola <strong>David Pacheco<\/strong>,<\/p>\r\n        <p>Su cita ha sido <strong>confirmada<\/strong> exitosamente.<\/p>\r\n        <div style='background: #e8f5e9; padding: 20px; border-left: 5px solid #198754; border-radius: 5px;'>\r\n            <h3>Detalles de la Cita<\/h3>\r\n            <p><strong>Fecha y Hora:<\/strong> 07\/03\/2026 10:30<\/p>\r\n            <p><strong>M\u00e9dico:<\/strong> anthony<\/p>\r\n        <\/div>\r\n        <p>Por favor llegue 10 minutos antes. Si no puede asistir, cancele con anticipaci\u00f3n.<\/p>\r\n        <p>Saludos,<br><strong>Cl\u00ednica Nutricional J<\/strong><\/p>\r\n    <\/div>",
+        "created": "2026-04-15 06:24:29",
+        "attempts": 0
     }
 ]

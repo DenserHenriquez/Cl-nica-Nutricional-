@@ -2,13 +2,29 @@
 // api_citas_medico.php – Endpoint JSON para citas pendientes del médico autenticado
 session_start();
 
+function respond_json($payload, $status = 200) {
+    http_response_code($status);
+    header('Content-Type: application/json; charset=utf-8');
+    echo json_encode($payload, JSON_UNESCAPED_UNICODE);
+    exit;
+}
+
+set_error_handler(function($errno, $errstr /* , $errfile, $errline */) {
+    respond_json(['ok' => false, 'error' => "Error interno: {$errstr}"], 500);
+});
+
+register_shutdown_function(function() {
+    $error = error_get_last();
+    if ($error !== null && in_array($error['type'], [E_ERROR, E_PARSE, E_CORE_ERROR, E_COMPILE_ERROR], true)) {
+        respond_json(['ok' => false, 'error' => 'Error interno de servidor (fatal).'], 500);
+    }
+});
+
 header('Content-Type: application/json; charset=utf-8');
 
 // Verificar sesión activa
 if (!isset($_SESSION['id_usuarios'])) {
-    http_response_code(401);
-    echo json_encode(['ok' => false, 'error' => 'No autenticado']);
-    exit;
+    respond_json(['ok' => false, 'error' => 'No autenticado'], 401);
 }
 
 $role = $_SESSION['rol'] ?? '';

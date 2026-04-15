@@ -1063,9 +1063,23 @@ $tipNutricional = $tips[array_rand($tips)];
     let panelOpen = false;
     function escH(s){ const d=document.createElement('div'); d.textContent=String(s); return d.innerHTML; }
     function fmtFecha(dateStr){ if(!dateStr) return ''; const p=dateStr.split('-'); return p.length===3 ? p[2]+'/'+p[1]+'/'+p[0] : dateStr; }
+    const apiCitasUrl = new URL('api_citas_medico.php', window.location.href).href;
+
+    async function fetchJson(url, options = {}) {
+        const response = await fetch(url, { credentials: 'include', ...options });
+        const text = await response.text();
+        if (!response.ok) {
+            throw new Error('HTTP ' + response.status + ': ' + text);
+        }
+        try {
+            return JSON.parse(text);
+        } catch (err) {
+            throw new Error('Respuesta inválida del servidor: ' + text);
+        }
+    }
+
     function loadCitas(){
-        fetch('api_citas_medico.php?action=pending',{credentials:'same-origin'})
-            .then(r=>r.json())
+        fetchJson(apiCitasUrl + '?action=pending')
             .then(function(data){
                 const badge=document.getElementById('citasBadge');
                 const body=document.getElementById('citasPanelBody');
@@ -1090,7 +1104,7 @@ $tipNutricional = $tips[array_rand($tips)];
                 });
                 body.innerHTML=html;
             })
-            .catch(function(){ const body=document.getElementById('citasPanelBody'); if(body) body.innerHTML='<p class="text-danger text-center mt-4">Error de conexión.</p>'; });
+            .catch(function(error){ const body=document.getElementById('citasPanelBody'); if(body){ body.innerHTML=''; const p=document.createElement('p'); p.className='text-danger text-center mt-4'; p.textContent='Error al cargar citas: ' + (error.message || 'Error de conexión.'); body.appendChild(p); } });
     }
     window.toggleCitasPanel = function(){
         panelOpen=!panelOpen;
@@ -1102,8 +1116,7 @@ $tipNutricional = $tips[array_rand($tips)];
         const card=document.getElementById('cita-'+id);
         if(card){ card.style.opacity='0.4'; card.style.pointerEvents='none'; }
         const fd=new FormData(); fd.append('action',action); fd.append('id',id);
-        fetch('api_citas_medico.php',{method:'POST',body:fd,credentials:'same-origin'})
-            .then(r=>r.json())
+        fetchJson(apiCitasUrl, {method:'POST',body:fd})
             .then(function(data){
                 if(data&&data.ok){
                     if(action === 'confirmar' && data.email){
@@ -1125,7 +1138,9 @@ $tipNutricional = $tips[array_rand($tips)];
                     if(card){ card.style.opacity='1'; card.style.pointerEvents=''; }
                 }
             })
-            .catch(function(){ alert('Error de conexión.'); if(card){ card.style.opacity='1'; card.style.pointerEvents=''; } });
+            .catch(function(error){ alert('Error al actualizar la cita: ' + (error.message || 'Error de conexión.'));
+                if(card){ card.style.opacity='1'; card.style.pointerEvents=''; }
+            });
     };
     loadCitas();
     setInterval(loadCitas, 30000);
