@@ -672,6 +672,63 @@ if ($action === 'add_availability') {
                 }
                 $q->close();
             }
+        } elseif ($nuevo_estado === 'cancelada') {
+            // Obtener datos de la cita para enviar email de cancelación
+            $q = $conn->prepare("SELECT c.id, c.fecha, c.hora, c.nombre_completo, c.paciente_id, u.Correo_electronico AS email
+                                 FROM citas c
+                                 LEFT JOIN usuarios u ON u.id_usuarios = c.paciente_id
+                                 WHERE c.id=? AND c.medico_id=? LIMIT 1");
+            if ($q) {
+                $q->bind_param('ii', $cita_id, $medico_id);
+                $q->execute();
+                $resC = $q->get_result();
+                if ($rowC = $resC->fetch_assoc()) {
+                    $pacienteNombre = $rowC['nombre_completo'] ?: 'Paciente';
+                    $pacienteEmail  = $rowC['email'] ?? '';
+
+                    // Fallback: si no hay paciente_id o email por join, intentar resolver por nombre
+                    if (empty($pacienteEmail)) {
+                        $tmp = $conn->prepare("SELECT id_usuarios, Correo_electronico FROM usuarios WHERE Nombre_completo = ? LIMIT 1");
+                        if ($tmp) {
+                            $tmp->bind_param('s', $pacienteNombre);
+                            $tmp->execute();
+                            $rs = $tmp->get_result();
+                            if ($urow = $rs->fetch_assoc()) {
+                                $pacienteEmail = $urow['Correo_electronico'] ?? '';
+                                // Si la cita no tiene paciente_id, actualízalo para futuras operaciones
+                                if (empty($rowC['paciente_id']) && !empty($urow['id_usuarios'])) {
+                                    $upd = $conn->prepare("UPDATE citas SET paciente_id=? WHERE id=? AND medico_id=?");
+                                    if ($upd) { $upd->bind_param('iii', $urow['id_usuarios'], $cita_id, $medico_id); $upd->execute(); $upd->close(); }
+                                }
+                            }
+                            $tmp->close();
+                        }
+                    }
+
+                    $fechaTxt = '';
+                    try {
+                        $dt = new DateTime($rowC['fecha'] . ' ' . $rowC['hora'], new DateTimeZone('America/Mexico_City'));
+                        $fechaTxt = $dt->format('d/m/Y H:i');
+                    } catch (Exception $e) {
+                        $fechaTxt = ($rowC['fecha'] . ' ' . substr($rowC['hora'],0,5));
+                    }
+
+                    // Enviar email de cancelación si hay email del paciente
+                    if (!empty($pacienteEmail)) {
+                        require_once __DIR__ . '/email_config.php';
+                        $resultado = enviarCorreoCancelacionCita($pacienteEmail, $pacienteNombre, $fechaTxt, $medicos[$medico_id]['nombre'] ?? 'Médico de la clínica');
+                        if ($resultado['success']) {
+                            $response_msg .= ' ✅ Notificación de cancelación enviada correctamente.';
+                        } else {
+                            logEmailError("Email cita cancelada en QUEUE", ['email' => $pacienteEmail, 'error' => $resultado['error']]);
+                            $response_msg .= ' ⚠️ En cola para reintento automático (ver Logs)';
+                        }
+                    } else {
+                        $response_msg .= ' El paciente no tiene correo registrado, no se envió notificación.';
+                    }
+                }
+                $q->close();
+            }
         }
     }
 }
