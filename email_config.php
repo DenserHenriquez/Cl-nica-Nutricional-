@@ -116,6 +116,41 @@ function generarBodyConfirmacionCita($paciente_nombre, $fecha_hora, $medico_nomb
 }
 
 /**
+ * Enviar email de cancelación de cita
+ */
+function enviarCorreoCancelacionCita($to_email, $paciente_nombre, $fecha_hora, $medico_nombre) {
+    $subject = 'Cancelación de su cita médica - Clínica Nutricional';
+    $body_html = generarBodyCancelacionCita($paciente_nombre, $fecha_hora, $medico_nombre);
+    
+    // Intentar envío inmediato
+    $r = enviarCorreo($to_email, $subject, $body_html);
+    if ($r['success']) return $r;
+    
+    // Fallback cola
+    queueEmail($to_email, $subject, $body_html, 'Email cita cancelada en QUEUE', $r['error']);
+    return ['success' => false, 'error' => $r['error'], 'queued' => true];
+}
+
+/**
+ * Generar HTML de email de cancelación de cita
+ */
+function generarBodyCancelacionCita($paciente_nombre, $fecha_hora, $medico_nombre) {
+    return "
+    <div style='font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;'>
+        <h2 style='color: #dc3545;'>❌ Cita Cancelada</h2>
+        <p>Hola <strong>$paciente_nombre</strong>,</p>
+        <p>La cita que había realizado ha sido <strong>cancelada</strong>.</p>
+        <div style='background: #f8d7da; padding: 20px; border-left: 5px solid #dc3545; border-radius: 5px;'>
+            <h3>Detalles de la Cita Cancelada</h3>
+            <p><strong>Fecha y Hora:</strong> $fecha_hora</p>
+            <p><strong>Médico:</strong> $medico_nombre</p>
+        </div>
+        <p>Si desea programar una nueva cita, contáctenos a través de nuestro sistema.</p>
+        <p>Saludos,<br><strong>Clínica Nutricional J</strong></p>
+    </div>";
+}
+
+/**
  * Log error emails y queue
  */
 function logEmailError($context, $data = [], $error = null) {

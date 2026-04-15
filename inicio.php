@@ -141,7 +141,7 @@ try {
                 }
 
                 // Lista completa de citas del paciente (confirmadas + pendientes)
-                $qLista = "SELECT c.fecha, c.hora, c.motivo, c.estado, COALESCE(u.Nombre_completo,'Médico') AS medico FROM citas c LEFT JOIN usuarios u ON c.medico_id=u.id_usuarios WHERE $citaWhereFull AND c.estado IN ('confirmada','pendiente') ORDER BY CASE WHEN c.fecha >= CURDATE() THEN 0 ELSE 1 END, c.fecha ASC, c.hora ASC LIMIT 15";
+                $qLista = "SELECT c.id, c.fecha, c.hora, c.motivo, c.estado, COALESCE(u.Nombre_completo,'Médico') AS medico FROM citas c LEFT JOIN usuarios u ON c.medico_id=u.id_usuarios WHERE $citaWhereFull AND c.estado IN ('confirmada','pendiente') ORDER BY CASE WHEN c.fecha >= CURDATE() THEN 0 ELSE 1 END, c.fecha ASC, c.hora ASC LIMIT 15";
                 if ($stmt = $conexion->prepare($qLista)) {
                     $stmt->bind_param($citaParamTypes, ...$citaParams);
                     $stmt->execute(); $resLista = $stmt->get_result();
@@ -502,9 +502,192 @@ $tipNutricional = $tips[array_rand($tips)];
     .cita-motivo { font-size: .82rem; color: #495057; background: #e8f5e9; border-radius: 6px; padding: 5px 8px; margin-bottom: 10px; }
     .cita-actions { display: flex; gap: 8px; }
 
+    /* ── NOTIFICACIONES FLOTANTES ── */
+    #notificaciones-container {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        z-index: 9999;
+        max-width: 420px;
+        pointer-events: none;
+    }
+    @media (max-width: 600px) {
+        #notificaciones-container {
+            top: 10px;
+            right: 10px;
+            left: 10px;
+            max-width: none;
+        }
+    }
+    .notificacion {
+        background: #fff;
+        border-radius: 12px;
+        padding: 16px 18px;
+        margin-bottom: 12px;
+        box-shadow: 0 8px 28px rgba(0, 0, 0, 0.12);
+        display: flex;
+        align-items: flex-start;
+        gap: 12px;
+        animation: slideInNotif 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+        pointer-events: auto;
+        border-left: 4px solid #198754;
+    }
+    .notificacion.error {
+        border-left-color: #dc3545;
+    }
+    .notificacion.warning {
+        border-left-color: #ffc107;
+    }
+    .notificacion.info {
+        border-left-color: #0d6efd;
+    }
+    .notificacion-icon {
+        flex-shrink: 0;
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.1rem;
+        color: #fff;
+    }
+    .notificacion .notificacion-icon {
+        background: linear-gradient(135deg, #198754, #146c43);
+    }
+    .notificacion.error .notificacion-icon {
+        background: linear-gradient(135deg, #dc3545, #c82333);
+    }
+    .notificacion.warning .notificacion-icon {
+        background: linear-gradient(135deg, #ffc107, #fd7e14);
+    }
+    .notificacion.info .notificacion-icon {
+        background: linear-gradient(135deg, #0d6efd, #0d5ef7);
+    }
+    .notificacion-content {
+        flex: 1;
+        min-width: 0;
+    }
+    .notificacion-titulo {
+        font-weight: 700;
+        font-size: 0.95rem;
+        color: #0d5132;
+        margin: 0 0 4px 0;
+    }
+    .notificacion.error .notificacion-titulo {
+        color: #842029;
+    }
+    .notificacion.warning .notificacion-titulo {
+        color: #664d03;
+    }
+    .notificacion.info .notificacion-titulo {
+        color: #084298;
+    }
+    .notificacion-texto {
+        font-size: 0.88rem;
+        color: #495057;
+        margin: 0;
+        line-height: 1.4;
+        word-wrap: break-word;
+    }
+    .notificacion-close {
+        flex-shrink: 0;
+        background: none;
+        border: none;
+        color: #adb5bd;
+        cursor: pointer;
+        padding: 4px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.2rem;
+        transition: color 0.2s;
+    }
+    .notificacion-close:hover {
+        color: #495057;
+    }
+    @keyframes slideInNotif {
+        from {
+            opacity: 0;
+            transform: translateX(400px);
+        }
+        to {
+            opacity: 1;
+            transform: translateX(0);
+        }
+    }
+    @keyframes slideOutNotif {
+        from {
+            opacity: 1;
+            transform: translateX(0);
+        }
+        to {
+            opacity: 0;
+            transform: translateX(400px);
+        }
+    }
+    .notificacion.saliendo {
+        animation: slideOutNotif 0.35s ease-in forwards;
+    }
+
 </style>
 </head>
 <body>
+
+<!-- Contenedor de notificaciones flotantes -->
+<div id="notificaciones-container"></div>
+
+<!-- FUNCIÓN GLOBAL DE NOTIFICACIONES FLOTANTES -->
+<script>
+    window.mostrarNotificacion = function(titulo, mensaje, tipo = 'success', duracion = 4000) {
+        const container = document.getElementById('notificaciones-container');
+        if (!container) return;
+        
+        // Crear elemento notificación
+        const notif = document.createElement('div');
+        notif.className = 'notificacion ' + tipo;
+        
+        // Determinar icono según tipo
+        let iconoClass = 'bi-check-circle-fill';
+        if (tipo === 'error') iconoClass = 'bi-exclamation-circle-fill';
+        else if (tipo === 'warning') iconoClass = 'bi-exclamation-triangle-fill';
+        else if (tipo === 'info') iconoClass = 'bi-info-circle-fill';
+        
+        notif.innerHTML = `
+            <div class="notificacion-icon">
+                <i class="bi ${iconoClass}"></i>
+            </div>
+            <div class="notificacion-content">
+                <p class="notificacion-titulo">${escapeHtml(titulo)}</p>
+                <p class="notificacion-texto">${escapeHtml(mensaje)}</p>
+            </div>
+            <button type="button" class="notificacion-close" onclick="this.closest('.notificacion').remove()">
+                <i class="bi bi-x-lg"></i>
+            </button>
+        `;
+        
+        container.appendChild(notif);
+        
+        // Auto-ocultar después de duracion
+        if (duracion > 0) {
+            setTimeout(() => {
+                notif.classList.add('saliendo');
+                setTimeout(() => notif.remove(), 350);
+            }, duracion);
+        }
+    };
+    
+    function escapeHtml(text) {
+        const map = {
+            '&': '&amp;',
+            '<': '&lt;',
+            '>': '&gt;',
+            '"': '&quot;',
+            "'": '&#039;'
+        };
+        return String(text).replace(/[&<>"']/g, m => map[m]);
+    }
+</script>
 
 <?php if ($userRole === 'Paciente' && !empty($bannerSlides)): ?>
 <!-- ══ CARRUSEL DE BANNERS ══ -->
@@ -738,6 +921,7 @@ $tipNutricional = $tips[array_rand($tips)];
                                 const hoy = '<?= $hoy; ?>';
                                 const citas = <?= json_encode(array_map(function($c) {
                                     return [
+                                        'id'     => (int)$c['id'],
                                         'fecha'  => $c['fecha'],
                                         'hora'   => $c['hora'],
                                         'medico' => $c['medico'],
@@ -783,6 +967,10 @@ $tipNutricional = $tips[array_rand($tips)];
                                     if(esConfirmada) html += '<span class="cita-badge confirmada"><i class="bi bi-check-circle me-1"></i>Confirmada</span>';
                                     else html += '<span class="cita-badge pendiente"><i class="bi bi-hourglass-split me-1"></i>Pendiente</span>';
                                     if(!esFutura) html += ' <span style="font-size:.7rem;background:#e3f2fd;color:#0d6efd;border-radius:10px;padding:1px 7px;font-weight:600;">Pasada</span>';
+                                    // Botón de confirmación para citas pendientes
+                                    if(!esConfirmada && esFutura) {
+                                        html += '<button type="button" class="btn btn-success btn-sm mt-3 w-100" onclick="confirmarCitaSlider('+c.id+')" style="display:flex;align-items:center;justify-content:center;gap:6px;"><i class="bi bi-check-circle me-1"></i>Confirmar Cita</button>';
+                                    }
                                     document.getElementById('citasSliderContent').innerHTML = html;
                                     const counter = document.getElementById('citasCounter');
                                     if(counter) counter.textContent = (idx+1)+' / '+total;
@@ -799,7 +987,66 @@ $tipNutricional = $tips[array_rand($tips)];
                                 if(prevBtn) prevBtn.addEventListener('click', function(){ if(idx>0){ idx--; render(); } });
                                 if(nextBtn) nextBtn.addEventListener('click', function(){ if(idx<total-1){ idx++; render(); } });
                             })();
+                            
+                            // Función global para confirmar cita desde el slider
+                            window.confirmarCitaSlider = function(citaId) {
+                                if (!confirm('¿Deseas confirmar esta cita? Se enviará un correo de confirmación.')) {
+                                    return;
+                                }
+                                
+                                const btn = event.target.closest('button');
+                                if (btn) {
+                                    btn.disabled = true;
+                                    btn.innerHTML = '<i class="bi bi-hourglass-split"></i> Confirmando...';
+                                }
+                                
+                                const formData = new FormData();
+                                formData.append('id', citaId);
+                                
+                                fetch('api_confirmar_cita_paciente.php', {
+                                    method: 'POST',
+                                    body: formData,
+                                    credentials: 'include'
+                                })
+                                .then(response => response.json())
+                                .then(data => {
+                                    if (data.ok) {
+                                        mostrarNotificacion(
+                                            '✓ Cita Confirmada',
+                                            data.email || 'Tu cita ha sido confirmada exitosamente.',
+                                            'success',
+                                            5000
+                                        );
+                                        // Recargar después de 1.5s para que vea la notificación
+                                        setTimeout(() => location.reload(), 1500);
+                                    } else {
+                                        mostrarNotificacion(
+                                            '⚠ Error al Confirmar',
+                                            data.error || 'No se pudo confirmar la cita.',
+                                            'error',
+                                            4000
+                                        );
+                                        if (btn) {
+                                            btn.disabled = false;
+                                            btn.innerHTML = '<i class="bi bi-check-circle"></i> Confirmar Cita';
+                                        }
+                                    }
+                                })
+                                .catch(error => {
+                                    mostrarNotificacion(
+                                        '✕ Error de Conexión',
+                                        error.message || 'No fue posible conectar con el servidor.',
+                                        'error',
+                                        4000
+                                    );
+                                    if (btn) {
+                                        btn.disabled = false;
+                                        btn.innerHTML = '<i class="bi bi-check-circle"></i> Confirmar Cita';
+                                    }
+                                });
+                            };
                             </script>
+
                         <?php else: ?>
                             <div class="pac-big-val">0</div>
                             <div class="pac-sub">citas agendadas</div>
@@ -1120,11 +1367,13 @@ $tipNutricional = $tips[array_rand($tips)];
             .then(function(data){
                 if(data&&data.ok){
                     if(action === 'confirmar' && data.email){
-                        alert('Cita confirmada. ' + data.email);
+                        mostrarNotificacion('✓ Cita Confirmada', data.email, 'success', 4000);
                     } else if(action === 'confirmar') {
-                        alert('Cita confirmada.');
+                        mostrarNotificacion('✓ Cita Confirmada', 'La cita ha sido confirmada exitosamente.', 'success', 4000);
+                    } else if(action === 'cancelar' && data.email_msg) {
+                        mostrarNotificacion('✓ Cita Cancelada', data.email_msg, 'success', 4000);
                     } else if(action === 'cancelar') {
-                        alert('Cita cancelada.');
+                        mostrarNotificacion('✓ Cita Cancelada', 'La cita ha sido cancelada.', 'success', 4000);
                     }
                     if(card){
                         card.style.transition='opacity .3s, max-height .35s, margin .35s, padding .35s';
@@ -1134,11 +1383,11 @@ $tipNutricional = $tips[array_rand($tips)];
                     } else { loadCitas(); }
                 } else {
                     const message = (data && (data.error || data.email)) ? (data.error || data.email) : 'No se pudo actualizar la cita.';
-                    alert(message);
+                    mostrarNotificacion('⚠ Error', message, 'error', 4000);
                     if(card){ card.style.opacity='1'; card.style.pointerEvents=''; }
                 }
             })
-            .catch(function(error){ alert('Error al actualizar la cita: ' + (error.message || 'Error de conexión.'));
+            .catch(function(error){ mostrarNotificacion('✕ Error de Conexión', error.message || 'Error de conexión.', 'error', 4000);
                 if(card){ card.style.opacity='1'; card.style.pointerEvents=''; }
             });
     };
